@@ -21,7 +21,7 @@ public class StripeController {
     private final StripeService stripeService;
     private final String stripeWebhookSecret;
 
-    @PostMapping("/webhook")
+    @PostMapping("/webhooks")
     public ResponseEntity<String> handleStripeWebhook(HttpServletRequest request) {
         String payload;
         String sigHeader = request.getHeader("Stripe-Signature");
