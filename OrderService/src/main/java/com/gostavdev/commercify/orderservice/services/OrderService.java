@@ -1,12 +1,13 @@
 package com.gostavdev.commercify.orderservice.services;
 
-import com.gostavdev.commercify.orderservice.dto.OrderDTO;
-import com.gostavdev.commercify.orderservice.dto.ProductDto;
+import com.gostavdev.commercify.orderservice.dto.*;
 import com.gostavdev.commercify.orderservice.dto.api.CreateOrderRequest;
 import com.gostavdev.commercify.orderservice.dto.api.OrderLineRequest;
 import com.gostavdev.commercify.orderservice.dto.mappers.OrderDTOMapper;
+import com.gostavdev.commercify.orderservice.dto.mappers.OrderLineDTOMapper;
 import com.gostavdev.commercify.orderservice.feignclients.PaymentsClient;
 import com.gostavdev.commercify.orderservice.feignclients.ProductsClient;
+import com.gostavdev.commercify.orderservice.feignclients.UserClient;
 import com.gostavdev.commercify.orderservice.model.Order;
 import com.gostavdev.commercify.orderservice.model.OrderLine;
 import com.gostavdev.commercify.orderservice.model.OrderStatus;
@@ -25,9 +26,11 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderLineRepository orderLineRepository;
     private final OrderDTOMapper mapper;
+    private final OrderLineDTOMapper olMapper;
 
     private final ProductsClient productsClient;
     private final PaymentsClient paymentsClient;
+    private final UserClient userClient;
 
     @Transactional
     public List<OrderDTO> getOrdersByUserId(Long userId) {
@@ -78,9 +81,9 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderDTO getOrderById(Long orderId) {
-        return orderRepository.findById(orderId).map(mapper)
-                .orElseThrow(() -> new IllegalArgumentException("Order not found"));
+    public List<OrderLineDTO> getOrderLinesByOrderId(Order order) {
+        return orderLineRepository.findByOrder(order).stream()
+                .map(olMapper).toList();
     }
 
     @Transactional
@@ -96,5 +99,15 @@ public class OrderService {
         orderLineRepository.deleteOrderLinesByOrder(orderRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found")));
         orderRepository.deleteById(id);
+    }
+
+    @Transactional
+    public OrderDetails getOrderById(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Order not found"));
+
+        List<OrderLineDTO> orderLines = getOrderLinesByOrderId(order);
+
+        return new OrderDetails(mapper.apply(order), orderLines);
     }
 }

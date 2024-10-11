@@ -5,5 +5,6 @@ public record OrderLineDTO(
         Long productId,
         String stripeProductId,
         Integer quantity,
-        Double unitPrice) {
+        Double unitPrice,
+        ProductDto product) {
 }

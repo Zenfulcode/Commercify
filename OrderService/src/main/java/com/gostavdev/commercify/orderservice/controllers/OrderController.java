@@ -1,6 +1,7 @@
 package com.gostavdev.commercify.orderservice.controllers;
 
 import com.gostavdev.commercify.orderservice.dto.OrderDTO;
+import com.gostavdev.commercify.orderservice.dto.OrderDetails;
 import com.gostavdev.commercify.orderservice.dto.api.CreateOrderRequest;
 import com.gostavdev.commercify.orderservice.model.OrderStatus;
 import com.gostavdev.commercify.orderservice.services.OrderService;
@@ -36,7 +37,7 @@ public class OrderController {
     }
 
     @GetMapping("/{orderId}")
-    public ResponseEntity<OrderDTO> getOrderById(@PathVariable Long orderId) {
+    public ResponseEntity<OrderDetails> getOrderById(@PathVariable Long orderId) {
         return ResponseEntity.ok(orderService.getOrderById(orderId));
     }
 
