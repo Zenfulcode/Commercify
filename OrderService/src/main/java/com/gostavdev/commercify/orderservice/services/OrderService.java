@@ -17,7 +17,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -88,12 +87,6 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderDTO getOrderById(Long orderId) {
-        return orderRepository.findById(orderId).map(mapper)
-                .orElseThrow(() -> new IllegalArgumentException("Order not found"));
-    }
-
-    @Transactional
     public List<OrderDTO> getAllOrders() {
         List<Order> orders = orderRepository.findAll();
         return orders.stream().map(mapper).collect(Collectors.toList());
@@ -109,10 +102,9 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderDetails getOrderDetailsById(Long orderId) {
+    public OrderDetails getOrderById(Long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found"));
-
 
         List<OrderLineDTO> orderLines = getOrderLinesByOrderId(order);
 
