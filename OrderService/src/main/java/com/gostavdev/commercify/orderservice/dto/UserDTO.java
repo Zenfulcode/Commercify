@@ -1,8 +1,11 @@
 package com.gostavdev.commercify.orderservice.dto;
 
+import java.util.Date;
+
 public record UserDTO(
-        String id,
+        String userId,
         String email,
         String firstName,
-        String lastName) {
+        String lastName,
+        Date createdAt) {
 }
