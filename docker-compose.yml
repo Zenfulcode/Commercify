@@ -7,7 +7,7 @@ services:
       - MYSQL_DATABASE=db
       - MYSQL_ROOT_PASSWORD=${DATABASE_PASSWORD}
     ports:
-      - "3306:3306"
+      - "3307:3306"
     networks:
       - spring-net
     volumes:
@@ -20,7 +20,9 @@ services:
       retries: 6
 
   order-service:
-    image: ghcr.io/gustavhaavik/commercify_orders:latest
+    build:
+      context: OrderService
+      dockerfile: Dockerfile
     container_name: commercify_orders
     ports:
       - "8081:8081"
@@ -29,6 +31,7 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/orderdb
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=${DATABASE_PASSWORD}
+      - SPRING_JWT_SECRET_KEY=${JWT_SECRET_KEY}
     depends_on:
       mysql-db:
         condition: service_healthy
@@ -36,7 +39,9 @@ services:
       - spring-net
 
   payment-service:
-    image: ghcr.io/gustavhaavik/commercify_payments:latest
+    build:
+      context: PaymentService
+      dockerfile: Dockerfile
     container_name: commercify_payments
     ports:
       - "8082:8082"
@@ -45,6 +50,7 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/paymentdb
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=${DATABASE_PASSWORD}
+      - SPRING_JWT_SECRET_KEY=${JWT_SECRET_KEY}
     depends_on:
       mysql-db:
         condition: service_healthy
@@ -52,7 +58,9 @@ services:
       - spring-net
 
   product-service:
-    image: ghcr.io/gustavhaavik/commercify_products:latest
+    build:
+      context: ProductsService
+      dockerfile: Dockerfile
     container_name: commercify_products
     ports:
       - "8083:8083"
@@ -61,6 +69,7 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/productdb
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=${DATABASE_PASSWORD}
+      - SPRING_JWT_SECRET_KEY=${JWT_SECRET_KEY}
     depends_on:
       mysql-db:
         condition: service_healthy
@@ -68,7 +77,9 @@ services:
       - spring-net
 
   user-service:
-    image: ghcr.io/gustavhaavik/commercify_users:latest
+    build:
+      context: UserService
+      dockerfile: Dockerfile
     container_name: commercify_users
     ports:
       - "8084:8084"
@@ -77,6 +88,7 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/userdb
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=${DATABASE_PASSWORD}
+      - SPRING_JWT_SECRET_KEY=${JWT_SECRET_KEY}
     depends_on:
       mysql-db:
         condition: service_healthy
