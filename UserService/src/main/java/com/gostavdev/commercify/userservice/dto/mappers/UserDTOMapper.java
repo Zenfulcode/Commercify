@@ -3,6 +3,7 @@ package com.gostavdev.commercify.userservice.dto.mappers;
 import com.gostavdev.commercify.userservice.dto.UserDTO;
 import com.gostavdev.commercify.userservice.entities.UserEntity;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
 import java.util.function.Function;
@@ -17,7 +18,7 @@ public class UserDTOMapper implements Function<UserEntity, UserDTO> {
                 .email(user.getEmail())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
-                .roles(user.getRoles())
+                .roles(user.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList())
                 .createdAt(user.getCreatedAt())
                 .build();
     }

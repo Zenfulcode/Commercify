@@ -1,7 +1,6 @@
 package com.gostavdev.commercify.userservice.controllers;
 
 import com.gostavdev.commercify.userservice.dto.UserDTO;
-import com.gostavdev.commercify.userservice.service.AuthenticationService;
 import com.gostavdev.commercify.userservice.service.UserManagementService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,12 +14,18 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserManagementController {
     private final UserManagementService userManagementService;
-    private final AuthenticationService authenticationService;
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
+    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.userId")
     public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
         return ResponseEntity.ok(userManagementService.getUserById(id));
+    }
+
+    @GetMapping(value = "/load/{userEmail}")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<UserDTO> loadUserByEmail(@PathVariable String userEmail) {
+        UserDTO user = userManagementService.getUserByEmail(userEmail);
+        return ResponseEntity.ok(user);
     }
 
     @GetMapping
@@ -30,7 +35,7 @@ public class UserManagementController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
+    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.userId")
     public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @RequestBody UserDTO userDTO) {
         return ResponseEntity.ok(userManagementService.updateUser(id, userDTO));
     }

@@ -11,18 +11,22 @@ import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.stream.Collectors;
 
 @Component
 @AllArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-    private final JwtService jwtService;
     private final UserClient userClient;
+    private final JwtService jwtService;
 
     @Override
     protected void doFilterInternal(
@@ -40,18 +44,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String jwt = authHeader.substring(7);
         final String userEmail = jwtService.extractUsername(jwt);
 
-        System.out.println("User email: " + userEmail);
-
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (userEmail != null && authentication == null) {
-            UserDTO user = userClient.getUserByEmail(userEmail, authHeader);
+            UserDTO user = userClient.loadUserByEmail(userEmail, authHeader);
 
             if (jwtService.isTokenValid(jwt, user)) {
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        user.email(),
+                        new AuthPrincipal(user.email(), user.userId()),
                         null,
-                        null
+                        user.roles().stream()
+                                .map(SimpleGrantedAuthority::new)
+                                .collect(Collectors.toSet())
                 );
 
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
@@ -60,5 +64,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    public record AuthPrincipal(String email, Long userId) {
     }
 }

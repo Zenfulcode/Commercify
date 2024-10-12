@@ -82,4 +82,11 @@ public class UserManagementService {
 
         return mapper.apply(updatedUser);
     }
+
+    @Transactional(readOnly = true)
+    public UserDTO getUserByEmail(String userEmail) {
+        return userRepository.findByEmail(userEmail)
+                .map(mapper)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
 }

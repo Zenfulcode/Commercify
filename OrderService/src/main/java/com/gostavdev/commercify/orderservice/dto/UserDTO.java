@@ -1,11 +1,13 @@
 package com.gostavdev.commercify.orderservice.dto;
 
 import java.util.Date;
+import java.util.List;
 
 public record UserDTO(
-        String userId,
+        Long userId,
         String email,
         String firstName,
         String lastName,
-        Date createdAt) {
+        Date createdAt,
+        List<String> roles) {
 }

@@ -7,14 +7,14 @@ import com.gostavdev.commercify.orderservice.dto.mappers.OrderDTOMapper;
 import com.gostavdev.commercify.orderservice.dto.mappers.OrderLineDTOMapper;
 import com.gostavdev.commercify.orderservice.feignclients.PaymentsClient;
 import com.gostavdev.commercify.orderservice.feignclients.ProductsClient;
-import com.gostavdev.commercify.orderservice.feignclients.UserClient;
 import com.gostavdev.commercify.orderservice.model.Order;
 import com.gostavdev.commercify.orderservice.model.OrderLine;
 import com.gostavdev.commercify.orderservice.model.OrderStatus;
 import com.gostavdev.commercify.orderservice.repositories.OrderLineRepository;
 import com.gostavdev.commercify.orderservice.repositories.OrderRepository;
 import lombok.AllArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -88,8 +88,7 @@ public class OrderService {
 
     @Transactional
     public List<OrderDTO> getAllOrders() {
-        List<Order> orders = orderRepository.findAll();
-        return orders.stream().map(mapper).collect(Collectors.toList());
+        return orderRepository.findAll().stream().map(mapper).toList();
     }
 
     @Transactional
@@ -113,8 +112,16 @@ public class OrderService {
 
     @Transactional(readOnly = true)
     public boolean isOrderOwnedByUser(Long orderId, Long userId) {
+        System.out.println("orderId: " + orderId);
+        System.out.println("userId: " + userId);
+
         return orderRepository.findById(orderId)
                 .map(order -> order.getUserId().equals(userId))
                 .orElse(false);
+    }
+
+    private String getCurrentUserEmail() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication.getName();
     }
 }

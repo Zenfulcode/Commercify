@@ -12,6 +12,6 @@ public interface UserClient {
     @RequestMapping(method = RequestMethod.GET, value = "/{id}")
     UserDTO getUserById(@PathVariable Long id);
 
-    @RequestMapping(method = RequestMethod.GET, value = "/auth/{userEmail}")
-    UserDTO getUserByEmail(@PathVariable String userEmail, @RequestHeader("Authorization") String token);
+    @RequestMapping(method = RequestMethod.GET, value = "/load/{userEmail}")
+    UserDTO loadUserByEmail(@PathVariable String userEmail, @RequestHeader("Authorization") String authHeader);
 }
