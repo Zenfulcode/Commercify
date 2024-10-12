@@ -1,4 +1,6 @@
 package com.gostavdev.commercify.userservice.api.responses;
 
-public record AuthResponse(String token, long expiresIn) {
+import com.gostavdev.commercify.userservice.dto.UserDTO;
+
+public record AuthResponse(UserDTO user,  String token, long expiresIn) {
 }
