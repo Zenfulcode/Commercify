@@ -14,6 +14,7 @@ import com.gostavdev.commercify.orderservice.model.OrderStatus;
 import com.gostavdev.commercify.orderservice.repositories.OrderLineRepository;
 import com.gostavdev.commercify.orderservice.repositories.OrderRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,7 +31,6 @@ public class OrderService {
 
     private final ProductsClient productsClient;
     private final PaymentsClient paymentsClient;
-    private final UserClient userClient;
 
     @Transactional
     public List<OrderDTO> getOrdersByUserId(Long userId) {
@@ -109,5 +109,12 @@ public class OrderService {
         List<OrderLineDTO> orderLines = getOrderLinesByOrderId(order);
 
         return new OrderDetails(mapper.apply(order), orderLines);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isOrderOwnedByUser(Long orderId, Long userId) {
+        return orderRepository.findById(orderId)
+                .map(order -> order.getUserId().equals(userId))
+                .orElse(false);
     }
 }

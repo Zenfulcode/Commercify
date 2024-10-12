@@ -10,5 +10,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @FeignClient(name = "users-service", url = "${user.service.url}")
 public interface UserClient {
     @RequestMapping(method = RequestMethod.GET, value = "/{id}")
-    UserDTO getUserById(@PathVariable Long id, @RequestHeader("Authorization") String bearerToken);
+    UserDTO getUserById(@PathVariable Long id);
+
+    @RequestMapping(method = RequestMethod.GET, value = "/auth/{userEmail}")
+    UserDTO getUserByEmail(@PathVariable String userEmail, @RequestHeader("Authorization") String token);
 }
