@@ -2,7 +2,7 @@ name: Pull Request Docker Build Check
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [ release ]
 
 env:
   REGISTRY: ghcr.io
