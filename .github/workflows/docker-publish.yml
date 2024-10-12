@@ -47,18 +47,6 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      #      - name: Build Payment Service Jar
-      #        run: mvn clean package -DskipTests -f PaymentService/pom.xml
-      #
-      #      - name: Build Products Service Jar
-      #        run: mvn clean package -DskipTests -f ProductsService/pom.xml
-      #
-      #      - name: Build Order Service Jar
-      #        run: mvn clean package -DskipTests -f OrderService/pom.xml
-      #
-      #      - name: Build User Service Jar
-      #        run: mvn clean package -DskipTests -f UserService/pom.xml
-
       - name: Build all JARs
         run: |
           for service in PaymentService ProductsService OrderService UserService; do
