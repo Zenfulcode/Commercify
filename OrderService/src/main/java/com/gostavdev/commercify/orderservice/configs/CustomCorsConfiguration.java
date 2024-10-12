@@ -13,7 +13,7 @@ public class CustomCorsConfiguration implements CorsConfigurationSource {
     @Override
     public CorsConfiguration getCorsConfiguration(@NonNull HttpServletRequest request) {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:3000"));
+        config.setAllowedOrigins(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
