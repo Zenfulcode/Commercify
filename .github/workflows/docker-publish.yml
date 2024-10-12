@@ -47,24 +47,18 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build Payment Service Jar
-        run: mvn clean package -DskipTests -f PaymentService/pom.xml
-
-      - name: Build Products Service Jar
-        run: mvn clean package -DskipTests -f ProductsService/pom.xml
-
-      - name: Build Order Service Jar
-        run: mvn clean package -DskipTests -f OrderService/pom.xml
-
-      - name: Build User Service Jar
-        run: mvn clean package -DskipTests -f UserService/pom.xml
+      - name: Build all JARs
+        run: |
+          for service in PaymentService ProductsService OrderService UserService; do
+            mvn clean package -DskipTests -f $service/pom.xml
+          done
 
       - name: Build and push Payment Docker images
         uses: docker/build-push-action@v6
         with:
           context: ./PaymentService
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ env.REGISTRY }}/${{ github.actor }}/commercify_payments:${{ steps.meta.outputs.version }}
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Build and push Products Docker images
@@ -72,7 +66,7 @@ jobs:
         with:
           context: ./ProductsService
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ env.REGISTRY }}/${{ github.actor }}/commercify_products${{ steps.meta.outputs.version }}
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Build and push Order Docker images
@@ -80,7 +74,7 @@ jobs:
         with:
           context: ./OrderService
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ env.REGISTRY }}/${{ github.actor }}/commercify_orders:${{ steps.meta.outputs.version }}
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Build and push User Docker images
@@ -88,5 +82,5 @@ jobs:
         with:
           context: ./UserService
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ env.REGISTRY }}/${{ github.actor }}/commercify_users:${{ steps.meta.outputs.version }}
           labels: ${{ steps.meta.outputs.labels }}
