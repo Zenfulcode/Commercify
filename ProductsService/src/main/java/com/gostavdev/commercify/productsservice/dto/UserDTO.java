@@ -1,4 +1,4 @@
-package com.gostavdev.commercify.orderservice.dto;
+package com.gostavdev.commercify.productsservice.dto;
 
 import java.util.Date;
 import java.util.List;

@@ -1,6 +1,6 @@
-package com.gostavdev.commercify.userservice.dto;
+package com.gostavdev.commercify.userservice.api.requests;
 
-public record RegisterUserDTO(
+public record RegisterUserRequest(
         String email,
         String password,
         String firstName,

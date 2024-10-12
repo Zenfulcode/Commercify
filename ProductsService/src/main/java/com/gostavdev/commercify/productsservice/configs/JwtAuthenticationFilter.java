@@ -1,29 +1,30 @@
-package com.gostavdev.commercify.userservice.config;
+package com.gostavdev.commercify.productsservice.configs;
 
-import com.gostavdev.commercify.userservice.service.JwtService;
+import com.gostavdev.commercify.productsservice.dto.UserDTO;
+import com.gostavdev.commercify.productsservice.feignclients.UserClient;
+import com.gostavdev.commercify.productsservice.services.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.AllArgsConstructor;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import java.io.IOException;
+import java.util.stream.Collectors;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+    private final UserClient userClient;
     private final JwtService jwtService;
-    private final UserDetailsService userDetailsService;
 
     @Override
     protected void doFilterInternal(
@@ -44,22 +45,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (userEmail != null && authentication == null) {
-            UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
+            UserDTO user = userClient.loadUserByEmail(userEmail, authHeader);
 
-            if (jwtService.isTokenValid(jwt, userDetails)) {
+            if (jwtService.isTokenValid(jwt, user)) {
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails,
+                        new AuthPrincipal(user.email(), user.userId()),
                         null,
-                        userDetails.getAuthorities()
+                        user.roles().stream()
+                                .map(SimpleGrantedAuthority::new)
+                                .collect(Collectors.toSet())
                 );
 
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
-
-                System.out.println("authentication: " + SecurityContextHolder.getContext().getAuthentication());
             }
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    public record AuthPrincipal(String email, Long userId) {
     }
 }
