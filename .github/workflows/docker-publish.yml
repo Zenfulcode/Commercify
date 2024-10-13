@@ -17,13 +17,13 @@ jobs:
       matrix:
         include:
           - service: PaymentService
-            docker_service: payment
+            docker_service: payments
           - service: ProductsService
             docker_service: products
           - service: OrderService
-            docker_service: order
+            docker_service: orders
           - service: UserService
-            docker_service: user
+            docker_service: users
 
     permissions:
       contents: read
