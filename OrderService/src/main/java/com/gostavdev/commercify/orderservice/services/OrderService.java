@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -49,32 +50,43 @@ public class OrderService {
         List<OrderLine> orderLines = request.orderLines().stream()
                 .collect(Collectors.groupingBy(OrderLineRequest::productId))
                 .entrySet().stream()
-                .map(entry -> {
-                    ProductDto product = productsClient.getProductById(entry.getKey());
+                .map(entry -> createOrderLine(entry, order))
+                .collect(Collectors.toList());
 
-                    if (product == null) {
-                        throw new RuntimeException("Product not found with ID: " + entry.getKey());
-                    }
-
-                    // Create OrderLine entity
-                    OrderLine orderLine = new OrderLine();
-                    orderLine.setProductId(entry.getKey());
-                    orderLine.setProduct(product);
-                    orderLine.setQuantity(entry.getValue().stream().mapToInt(OrderLineRequest::quantity).sum());
-                    orderLine.setUnitPrice(product.unitPrice());
-                    orderLine.setOrder(order);
-                    orderLine.setStripeProductId(product.stripeId());
-
-                    return orderLine;
-                }).collect(Collectors.toList());
-
-        // Create and save Order entity
         order.setOrderLines(orderLines);
 
-        orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order);
         orderLineRepository.saveAll(orderLines);
 
-        return mapper.apply(order);
+        return mapper.apply(savedOrder);
+    }
+
+    private OrderLine createOrderLine(Map.Entry<Long, List<OrderLineRequest>> entry, Order order) {
+        ProductDto product = fetchAndValidateProduct(entry.getKey());
+
+        OrderLine orderLine = new OrderLine();
+        orderLine.setProductId(entry.getKey());
+        orderLine.setProduct(product);
+        orderLine.setQuantity(calculateTotalQuantity(entry.getValue()));
+        orderLine.setUnitPrice(product.unitPrice());
+        orderLine.setOrder(order);
+        orderLine.setStripeProductId(product.stripeId());
+
+        return orderLine;
+    }
+
+    private ProductDto fetchAndValidateProduct(Long productId) {
+        ProductDto product = productsClient.getProductById(productId);
+        if (product == null) {
+            throw new RuntimeException("Product not found with ID: " + productId);
+        }
+        return product;
+    }
+
+    private int calculateTotalQuantity(List<OrderLineRequest> orderLineRequests) {
+        return orderLineRequests.stream()
+                .mapToInt(OrderLineRequest::quantity)
+                .sum();
     }
 
     @Transactional
