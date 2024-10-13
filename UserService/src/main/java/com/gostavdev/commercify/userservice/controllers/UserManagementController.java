@@ -21,13 +21,6 @@ public class UserManagementController {
         return ResponseEntity.ok(userManagementService.getUserById(id));
     }
 
-    @GetMapping(value = "/load/{userEmail}")
-    @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<UserDTO> loadUserByEmail(@PathVariable String userEmail) {
-        UserDTO user = userManagementService.getUserByEmail(userEmail);
-        return ResponseEntity.ok(user);
-    }
-
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<UserDTO>> getAllUsers() {
