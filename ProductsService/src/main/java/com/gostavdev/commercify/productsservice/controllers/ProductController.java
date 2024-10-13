@@ -4,13 +4,14 @@ import com.gostavdev.commercify.productsservice.requests.ProductRequest;
 import com.gostavdev.commercify.productsservice.responses.ProductDeleteResponse;
 import com.gostavdev.commercify.productsservice.services.ProductService;
 import com.gostavdev.commercify.productsservice.dto.ProductDTO;
-import com.stripe.exception.StripeException;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/api/v1/products")
@@ -19,14 +20,29 @@ public class ProductController {
     private final ProductService productService;
 
     @GetMapping
-    public ResponseEntity<List<ProductDTO>> getAllProducts() {
-//        List<ProductDTO> products = productService.getAllProducts();
-        return ResponseEntity.ok(productService.getAllProducts());
+    public ResponseEntity<Page<ProductDTO>> getAllProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "productId") String sortBy,
+            @RequestParam(defaultValue = "DESC") String sortDirection
+    ) {
+        Sort.Direction direction = Sort.Direction.fromString(sortDirection.toUpperCase());
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
+        return ResponseEntity.ok(productService.getAllProducts(pageRequest));
     }
 
     @GetMapping("/active")
-    public ResponseEntity<List<ProductDTO>> getAllActiveProducts() {
-        return ResponseEntity.ok(productService.getActiveProducts());
+    public ResponseEntity<Page<ProductDTO>> getActiveProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "productId") String sortBy,
+            @RequestParam(defaultValue = "DESC") String sortDirection
+    ) {
+        Sort.Direction direction = Sort.Direction.fromString(sortDirection.toUpperCase());
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
+        return ResponseEntity.ok(productService.getActiveProducts(pageRequest));
     }
 
     @PostMapping
