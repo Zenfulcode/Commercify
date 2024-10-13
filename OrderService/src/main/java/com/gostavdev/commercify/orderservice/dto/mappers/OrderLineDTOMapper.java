@@ -10,15 +10,13 @@ import java.util.function.Function;
 @Service
 @AllArgsConstructor
 public class OrderLineDTOMapper implements Function<OrderLine, OrderLineDTO> {
-
     @Override
     public OrderLineDTO apply(OrderLine orderLine) {
-        return new OrderLineDTO(
-                orderLine.getProductId(),
-                orderLine.getStripeProductId(),
-                orderLine.getQuantity(),
-                orderLine.getUnitPrice(),
-                orderLine.getProduct()
-        );
+        return OrderLineDTO.builder()
+                .quantity(orderLine.getQuantity())
+                .productId(orderLine.getProductId())
+                .stripeProductId(orderLine.getStripeProductId())
+                .unitPrice(orderLine.getUnitPrice())
+                .build();
     }
 }
