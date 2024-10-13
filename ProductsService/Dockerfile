@@ -13,7 +13,7 @@ RUN mvn clean package -DskipTests
 # Stage 2: Create the runtime image
 FROM openjdk:17-jdk-slim
 VOLUME /tmp
-EXPOSE 8084
+EXPOSE 8083
 
 # Copy the jar file from the build stage
 COPY --from=build /app/target/ProductsService.jar /app.jar
