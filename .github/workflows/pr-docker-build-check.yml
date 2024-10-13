@@ -10,6 +10,9 @@ env:
 jobs:
   check-docker-build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        services: [ PaymentService, ProductsService, OrderService, UserService ]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -23,36 +26,13 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build all JARs
-        run: |
-          for service in PaymentService ProductsService OrderService UserService; do
-            mvn clean package -DskipTests -f $service/pom.xml
-          done
+      - name: Build Jar
+        run: mvn clean package -DskipTests -f ${{ matrix.services }}/pom.xml
 
-      - name: Build Payment Service Docker image
+      - name: Build Docker image
         uses: docker/build-push-action@v6
         with:
-          context: ./PaymentService
+          context: ./${{ matrix.services }}
           push: false
-          tags: ${{ env.REGISTRY }}/${{ github.actor }}/commercify_payments:pr-${{ github.event.pull_request.number }}
-
-      - name: Build Product Service Docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./ProductsService
-          push: false
-          tags: ${{ env.REGISTRY }}/${{ github.actor }}/commercify_products:pr-${{ github.event.pull_request.number }}
-
-      - name: Build Order Service Docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./OrderService
-          push: false
-          tags: ${{ env.REGISTRY }}/${{ github.actor }}/commercify_orders:pr-${{ github.event.pull_request.number }}
-
-      - name: Build User Service Docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./UserService
-          push: false
-          tags: ${{ env.REGISTRY }}/${{ github.actor }}/commercify_users:pr-${{ github.event.pull_request.number }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

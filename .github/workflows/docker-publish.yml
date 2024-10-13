@@ -9,11 +9,16 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        services:
+          - service: [ PaymentService, ProductsService, OrderService, UserService ]
+            docker_services: [ payment, products, order, user ]
+
     permissions:
       contents: read
       packages: write
@@ -39,7 +44,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ github.repository }}/commercify_${{ matrix.services.docker_services }}
           tags: |
             type=ref,event=branch
             type=sha
@@ -47,40 +52,13 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build all JARs
-        run: |
-          for service in PaymentService ProductsService OrderService UserService; do
-            mvn clean package -DskipTests -f $service/pom.xml
-          done
+      - name: Build JAR
+        run: mvn clean package -DskipTests -f ${{ matrix.services.service }}/pom.xml
 
-      - name: Build and push Payment Docker images
+      - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: ./PaymentService
+          context: ./${{ matrix.services.service }}
           push: true
-          tags: ${{ env.REGISTRY }}/${{ github.actor }}/commercify_payments:${{ steps.meta.outputs.version }}
-          labels: ${{ steps.meta.outputs.labels }}
-
-      - name: Build and push Products Docker images
-        uses: docker/build-push-action@v6
-        with:
-          context: ./ProductsService
-          push: true
-          tags: ${{ env.REGISTRY }}/${{ github.actor }}/commercify_products${{ steps.meta.outputs.version }}
-          labels: ${{ steps.meta.outputs.labels }}
-
-      - name: Build and push Order Docker images
-        uses: docker/build-push-action@v6
-        with:
-          context: ./OrderService
-          push: true
-          tags: ${{ env.REGISTRY }}/${{ github.actor }}/commercify_orders:${{ steps.meta.outputs.version }}
-          labels: ${{ steps.meta.outputs.labels }}
-
-      - name: Build and push User Docker images
-        uses: docker/build-push-action@v6
-        with:
-          context: ./UserService
-          push: true
-          tags: ${{ env.REGISTRY }}/${{ github.actor }}/commercify_users:${{ steps.meta.outputs.version }}
+          tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
