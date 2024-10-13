@@ -11,11 +11,12 @@ import com.stripe.model.Product;
 import com.stripe.param.ProductCreateParams;
 import com.stripe.param.ProductUpdateParams;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -23,12 +24,12 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final ProductDTOMapper mapper;
 
-    public List<ProductDTO> getAllProducts() {
-        return productRepository.findAll().stream().map(mapper).toList();
+    public Page<ProductDTO> getAllProducts(Pageable pageable) {
+        return productRepository.findAll(pageable).map(mapper);
     }
 
-    public List<ProductDTO> getActiveProducts() {
-        return productRepository.queryAllByActiveTrue().stream().map(mapper).toList();
+    public Page<ProductDTO> getActiveProducts(Pageable pageable) {
+        return productRepository.queryAllByActiveTrue(pageable).map(mapper);
     }
 
     public ProductDTO getProductById(Long id) {

@@ -6,12 +6,13 @@ import com.gostavdev.commercify.orderservice.dto.api.CreateOrderRequest;
 import com.gostavdev.commercify.orderservice.model.OrderStatus;
 import com.gostavdev.commercify.orderservice.services.OrderService;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/orders")
@@ -26,17 +27,34 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.CREATED).body(order);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping
-    public ResponseEntity<List<OrderDTO>> getAllOrders() {
-        List<OrderDTO> orders = orderService.getAllOrders();
+    @PreAuthorize("hasRole('USER') and #userId == authentication.principal.userId")
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<Page<OrderDTO>> getOrdersByUserId(
+            @PathVariable Long userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "orderId") String sortBy,
+            @RequestParam(defaultValue = "DESC") String sortDirection) {
+
+        Sort.Direction direction = Sort.Direction.fromString(sortDirection.toUpperCase());
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
+        Page<OrderDTO> orders = orderService.getOrdersByUserId(userId, pageRequest);
         return ResponseEntity.ok(orders);
     }
 
-    @PreAuthorize("hasRole('USER') and #userId == authentication.principal.userId")
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<OrderDTO>> getOrdersByUserId(@PathVariable Long userId) {
-        List<OrderDTO> orders = orderService.getOrdersByUserId(userId);
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping
+    public ResponseEntity<Page<OrderDTO>> getAllOrders(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "orderId") String sortBy,
+            @RequestParam(defaultValue = "DESC") String sortDirection) {
+
+        Sort.Direction direction = Sort.Direction.fromString(sortDirection.toUpperCase());
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
+        Page<OrderDTO> orders = orderService.getAllOrders(pageRequest);
         return ResponseEntity.ok(orders);
     }
 
