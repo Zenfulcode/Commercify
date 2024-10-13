@@ -124,7 +124,7 @@ public class OrderService {
         orderRepository.save(order);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<OrderLineDTO> getOrderLinesByOrderId(Order order) {
         return orderLineRepository.findByOrder(order).stream()
                 .map(olMapper).toList();
@@ -139,21 +139,19 @@ public class OrderService {
         orderRepository.deleteById(id);
     }
 
-    @Transactional
-    public OrderDetails getOrderById(Long orderId) {
+    @Transactional(readOnly = true)
+    public OrderDetails getOrderById(Long orderId, String authHeader) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found"));
 
         List<OrderLineDTO> orderLines = getOrderLinesByOrderId(order);
+        orderLines.forEach(ol -> ol.setProduct(productsClient.getProductById(ol.getProductId(), authHeader)));
 
         return new OrderDetails(mapper.apply(order), orderLines);
     }
 
     @Transactional(readOnly = true)
     public boolean isOrderOwnedByUser(Long orderId, Long userId) {
-        System.out.println("orderId: " + orderId);
-        System.out.println("userId: " + userId);
-
         return orderRepository.findById(orderId)
                 .map(order -> order.getUserId().equals(userId))
                 .orElse(false);
