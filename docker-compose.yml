@@ -2,10 +2,12 @@ services:
   mysql-db:
     image: docker.io/bitnami/mysql:8.4
     container_name: mysql-db
+    env_file: .env
     environment:
-      - ALLOW_EMPTY_PASSWORD=no
-      - MYSQL_DATABASE=db
-      - MYSQL_ROOT_PASSWORD=${DATABASE_PASSWORD}
+      ALLOW_EMPTY_PASSWORD: "no"
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
       - "3307:3306"
     networks:
@@ -24,14 +26,20 @@ services:
       context: OrderService
       dockerfile: Dockerfile
     container_name: commercify_orders
+    env_file: .env
     ports:
       - "8081:8081"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/orderdb
-      - SPRING_DATASOURCE_USERNAME=root
-      - SPRING_DATASOURCE_PASSWORD=${DATABASE_PASSWORD}
-      - SPRING_JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - SPRING_DATASOURCE_URL=${SPRING_ORDERS_DATASOURCE_URL}
+      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
+      - STRIPE_TEST_SECRET=${STRIPE_TEST_SECRET}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - ORDER_SERVICE_URL=${ORDER_SERVICE_URL}
+      - PAYMENT_SERVICE_URL=${PAYMENT_SERVICE_URL}
+      - PRODUCT_SERVICE_URL=${PRODUCT_SERVICE_URL}
+      - USER_SERVICE_URL=${USER_SERVICE_URL}
     depends_on:
       mysql-db:
         condition: service_healthy
@@ -43,14 +51,20 @@ services:
       context: PaymentService
       dockerfile: Dockerfile
     container_name: commercify_payments
+    env_file: .env
     ports:
       - "8082:8082"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/paymentdb
-      - SPRING_DATASOURCE_USERNAME=root
-      - SPRING_DATASOURCE_PASSWORD=${DATABASE_PASSWORD}
-      - SPRING_JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - SPRING_DATASOURCE_URL=${SPRING_PAYMENTS_DATASOURCE_URL}
+      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
+      - STRIPE_TEST_SECRET=${STRIPE_TEST_SECRET}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - ORDER_SERVICE_URL=${ORDER_SERVICE_URL}
+      - PAYMENT_SERVICE_URL=${PAYMENT_SERVICE_URL}
+      - PRODUCT_SERVICE_URL=${PRODUCT_SERVICE_URL}
+      - USER_SERVICE_URL=${USER_SERVICE_URL}
     depends_on:
       mysql-db:
         condition: service_healthy
@@ -62,14 +76,20 @@ services:
       context: ProductsService
       dockerfile: Dockerfile
     container_name: commercify_products
+    env_file: .env
     ports:
       - "8083:8083"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/productdb
-      - SPRING_DATASOURCE_USERNAME=root
-      - SPRING_DATASOURCE_PASSWORD=${DATABASE_PASSWORD}
-      - SPRING_JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - SPRING_DATASOURCE_URL=${SPRING_PRODUCTS_DATASOURCE_URL}
+      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
+      - STRIPE_TEST_SECRET=${STRIPE_TEST_SECRET}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - ORDER_SERVICE_URL=${ORDER_SERVICE_URL}
+      - PAYMENT_SERVICE_URL=${PAYMENT_SERVICE_URL}
+      - PRODUCT_SERVICE_URL=${PRODUCT_SERVICE_URL}
+      - USER_SERVICE_URL=${USER_SERVICE_URL}
     depends_on:
       mysql-db:
         condition: service_healthy
@@ -81,14 +101,20 @@ services:
       context: UserService
       dockerfile: Dockerfile
     container_name: commercify_users
+    env_file: .env
     ports:
       - "8084:8084"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/userdb
-      - SPRING_DATASOURCE_USERNAME=root
-      - SPRING_DATASOURCE_PASSWORD=${DATABASE_PASSWORD}
-      - SPRING_JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - SPRING_DATASOURCE_URL=${SPRING_USERS_DATASOURCE_URL}
+      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
+      - STRIPE_TEST_SECRET=${STRIPE_TEST_SECRET}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - ORDER_SERVICE_URL=${ORDER_SERVICE_URL}
+      - PAYMENT_SERVICE_URL=${PAYMENT_SERVICE_URL}
+      - PRODUCT_SERVICE_URL=${PRODUCT_SERVICE_URL}
+      - USER_SERVICE_URL=${USER_SERVICE_URL}
     depends_on:
       mysql-db:
         condition: service_healthy
