@@ -10,9 +10,6 @@ import java.util.List;
 
 @FeignClient(name = "products-service", url = "${product.service.url}")
 public interface ProductsClient {
-    @RequestMapping(method = RequestMethod.GET, value = "/{id}")
+    @RequestMapping(method = RequestMethod.GET, value = "/products/{id}")
     ProductDto getProductById(@PathVariable Long id);
-
-    @RequestMapping(method = RequestMethod.POST)
-    List<ProductDto> getProductsByIds(List<Long> productIds);
 }
