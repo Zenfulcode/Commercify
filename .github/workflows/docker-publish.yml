@@ -5,7 +5,7 @@ on:
     branches:
       - main
   release:
-    types: [created]
+    types: [ created ]
 
 env:
   REGISTRY: ghcr.io
@@ -15,8 +15,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        docker_services: [payments, products, orders, users]
-        services: [PaymentService, ProductsService, OrderService, UserService]
+        services:
+          - service: [ PaymentService, ProductsService, OrderService, UserService ]
+            docker_services: [ payment, products, order, user ]
+
     permissions:
       contents: read
       packages: write
@@ -42,25 +44,21 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ github.repository }}/commercify_${{ matrix.docker_services }}
+          images: ${{ env.REGISTRY }}/${{ github.repository }}/commercify_${{ matrix.services.docker_services }}
           tags: |
             type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
             type=sha
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Build JAR
-        run: mvn clean package -DskipTests -f ${{ matrix.service }}/pom.xml
+        run: mvn clean package -DskipTests -f ${{ matrix.services.service }}/pom.xml
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: ./${{ matrix.service }}Service
+          context: ./${{ matrix.services.service }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
