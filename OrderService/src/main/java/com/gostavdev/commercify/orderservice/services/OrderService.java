@@ -13,6 +13,8 @@ import com.gostavdev.commercify.orderservice.model.OrderStatus;
 import com.gostavdev.commercify.orderservice.repositories.OrderLineRepository;
 import com.gostavdev.commercify.orderservice.repositories.OrderRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -32,9 +34,14 @@ public class OrderService {
     private final ProductsClient productsClient;
     private final PaymentsClient paymentsClient;
 
-    @Transactional
-    public List<OrderDTO> getOrdersByUserId(Long userId) {
-        return orderRepository.findByUserId(userId).stream().map(mapper).toList();
+    @Transactional(readOnly = true)
+    public Page<OrderDTO> getOrdersByUserId(Long userId, Pageable pageable) {
+        return orderRepository.findByUserId(userId, pageable).map(mapper);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<OrderDTO> getAllOrders(Pageable pageable) {
+        return orderRepository.findAll(pageable).map(mapper);
     }
 
     @Transactional
@@ -87,11 +94,6 @@ public class OrderService {
     }
 
     @Transactional
-    public List<OrderDTO> getAllOrders() {
-        return orderRepository.findAll().stream().map(mapper).toList();
-    }
-
-    @Transactional
     public void deleteOrder(Long id) {
         paymentsClient.cancelPayment(id);
 
@@ -118,10 +120,5 @@ public class OrderService {
         return orderRepository.findById(orderId)
                 .map(order -> order.getUserId().equals(userId))
                 .orElse(false);
-    }
-
-    private String getCurrentUserEmail() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return authentication.getName();
     }
 }
