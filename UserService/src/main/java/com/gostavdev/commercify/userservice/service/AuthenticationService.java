@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -40,8 +41,12 @@ public class AuthenticationService {
                 .lastName(registerRequest.lastName())
                 .email(registerRequest.email())
                 .password(passwordEncoder.encode(registerRequest.password()))
-                .roles(List.of("USER"))  // Default role
+                .roles(List.of("USER"))
                 .build();
+
+        if (registerRequest.admin()) {
+            user.setRoles(List.of("USER", "ADMIN"));
+        }
 
         UserEntity savedUser = userRepository.save(user);
         return mapper.apply(savedUser);
