@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        docker_services: [ payments, products, orders, users ]
+        services: [ PaymentService, ProductsService, OrderService, UserService ]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -27,15 +27,12 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build all JARs
-        run: |
-          for service in PaymentService ProductsService OrderService UserService; do
-            mvn clean package -DskipTests -f $service/pom.xml
-          done
+        run: mvn clean package -DskipTests -f ${{ matrix.services }}/pom.xml
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: ./${{ matrix.service }}Service
+          context: ./${{ matrix.services }}
           push: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
