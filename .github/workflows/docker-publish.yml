@@ -15,9 +15,15 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        services:
-          - service: [ PaymentService, ProductsService, OrderService, UserService ]
-            docker_services: [ payment, products, order, user ]
+        include:
+          - service: PaymentService
+            docker_service: payment
+          - service: ProductsService
+            docker_service: products
+          - service: OrderService
+            docker_service: order
+          - service: UserService
+            docker_service: user
 
     permissions:
       contents: read
@@ -44,7 +50,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ github.repository }}/commercify_${{ matrix.services.docker_services }}
+          images: ${{ env.REGISTRY }}/${{ github.repository }}/commercify_${{ matrix.include.docker_service }}
           tags: |
             type=ref,event=branch
             type=sha
@@ -53,12 +59,12 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build JAR
-        run: mvn clean package -DskipTests -f ${{ matrix.services.service }}/pom.xml
+        run: mvn clean package -DskipTests -f ${{ matrix.include.service }}/pom.xml
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: ./${{ matrix.services.service }}
+          context: ./${{ matrix.include.service }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
