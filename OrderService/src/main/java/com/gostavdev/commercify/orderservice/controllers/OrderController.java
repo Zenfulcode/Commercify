@@ -9,7 +9,9 @@ import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -19,17 +21,18 @@ import org.springframework.web.bind.annotation.*;
 @AllArgsConstructor
 public class OrderController {
     private final OrderService orderService;
+    private final PagedResourcesAssembler<OrderDTO> pagedResourcesAssembler;
 
     @PreAuthorize("hasRole('USER')")
     @PostMapping
     public ResponseEntity<OrderDTO> createOrder(@RequestBody CreateOrderRequest orderRequest) {
         OrderDTO order = orderService.createOrder(orderRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body(order);
+        return ResponseEntity.ok().body(order);
     }
 
     @PreAuthorize("hasRole('USER') and #userId == authentication.principal.userId")
     @GetMapping("/user/{userId}")
-    public ResponseEntity<Page<OrderDTO>> getOrdersByUserId(
+    public ResponseEntity<PagedModel<EntityModel<OrderDTO>>> getOrdersByUserId(
             @PathVariable Long userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -40,12 +43,12 @@ public class OrderController {
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
         Page<OrderDTO> orders = orderService.getOrdersByUserId(userId, pageRequest);
-        return ResponseEntity.ok(orders);
+        return ResponseEntity.ok(pagedResourcesAssembler.toModel(orders));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-    public ResponseEntity<Page<OrderDTO>> getAllOrders(
+    public ResponseEntity<PagedModel<EntityModel<OrderDTO>>> getAllOrders(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "orderId") String sortBy,
@@ -55,7 +58,7 @@ public class OrderController {
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
         Page<OrderDTO> orders = orderService.getAllOrders(pageRequest);
-        return ResponseEntity.ok(orders);
+        return ResponseEntity.ok(pagedResourcesAssembler.toModel(orders));
     }
 
     @PreAuthorize("hasRole('USER') and @orderService.isOrderOwnedByUser(#orderId, authentication.principal.userId)")

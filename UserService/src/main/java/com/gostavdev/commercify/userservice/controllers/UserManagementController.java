@@ -6,6 +6,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class UserManagementController {
     private final UserManagementService userManagementService;
+    private final PagedResourcesAssembler<UserDTO> pagedResourcesAssembler;
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.userId")
@@ -24,7 +28,7 @@ public class UserManagementController {
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Page<UserDTO>> getAllUsers(
+    public ResponseEntity<PagedModel<EntityModel<UserDTO>>> getAllUsers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "userId") String sortBy,
@@ -33,7 +37,9 @@ public class UserManagementController {
         Sort.Direction direction = Sort.Direction.fromString(sortDirection.toUpperCase());
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-        return ResponseEntity.ok(userManagementService.getAllUsers(pageRequest));
+        Page<UserDTO> users = userManagementService.getAllUsers(pageRequest);
+
+        return ResponseEntity.ok(pagedResourcesAssembler.toModel(users));
     }
 
     @PutMapping("/{id}")

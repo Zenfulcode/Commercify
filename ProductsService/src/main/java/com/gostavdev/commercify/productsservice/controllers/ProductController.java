@@ -8,6 +8,9 @@ import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,9 +21,10 @@ import java.util.List;
 @AllArgsConstructor
 public class ProductController {
     private final ProductService productService;
+    private final PagedResourcesAssembler<ProductDTO> pagedResourcesAssembler;
 
     @GetMapping
-    public ResponseEntity<Page<ProductDTO>> getAllProducts(
+    public ResponseEntity<PagedModel<EntityModel<ProductDTO>>> getAllProducts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "productId") String sortBy,
@@ -29,11 +33,13 @@ public class ProductController {
         Sort.Direction direction = Sort.Direction.fromString(sortDirection.toUpperCase());
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-        return ResponseEntity.ok(productService.getAllProducts(pageRequest));
+        Page<ProductDTO> products = productService.getAllProducts(pageRequest);
+
+        return ResponseEntity.ok(pagedResourcesAssembler.toModel(products));
     }
 
     @GetMapping("/active")
-    public ResponseEntity<Page<ProductDTO>> getActiveProducts(
+    public ResponseEntity<PagedModel<EntityModel<ProductDTO>>> getActiveProducts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "productId") String sortBy,
@@ -42,7 +48,9 @@ public class ProductController {
         Sort.Direction direction = Sort.Direction.fromString(sortDirection.toUpperCase());
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-        return ResponseEntity.ok(productService.getActiveProducts(pageRequest));
+        Page<ProductDTO> products = productService.getActiveProducts(pageRequest);
+
+        return ResponseEntity.ok(pagedResourcesAssembler.toModel(products));
     }
 
     @PostMapping
