@@ -10,6 +10,9 @@ env:
 jobs:
   check-docker-build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        docker_services: [ payments, products, orders, users ]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -29,30 +32,10 @@ jobs:
             mvn clean package -DskipTests -f $service/pom.xml
           done
 
-      - name: Build Payment Service Docker image
+      - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: ./PaymentService
-          push: false
-          tags: ${{ env.REGISTRY }}/${{ github.actor }}/commercify_payments:pr-${{ github.event.pull_request.number }}
-
-      - name: Build Product Service Docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./ProductsService
-          push: false
-          tags: ${{ env.REGISTRY }}/${{ github.actor }}/commercify_products:pr-${{ github.event.pull_request.number }}
-
-      - name: Build Order Service Docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./OrderService
-          push: false
-          tags: ${{ env.REGISTRY }}/${{ github.actor }}/commercify_orders:pr-${{ github.event.pull_request.number }}
-
-      - name: Build User Service Docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./UserService
-          push: false
-          tags: ${{ env.REGISTRY }}/${{ github.actor }}/commercify_users:pr-${{ github.event.pull_request.number }}
+          context: ./${{ matrix.service }}Service
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
