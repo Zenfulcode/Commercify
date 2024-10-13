@@ -17,13 +17,13 @@ jobs:
       matrix:
         include:
           - service: PaymentService
-            docker_service: payment
+            docker_service: payments
           - service: ProductsService
             docker_service: products
           - service: OrderService
-            docker_service: order
+            docker_service: orders
           - service: UserService
-            docker_service: user
+            docker_service: users
 
     permissions:
       contents: read
@@ -50,7 +50,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ github.repository }}/commercify_${{ matrix.docker_service }}
+          images: ${{ env.REGISTRY }}/commercify_${{ matrix.docker_service }}
           tags: |
             type=ref,event=branch
             type=sha
