@@ -1,7 +1,7 @@
 package com.gostavdev.commercify.orderservice.dto;
 
 public record ProductDto(
-        String id,
+        Long productId,
         String stripeId,
         String name,
         String description,

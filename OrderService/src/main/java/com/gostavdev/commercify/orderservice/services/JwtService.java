@@ -6,7 +6,6 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -29,8 +28,6 @@ public class JwtService {
 
     public boolean isTokenValid(String token, UserDTO user) {
         final String username = extractUsername(token);
-        System.out.println("Username: " + username);
-
         return (username.equals(user.email())) && !isTokenExpired(token);
     }
 

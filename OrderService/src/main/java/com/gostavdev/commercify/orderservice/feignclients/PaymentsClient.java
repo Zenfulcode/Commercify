@@ -1,6 +1,6 @@
 package com.gostavdev.commercify.orderservice.feignclients;
 
-import com.gostavdev.commercify.orderservice.dto.api.CancelPaymentResponse;
+import com.gostavdev.commercify.orderservice.api.CancelPaymentResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;

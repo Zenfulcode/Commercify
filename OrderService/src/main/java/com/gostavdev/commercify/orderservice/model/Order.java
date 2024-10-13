@@ -39,6 +39,8 @@ public class Order {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    private Double totalAmount;
+
     public Order(Long userId) {
         this.userId = userId;
         this.status = OrderStatus.PENDING;

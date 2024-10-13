@@ -1,4 +1,4 @@
-package com.gostavdev.commercify.orderservice.dto.api;
+package com.gostavdev.commercify.orderservice.api;
 
 public record OrderLineRequest(
         Long productId,

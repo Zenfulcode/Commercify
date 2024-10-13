@@ -1,8 +1,8 @@
 package com.gostavdev.commercify.orderservice.services;
 
 import com.gostavdev.commercify.orderservice.dto.*;
-import com.gostavdev.commercify.orderservice.dto.api.CreateOrderRequest;
-import com.gostavdev.commercify.orderservice.dto.api.OrderLineRequest;
+import com.gostavdev.commercify.orderservice.api.CreateOrderRequest;
+import com.gostavdev.commercify.orderservice.api.OrderLineRequest;
 import com.gostavdev.commercify.orderservice.dto.mappers.OrderDTOMapper;
 import com.gostavdev.commercify.orderservice.dto.mappers.OrderLineDTOMapper;
 import com.gostavdev.commercify.orderservice.feignclients.PaymentsClient;
@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -44,48 +43,76 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderDTO createOrder(CreateOrderRequest request) {
+    public OrderDTO createOrder(CreateOrderRequest request, String authHeader) {
+        // 1. Validate the request
+        validateCreateOrderRequest(request);
+
+        // 2. Create the Order entity
         Order order = new Order(request.userId());
 
-        List<OrderLine> orderLines = request.orderLines().stream()
-                .collect(Collectors.groupingBy(OrderLineRequest::productId))
-                .entrySet().stream()
-                .map(entry -> createOrderLine(entry, order))
-                .collect(Collectors.toList());
+        // 3. Fetch and validate products, create OrderLines
+        List<OrderLine> orderLines = createOrderLines(request, order, authHeader);
 
+        // 4. Calculate order total
+        double orderTotal = calculateOrderTotal(orderLines);
+
+        // 5. Set order details
         order.setOrderLines(orderLines);
+        order.setTotalAmount(orderTotal);
 
+        // 6. Save the order and order lines
         Order savedOrder = orderRepository.save(order);
         orderLineRepository.saveAll(orderLines);
+
+//        // 7. Initiate payment process (async)
+//        // 8. Update inventory (async)
+//        // 9. Send order confirmation (async)
 
         return mapper.apply(savedOrder);
     }
 
-    private OrderLine createOrderLine(Map.Entry<Long, List<OrderLineRequest>> entry, Order order) {
-        ProductDto product = fetchAndValidateProduct(entry.getKey());
+    private void validateCreateOrderRequest(CreateOrderRequest request) {
+        if (request.userId() == null || request.orderLines().isEmpty()) {
+            throw new IllegalArgumentException("Invalid order request");
+        }
+    }
 
+    private List<OrderLine> createOrderLines(CreateOrderRequest request, Order order, String authHeader) {
+        return request.orderLines().stream()
+                .collect(Collectors.groupingBy(OrderLineRequest::productId))
+                .entrySet().stream()
+                .map(entry -> {
+                    ProductDto product = productsClient.getProductById(entry.getKey(), authHeader);
+                    if (product == null) {
+                        throw new RuntimeException("Product not found with ID: " + entry.getKey());
+                    }
+                    validateProductAvailability(product, entry.getValue());
+                    return createOrderLine(product, entry.getValue(), order);
+                })
+                .collect(Collectors.toList());
+    }
+
+    private void validateProductAvailability(ProductDto product, List<OrderLineRequest> requests) {
+        int totalQuantity = requests.stream().mapToInt(OrderLineRequest::quantity).sum();
+        if (product.stock() < totalQuantity) {
+            throw new RuntimeException("Insufficient stock for product: " + product.productId());
+        }
+    }
+
+    private OrderLine createOrderLine(ProductDto product, List<OrderLineRequest> requests, Order order) {
         OrderLine orderLine = new OrderLine();
-        orderLine.setProductId(entry.getKey());
+        orderLine.setProductId(product.productId());
         orderLine.setProduct(product);
-        orderLine.setQuantity(calculateTotalQuantity(entry.getValue()));
+        orderLine.setQuantity(requests.stream().mapToInt(OrderLineRequest::quantity).sum());
         orderLine.setUnitPrice(product.unitPrice());
         orderLine.setOrder(order);
         orderLine.setStripeProductId(product.stripeId());
-
         return orderLine;
     }
 
-    private ProductDto fetchAndValidateProduct(Long productId) {
-        ProductDto product = productsClient.getProductById(productId);
-        if (product == null) {
-            throw new RuntimeException("Product not found with ID: " + productId);
-        }
-        return product;
-    }
-
-    private int calculateTotalQuantity(List<OrderLineRequest> orderLineRequests) {
-        return orderLineRequests.stream()
-                .mapToInt(OrderLineRequest::quantity)
+    private double calculateOrderTotal(List<OrderLine> orderLines) {
+        return orderLines.stream()
+                .mapToDouble(line -> line.getUnitPrice() * line.getQuantity())
                 .sum();
     }
 

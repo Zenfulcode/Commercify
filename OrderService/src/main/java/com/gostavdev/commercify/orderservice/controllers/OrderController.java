@@ -1,8 +1,9 @@
 package com.gostavdev.commercify.orderservice.controllers;
 
+import com.gostavdev.commercify.orderservice.api.CreateOrderResponse;
 import com.gostavdev.commercify.orderservice.dto.OrderDTO;
 import com.gostavdev.commercify.orderservice.dto.OrderDetails;
-import com.gostavdev.commercify.orderservice.dto.api.CreateOrderRequest;
+import com.gostavdev.commercify.orderservice.api.CreateOrderRequest;
 import com.gostavdev.commercify.orderservice.model.OrderStatus;
 import com.gostavdev.commercify.orderservice.services.OrderService;
 import lombok.AllArgsConstructor;
@@ -25,9 +26,13 @@ public class OrderController {
 
     @PreAuthorize("hasRole('USER')")
     @PostMapping
-    public ResponseEntity<OrderDTO> createOrder(@RequestBody CreateOrderRequest orderRequest) {
-        OrderDTO order = orderService.createOrder(orderRequest);
-        return ResponseEntity.ok().body(order);
+    public ResponseEntity<CreateOrderResponse> createOrder(@RequestBody CreateOrderRequest orderRequest, @RequestHeader("Authorization") String authHeader) {
+        try {
+            OrderDTO orderDTO = orderService.createOrder(orderRequest, authHeader);
+            return ResponseEntity.ok(CreateOrderResponse.from(orderDTO));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(CreateOrderResponse.from(e.getMessage()));
+        }
     }
 
     @PreAuthorize("hasRole('USER') and #userId == authentication.principal.userId")
