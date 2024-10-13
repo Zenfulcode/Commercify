@@ -20,6 +20,7 @@ public class ProductController {
 
     @GetMapping
     public ResponseEntity<List<ProductDTO>> getAllProducts() {
+//        List<ProductDTO> products = productService.getAllProducts();
         return ResponseEntity.ok(productService.getAllProducts());
     }
 

@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 @FeignClient(name = "order-service", url = "${order.service.url}")
 public interface OrderClient {
-    @RequestMapping(method = RequestMethod.GET, value = "/{id}")
+    @RequestMapping(method = RequestMethod.GET, value = "/orders/{id}")
     OrderDTO getOrderById(@PathVariable Long id);
 
-    @RequestMapping(method = RequestMethod.PUT, value = "/{id}/status")
+    @RequestMapping(method = RequestMethod.PUT, value = "/orders/{id}/status")
     void updateOrderStatus(@PathVariable Long id, String status);
 }

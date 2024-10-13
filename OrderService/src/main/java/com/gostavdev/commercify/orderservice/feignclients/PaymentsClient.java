@@ -8,6 +8,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 @FeignClient(name = "payments-service", url = "${payment.service.url}")
 public interface PaymentsClient {
-    @RequestMapping(method = RequestMethod.GET, value = "/cancel/{orderId}")
+    @RequestMapping(method = RequestMethod.GET, value = "/payments/cancel/{orderId}")
     CancelPaymentResponse cancelPayment(@PathVariable Long orderId);
 }
