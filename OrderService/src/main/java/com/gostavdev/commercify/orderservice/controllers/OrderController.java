@@ -1,6 +1,7 @@
 package com.gostavdev.commercify.orderservice.controllers;
 
 import com.gostavdev.commercify.orderservice.api.CreateOrderResponse;
+import com.gostavdev.commercify.orderservice.api.GetOrderResponse;
 import com.gostavdev.commercify.orderservice.dto.OrderDTO;
 import com.gostavdev.commercify.orderservice.dto.OrderDetails;
 import com.gostavdev.commercify.orderservice.api.CreateOrderRequest;
@@ -68,8 +69,13 @@ public class OrderController {
 
     @PreAuthorize("hasRole('USER') and @orderService.isOrderOwnedByUser(#orderId, authentication.principal.userId)")
     @GetMapping("/{orderId}")
-    public ResponseEntity<OrderDetails> getOrderById(@PathVariable Long orderId) {
-        return ResponseEntity.ok(orderService.getOrderById(orderId));
+    public ResponseEntity<GetOrderResponse> getOrderById(@PathVariable Long orderId, @RequestHeader("Authorization") String authHeader) {
+        try {
+            final OrderDetails orderDetails = orderService.getOrderById(orderId, authHeader);
+            return ResponseEntity.ok(GetOrderResponse.from(orderDetails));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(GetOrderResponse.from(e.getMessage()));
+        }
     }
 
     @PreAuthorize("hasRole('ADMIN')")
