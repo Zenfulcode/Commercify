@@ -145,8 +145,9 @@ public class OrderService {
                 .orElseThrow(() -> new IllegalArgumentException("Order not found"));
 
         List<OrderLineDTO> orderLines = getOrderLinesByOrderId(order);
+        double totalPrice = calculateOrderTotal(order.getOrderLines());
 
-        return new OrderDetails(mapper.apply(order), orderLines);
+        return new OrderDetails(mapper.apply(order), totalPrice, orderLines);
     }
 
     @Transactional(readOnly = true)
