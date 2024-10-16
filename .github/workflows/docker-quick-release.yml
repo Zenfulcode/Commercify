@@ -3,7 +3,7 @@ name: Build and Push Dev Docker Images to GHCR
 on:
   push:
     branches:
-      - development
+      - release
 
 env:
   REGISTRY: ghcr.io
