@@ -10,17 +10,9 @@ is designed to be modular and scalable, and can be deployed on any cloud platfor
 
 ## Client and Admin Frontends
 
-### Admin Dashboard
-
 The admin dashboard is built using React, TypeScript ontop of NextJS. The admin dashboard communicates with the backend
 APIs to perform product management, order management, and inventory management. You can find the admin dashboard
-repository [here](https://github.com/gkhaavik/commercify-dashboard).
-
-### Client E-commerce Website
-
-The client e-commerce website is built using React, TypeScript ontop of NextJS. The client website communicates with the
-backend APIs to display products, manage user authentication, and process orders. You can find the client website
-repository [here](https://github.com/gkhaavik/commercify-client).
+repository [here](https://github.com/zenfulcode/commercifyweb).
 
 ## Features
 
