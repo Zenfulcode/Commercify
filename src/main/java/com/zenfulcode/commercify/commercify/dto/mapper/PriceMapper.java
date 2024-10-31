@@ -7,11 +7,11 @@ import org.springframework.stereotype.Service;
 import java.util.function.Function;
 
 @Service
-public class PriceDTOMapper implements Function<PriceEntity, PriceDTO> {
+public class PriceMapper implements Function<PriceEntity, PriceDTO> {
     @Override
     public PriceDTO apply(PriceEntity price) {
         return PriceDTO.builder()
-                .priceId(price.getPriceId())
+                .id(price.getId())
                 .currency(price.getCurrency())
                 .amount(price.getAmount())
                 .stripePriceId(price.getStripePriceId())

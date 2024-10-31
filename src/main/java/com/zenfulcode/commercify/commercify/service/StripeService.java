@@ -65,7 +65,7 @@ public class StripeService {
 
             orderService.updateOrderStatus(paymentRequest.orderId(), OrderStatus.CONFIRMED);
 
-            return new PaymentResponse(payment.getPaymentId(), payment.getStatus(), session.getUrl());
+            return new PaymentResponse(payment.getId(), payment.getStatus(), session.getUrl());
         } catch (StripeException e) {
             return PaymentResponse.FailedPayment();
         }

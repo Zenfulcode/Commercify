@@ -21,14 +21,14 @@ import java.time.LocalDateTime;
 public class PaymentEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long paymentId;
+    private Long id;
 
     private String stripePaymentIntent;
 
-    @Column(name = "order_id", nullable = false)
+    @Column(name = "orderId", nullable = false)
     private Long orderId;
     private Double totalAmount;
-    @Column(name = "payment_method")
+    @Column(name = "paymentMethod")
     private String paymentMethod; // e.g., Credit Card, PayPal
     @Enumerated(EnumType.STRING)
     private PaymentProvider paymentProvider;
@@ -37,10 +37,10 @@ public class PaymentEntity {
     private PaymentStatus status;
 
     @CreationTimestamp
-    @Column(name = "created_at")
+    @Column(name = "createdAt")
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @Column(name = "updated_at")
+    @Column(name = "updatedAt")
     private LocalDateTime updatedAt;
 }

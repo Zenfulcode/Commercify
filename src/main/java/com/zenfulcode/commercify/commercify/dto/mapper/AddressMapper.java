@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import java.util.function.Function;
 
 @Service
-public class AddressDTOMapper implements Function<AddressEntity, AddressDTO> {
+public class AddressMapper implements Function<AddressEntity, AddressDTO> {
     @Override
     public AddressDTO apply(AddressEntity address) {
         return AddressDTO.builder()

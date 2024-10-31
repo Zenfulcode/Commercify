@@ -10,13 +10,13 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class ProductDTOMapper implements Function<ProductEntity, ProductDTO> {
-    private final PriceDTOMapper priceDTOMapper;
+public class ProductMapper implements Function<ProductEntity, ProductDTO> {
+    private final PriceMapper priceMapper;
 
     @Override
     public ProductDTO apply(ProductEntity product) {
         return ProductDTO.builder()
-                .productId(product.getProductId())
+                .id(product.getId())
                 .name(product.getName())
                 .description(product.getDescription())
                 .stock(product.getStock())
@@ -24,7 +24,7 @@ public class ProductDTOMapper implements Function<ProductEntity, ProductDTO> {
                 .active(product.getActive())
                 .imageUrl(product.getImageUrl())
                 .prices(product.getPrices().stream()
-                        .map(priceDTOMapper)
+                        .map(priceMapper)
                         .collect(Collectors.toList()))
                 .build();
     }

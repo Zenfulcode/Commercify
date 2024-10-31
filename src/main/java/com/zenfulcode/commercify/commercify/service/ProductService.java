@@ -10,13 +10,12 @@ import com.zenfulcode.commercify.commercify.dto.ActiveOrderDTO;
 import com.zenfulcode.commercify.commercify.dto.ProductDTO;
 import com.zenfulcode.commercify.commercify.dto.ProductDeletionValidationResult;
 import com.zenfulcode.commercify.commercify.dto.ProductUpdateResult;
-import com.zenfulcode.commercify.commercify.dto.mapper.ProductDTOMapper;
+import com.zenfulcode.commercify.commercify.dto.mapper.ProductMapper;
 import com.zenfulcode.commercify.commercify.entity.PriceEntity;
 import com.zenfulcode.commercify.commercify.entity.ProductEntity;
 import com.zenfulcode.commercify.commercify.exception.*;
 import com.zenfulcode.commercify.commercify.factory.ProductFactory;
 import com.zenfulcode.commercify.commercify.repository.OrderLineRepository;
-import com.zenfulcode.commercify.commercify.repository.OrderRepository;
 import com.zenfulcode.commercify.commercify.repository.ProductRepository;
 import com.zenfulcode.commercify.commercify.service.stripe.StripeProductService;
 import lombok.AllArgsConstructor;
@@ -37,7 +36,7 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final PriceService priceService;
     private final StripeProductService stripeProductService;
-    private final ProductDTOMapper mapper;
+    private final ProductMapper mapper;
     private final ProductFactory productFactory;
     private final OrderLineRepository orderLineRepository;
 
@@ -90,7 +89,7 @@ public class ProductService {
         ProductEntity product = productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException(id));
 
-        updateProductFields(product, request);
+        productFactory.createFromUpdateRequest(request, product);
 
         if (!Stripe.apiKey.isBlank() && product.getStripeId() != null) {
             try {
@@ -116,14 +115,14 @@ public class ProductService {
         if (request.priceId() != null) {
             // Update existing price
             PriceEntity existingPrice = product.getPrices().stream()
-                    .filter(p -> p.getPriceId().equals(request.priceId()))
+                    .filter(p -> p.getId().equals(request.priceId()))
                     .findFirst()
                     .orElseThrow(() -> new PriceNotFoundException(request.priceId()));
 
             // Check if this is the only active default price
             if (!request.active() && existingPrice.getIsDefault() &&
                     product.getPrices().stream()
-                            .filter(p -> !p.getPriceId().equals(request.priceId()))
+                            .filter(p -> !p.getId().equals(request.priceId()))
                             .filter(PriceEntity::getActive)
                             .noneMatch(PriceEntity::getIsDefault)) {
                 throw new ProductValidationException(List.of("Cannot deactivate the only default price"));
@@ -160,25 +159,19 @@ public class ProductService {
     public ProductDeletionValidationResult validateProductDeletion(ProductEntity product) {
         List<String> issues = new ArrayList<>();
 
-        // Check for active orders
-        long activeOrderCount = orderLineRepository.countActiveOrdersForProduct(
-                product.getProductId(),
-                ACTIVE_ORDER_STATUSES
-        );
-
-        if (activeOrderCount > 0) {
-            issues.add(String.format(
-                    "Product has %d active orders",
-                    activeOrderCount
-            ));
-        }
-
         // Get sample of active orders for reference
         List<ActiveOrderDTO> activeOrders = orderLineRepository.findActiveOrdersForProduct(
-                product.getProductId(),
+                product.getId(),
                 ACTIVE_ORDER_STATUSES,
-                PageRequest.of(0, 5, Sort.by("createdAt").descending())
+                PageRequest.of(0, 1, Sort.by("createdAt").descending())
         );
+
+        if (!activeOrders.isEmpty()) {
+            issues.add(String.format(
+                    "Product has %d active orders",
+                    activeOrders.size()
+            ));
+        }
 
         return new ProductDeletionValidationResult(
                 issues.isEmpty(),
@@ -284,21 +277,13 @@ public class ProductService {
             OrderStatus.SHIPPED
     );
 
-    private void updateProductFields(ProductEntity product, UpdateProductRequest request) {
-        if (request.name() != null) product.setName(request.name());
-        if (request.description() != null) product.setDescription(request.description());
-        if (request.stock() != null) product.setStock(request.stock());
-        if (request.imageUrl() != null) product.setImageUrl(request.imageUrl());
-        if (request.active() != null) product.setActive(request.active());
-    }
-
     private void handlePriceUpdates(ProductEntity product, List<UpdatePriceRequest> priceUpdates) {
         if (priceUpdates == null || priceUpdates.isEmpty()) {
             return;
         }
 
         Map<Long, PriceEntity> existingPrices = product.getPrices().stream()
-                .collect(Collectors.toMap(PriceEntity::getPriceId, price -> price));
+                .collect(Collectors.toMap(PriceEntity::getId, price -> price));
 
         priceUpdates.forEach(priceUpdate -> {
             if (priceUpdate.priceId() == null) {

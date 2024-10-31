@@ -4,7 +4,7 @@ package com.zenfulcode.commercify.commercify.service;
 import com.zenfulcode.commercify.commercify.api.requests.LoginUserRequest;
 import com.zenfulcode.commercify.commercify.api.requests.RegisterUserRequest;
 import com.zenfulcode.commercify.commercify.dto.UserDTO;
-import com.zenfulcode.commercify.commercify.dto.mapper.UserDTOMapper;
+import com.zenfulcode.commercify.commercify.dto.mapper.UserMapper;
 import com.zenfulcode.commercify.commercify.entity.AddressEntity;
 import com.zenfulcode.commercify.commercify.entity.UserEntity;
 import com.zenfulcode.commercify.commercify.repository.UserRepository;
@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 public class AuthenticationService {
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManager;
-    private final UserDTOMapper mapper;
+    private final UserMapper mapper;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
 

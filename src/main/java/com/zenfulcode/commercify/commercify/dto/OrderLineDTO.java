@@ -9,6 +9,7 @@ import lombok.Data;
 @Builder
 @AllArgsConstructor
 public class OrderLineDTO {
+    private Long id;
     private Long productId;
     private Long priceId;
     private String stripePriceId;

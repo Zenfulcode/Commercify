@@ -109,7 +109,7 @@ public class OrderController {
         }
     }
 
-    @PreAuthorize("hasRole('USER') and @orderService.isOrderOwnedByUser(#orderId, authentication.principal.userId)")
+    @PreAuthorize("hasRole('USER') and @orderService.isOrderOwnedByUser(#orderId, authentication.principal.id)")
     @GetMapping("/{orderId}")
     public ResponseEntity<GetOrderResponse> getOrderById(@PathVariable Long orderId) {
         try {
@@ -117,22 +117,6 @@ public class OrderController {
             return ResponseEntity.ok(GetOrderResponse.from(orderDetails));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(GetOrderResponse.from(e.getMessage()));
-        }
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/currency/{currency}")
-    public ResponseEntity<List<OrderDTO>> getOrdersByCurrency(
-            @PathVariable String currency,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
-    ) {
-        try {
-            PageRequest pageRequest = PageRequest.of(page, size);
-            Page<OrderDTO> orders = orderService.getAllOrdersByCurrency(currency, pageRequest);
-            return ResponseEntity.ok(orders.getContent());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
         }
     }
 
@@ -167,11 +151,5 @@ public class OrderController {
         if (!VALID_SORT_FIELDS.contains(sortBy)) {
             throw new IllegalArgumentException("Invalid sort field: " + sortBy);
         }
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/statistics/currency")
-    public ResponseEntity<Map<String, Double>> getOrderStatisticsByCurrency() {
-        return ResponseEntity.ok(orderService.getOrderTotalsByCurrency());
     }
 }

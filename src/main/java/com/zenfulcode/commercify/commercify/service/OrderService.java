@@ -4,8 +4,8 @@ import com.zenfulcode.commercify.commercify.OrderStatus;
 import com.zenfulcode.commercify.commercify.api.requests.CreateOrderLineRequest;
 import com.zenfulcode.commercify.commercify.api.requests.CreateOrderRequest;
 import com.zenfulcode.commercify.commercify.dto.*;
-import com.zenfulcode.commercify.commercify.dto.mapper.OrderDTOMapper;
-import com.zenfulcode.commercify.commercify.dto.mapper.OrderLineDTOMapper;
+import com.zenfulcode.commercify.commercify.dto.mapper.OrderMapper;
+import com.zenfulcode.commercify.commercify.dto.mapper.OrderLineMapper;
 import com.zenfulcode.commercify.commercify.entity.OrderEntity;
 import com.zenfulcode.commercify.commercify.entity.OrderLineEntity;
 import com.zenfulcode.commercify.commercify.entity.PriceEntity;
@@ -29,8 +29,8 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderLineRepository orderLineRepository;
     private final ProductService productService;
-    private final OrderDTOMapper mapper;
-    private final OrderLineDTOMapper olMapper;
+    private final OrderMapper mapper;
+    private final OrderLineMapper olMapper;
 
     @Transactional
     public OrderDTO createOrder(CreateOrderRequest request) {
@@ -125,14 +125,14 @@ public class OrderService {
     private void validateProductAvailability(ProductDTO product, List<CreateOrderLineRequest> requests) {
         int totalQuantity = requests.stream().mapToInt(CreateOrderLineRequest::quantity).sum();
         if (product.getStock() < totalQuantity) {
-            throw new RuntimeException("Insufficient stock for product: " + product.getProductId());
+            throw new RuntimeException("Insufficient stock for product: " + product.getId());
         }
     }
 
     private OrderLineEntity createOrderLine(ProductDTO product, PriceEntity price, List<CreateOrderLineRequest> requests, OrderEntity order) {
         OrderLineEntity orderLine = new OrderLineEntity();
-        orderLine.setProductId(product.getProductId());
-        orderLine.setPriceId(price.getPriceId());
+        orderLine.setProductId(product.getId());
+        orderLine.setPriceId(price.getId());
         orderLine.setProduct(product);
         orderLine.setQuantity(requests.stream().mapToInt(CreateOrderLineRequest::quantity).sum());
         orderLine.setUnitPrice(price.getAmount());
@@ -151,7 +151,7 @@ public class OrderService {
     // Helper method to convert PriceDTO to PriceEntity
     private PriceEntity priceDTOToEntity(PriceDTO priceDTO) {
         return PriceEntity.builder()
-                .priceId(priceDTO.getPriceId())
+                .id(priceDTO.getId())
                 .currency(priceDTO.getCurrency())
                 .amount(priceDTO.getAmount())
                 .stripePriceId(priceDTO.getStripePriceId())
@@ -178,16 +178,6 @@ public class OrderService {
     public Page<OrderDTO> getAllOrdersByCurrency(String currency, Pageable pageable) {
         return orderRepository.findByCurrency(currency, pageable)
                 .map(mapper);
-    }
-
-    @Transactional(readOnly = true)
-    public Map<String, Double> getOrderTotalsByCurrency() {
-        List<OrderEntity> orders = orderRepository.findAll();
-        return orders.stream()
-                .collect(Collectors.groupingBy(
-                        OrderEntity::getCurrency,
-                        Collectors.summingDouble(OrderEntity::getTotalAmount)
-                ));
     }
 
     public Page<OrderDTO> getAllOrders(PageRequest pageRequest) {

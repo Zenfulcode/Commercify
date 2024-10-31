@@ -7,13 +7,13 @@ import lombok.NoArgsConstructor;
 
 @Data
 @Entity
-@Table(name = "OrderLines")
+@Table(name = "order_lines")
 @NoArgsConstructor
 public class OrderLineEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "orderline_id", nullable = false)
-    private Long orderlineId;
+    @Column(name = "id", nullable = false)
+    private Long id;
 
     @Column(name = "product_id", nullable = false, updatable = false)
     private Long productId;
@@ -34,7 +34,7 @@ public class OrderLineEntity {
     private String currency;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", nullable = false, updatable = false)
+    @JoinColumn(name = "orderId", nullable = false, updatable = false)
     private OrderEntity order;
 
     @Transient

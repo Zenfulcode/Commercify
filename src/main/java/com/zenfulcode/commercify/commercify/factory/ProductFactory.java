@@ -24,7 +24,7 @@ public class ProductFactory {
 
     public ProductEntity createFromUpdateRequest(UpdateProductRequest request, ProductEntity existingProduct) {
         ProductEntity.ProductEntityBuilder builder = ProductEntity.builder()
-                .productId(existingProduct.getProductId())
+                .id(existingProduct.getId())
                 .name(request.name() != null ? request.name() : existingProduct.getName())
                 .description(request.description() != null ? request.description() : existingProduct.getDescription())
                 .stock(request.stock() != null ? request.stock() : existingProduct.getStock())

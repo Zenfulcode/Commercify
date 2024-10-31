@@ -18,8 +18,8 @@ import java.util.List;
 public class OrderEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "order_id", nullable = false)
-    private Long orderId;
+    @Column(name = "id", nullable = false)
+    private Long id;
 
     @Column(name = "user_id", nullable = false)
     private Long userId;
@@ -47,6 +47,5 @@ public class OrderEntity {
         this.userId = userId;
         this.currency = currency;
         this.status = OrderStatus.PENDING;
-        this.updatedAt = null;
     }
 }

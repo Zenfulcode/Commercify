@@ -8,7 +8,7 @@ import lombok.Data;
 @Builder
 @AllArgsConstructor
 public class PriceDTO {
-    private Long priceId;
+    private Long id;
     private String currency;
     private Double amount;
     private String stripePriceId;

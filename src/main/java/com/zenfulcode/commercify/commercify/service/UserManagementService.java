@@ -3,7 +3,7 @@ package com.zenfulcode.commercify.commercify.service;
 
 import com.zenfulcode.commercify.commercify.dto.AddressDTO;
 import com.zenfulcode.commercify.commercify.dto.UserDTO;
-import com.zenfulcode.commercify.commercify.dto.mapper.UserDTOMapper;
+import com.zenfulcode.commercify.commercify.dto.mapper.UserMapper;
 import com.zenfulcode.commercify.commercify.entity.AddressEntity;
 import com.zenfulcode.commercify.commercify.entity.UserEntity;
 import com.zenfulcode.commercify.commercify.repository.UserRepository;
@@ -19,7 +19,7 @@ import java.util.ArrayList;
 @RequiredArgsConstructor
 public class UserManagementService {
     private final UserRepository userRepository;
-    private final UserDTOMapper mapper;
+    private final UserMapper mapper;
 
     @Transactional(readOnly = true)
     public UserDTO getUserById(Long id) {
