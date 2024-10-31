@@ -10,10 +10,4 @@ public record UpdateProductRequest(
         Boolean active,
         List<UpdatePriceRequest> prices
 ) {
-    // Validates that at least one field is present for update
-    public boolean hasUpdates() {
-        return name != null || description != null || stock != null ||
-                imageUrl != null || active != null ||
-                (prices != null && !prices.isEmpty());
-    }
 }

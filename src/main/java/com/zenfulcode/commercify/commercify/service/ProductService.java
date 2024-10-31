@@ -40,7 +40,6 @@ public class ProductService {
     private final ProductDTOMapper mapper;
     private final ProductFactory productFactory;
     private final OrderLineRepository orderLineRepository;
-    private final OrderRepository orderRepository;
 
     @Transactional
     public ProductDTO saveProduct(CreateProductRequest request) {
@@ -57,7 +56,10 @@ public class ProductService {
 
         // Create prices after product is saved
         request.prices().forEach(priceRequest ->
-                priceService.createPrice(priceRequest, savedProduct));
+        {
+            PriceEntity price = priceService.createPrice(priceRequest, savedProduct);
+            savedProduct.addPrice(price);
+        });
 
         return mapper.apply(savedProduct);
     }
@@ -274,13 +276,6 @@ public class ProductService {
         // Add your supported currencies here
         Set<String> supportedCurrencies = Set.of("USD", "EUR", "GBP");
         return supportedCurrencies.contains(currency.toUpperCase());
-    }
-
-    private boolean hasActiveOrders(ProductEntity product) {
-        return orderLineRepository.existsActiveOrdersForProduct(
-                product.getProductId(),
-                ACTIVE_ORDER_STATUSES
-        );
     }
 
     private static final Set<OrderStatus> ACTIVE_ORDER_STATUSES = Set.of(

@@ -34,7 +34,6 @@ import java.util.Set;
 @Slf4j
 public class ProductController {
     private final ProductService productService;
-    private final PriceService priceService;
     private final PagedResourcesAssembler<ProductDTO> pagedResourcesAssembler;
 
     private static final Set<String> VALID_SORT_FIELDS = Set.of(

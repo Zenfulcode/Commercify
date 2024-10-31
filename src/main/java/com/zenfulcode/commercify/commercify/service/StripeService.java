@@ -2,7 +2,6 @@ package com.zenfulcode.commercify.commercify.service;
 
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
-import com.stripe.model.Product;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
 import com.zenfulcode.commercify.commercify.OrderStatus;

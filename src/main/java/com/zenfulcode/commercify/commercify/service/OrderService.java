@@ -6,14 +6,11 @@ import com.zenfulcode.commercify.commercify.api.requests.CreateOrderRequest;
 import com.zenfulcode.commercify.commercify.dto.*;
 import com.zenfulcode.commercify.commercify.dto.mapper.OrderDTOMapper;
 import com.zenfulcode.commercify.commercify.dto.mapper.OrderLineDTOMapper;
-import com.zenfulcode.commercify.commercify.dto.mapper.ProductDTOMapper;
 import com.zenfulcode.commercify.commercify.entity.OrderEntity;
 import com.zenfulcode.commercify.commercify.entity.OrderLineEntity;
 import com.zenfulcode.commercify.commercify.entity.PriceEntity;
-import com.zenfulcode.commercify.commercify.entity.ProductEntity;
 import com.zenfulcode.commercify.commercify.repository.OrderLineRepository;
 import com.zenfulcode.commercify.commercify.repository.OrderRepository;
-import com.zenfulcode.commercify.commercify.repository.PriceRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -32,10 +29,8 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderLineRepository orderLineRepository;
     private final ProductService productService;
-    private final PriceRepository priceRepository;
     private final OrderDTOMapper mapper;
     private final OrderLineDTOMapper olMapper;
-    private final ProductDTOMapper productDTOMapper;
 
     @Transactional
     public OrderDTO createOrder(CreateOrderRequest request) {
