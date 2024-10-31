@@ -11,6 +11,5 @@ import java.util.List;
 @AllArgsConstructor
 public class OrderDetailsDTO {
     private OrderDTO order;
-    private Double totalPrice;
     private List<OrderLineDTO> orderLines;
 }

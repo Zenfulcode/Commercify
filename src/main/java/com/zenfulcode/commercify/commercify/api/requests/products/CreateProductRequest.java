@@ -1,4 +1,4 @@
-package com.zenfulcode.commercify.commercify.api.requests;
+package com.zenfulcode.commercify.commercify.api.requests.products;
 
 import java.util.List;
 

@@ -23,7 +23,7 @@ public class UserManagementController {
     private final PagedResourcesAssembler<UserDTO> pagedResourcesAssembler;
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.userId")
+    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
     public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
         return ResponseEntity.ok(userManagementService.getUserById(id));
     }
@@ -45,7 +45,7 @@ public class UserManagementController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.userId")
+    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
     public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @RequestBody UserDTO userDTO) {
         return ResponseEntity.ok(userManagementService.updateUser(id, userDTO));
     }
@@ -58,19 +58,19 @@ public class UserManagementController {
     }
 
     @PostMapping("/{id}/addresses")
-    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.userId")
+    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
     public ResponseEntity<UserDTO> addAddress(@PathVariable Long id, @RequestBody AddressDTO addressDTO) {
         return ResponseEntity.ok(userManagementService.addAddress(id, addressDTO));
     }
 
     @PutMapping("/{userId}/addresses/{addressId}")
-    @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.userId")
+    @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.id")
     public ResponseEntity<UserDTO> updateAddress(@PathVariable Long userId, @PathVariable Long addressId, @RequestBody AddressDTO addressDTO) {
         return ResponseEntity.ok(userManagementService.updateAddress(userId, addressId, addressDTO));
     }
 
     @DeleteMapping("/{userId}/addresses/{addressId}")
-    @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.userId")
+    @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.id")
     public ResponseEntity<UserDTO> removeAddress(@PathVariable Long userId, @PathVariable Long addressId) {
         return ResponseEntity.ok(userManagementService.removeAddress(userId, addressId));
     }

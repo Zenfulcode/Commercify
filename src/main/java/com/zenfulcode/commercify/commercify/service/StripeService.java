@@ -54,12 +54,14 @@ public class StripeService {
         try {
             Session session = Session.create(params);
 
+            final double totalAmount = order.getOrder().getTotalAmount();
+
             PaymentEntity payment = PaymentEntity.builder()
                     .orderId(paymentRequest.orderId())
                     .stripePaymentIntent(session.getPaymentIntent())
                     .paymentProvider(PaymentProvider.STRIPE)
                     .status(PaymentStatus.PAID)
-                    .totalAmount(order.getTotalPrice())
+                    .totalAmount(totalAmount)
                     .build();
             paymentRepository.save(payment);
 

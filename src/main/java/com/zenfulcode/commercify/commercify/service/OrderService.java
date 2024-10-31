@@ -1,8 +1,8 @@
 package com.zenfulcode.commercify.commercify.service;
 
 import com.zenfulcode.commercify.commercify.OrderStatus;
-import com.zenfulcode.commercify.commercify.api.requests.CreateOrderLineRequest;
-import com.zenfulcode.commercify.commercify.api.requests.CreateOrderRequest;
+import com.zenfulcode.commercify.commercify.api.requests.orders.CreateOrderLineRequest;
+import com.zenfulcode.commercify.commercify.api.requests.orders.CreateOrderRequest;
 import com.zenfulcode.commercify.commercify.dto.*;
 import com.zenfulcode.commercify.commercify.dto.mapper.OrderMapper;
 import com.zenfulcode.commercify.commercify.dto.mapper.OrderLineMapper;
@@ -77,11 +77,10 @@ public class OrderService {
                 .orElseThrow(() -> new IllegalArgumentException("Order not found"));
 
         List<OrderLineDTO> orderLines = getOrderLinesByOrderId(order);
-        double totalPrice = calculateOrderTotal(order.getOrderLines());
 
         orderLines.forEach(ol -> ol.setProduct(productService.getProductById(ol.getProductId())));
 
-        return new OrderDetailsDTO(mapper.apply(order), totalPrice, orderLines);
+        return new OrderDetailsDTO(mapper.apply(order), orderLines);
     }
 
     private void validateCreateOrderRequest(CreateOrderRequest request) {
@@ -159,18 +158,6 @@ public class OrderService {
         return orderRepository.findById(orderId)
                 .map(order -> order.getUserId().equals(userId))
                 .orElse(false);
-    }
-
-    @Transactional(readOnly = true)
-    public Page<OrderDTO> getOrdersByUserIdAndCurrency(Long userId, String currency, Pageable pageable) {
-        return orderRepository.findByUserIdAndCurrency(userId, currency, pageable)
-                .map(mapper);
-    }
-
-    @Transactional(readOnly = true)
-    public Page<OrderDTO> getAllOrdersByCurrency(String currency, Pageable pageable) {
-        return orderRepository.findByCurrency(currency, pageable)
-                .map(mapper);
     }
 
     public Page<OrderDTO> getAllOrders(PageRequest pageRequest) {

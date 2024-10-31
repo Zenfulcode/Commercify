@@ -10,7 +10,7 @@ import java.util.List;
 public class ProductDeletionValidationResult {
     private boolean canDelete;
     private List<String> issues;
-    private List<ActiveOrderDTO> activeOrders;
+    private List<OrderDTO> activeOrders;
 
     public boolean canDelete() {
         return activeOrders.isEmpty() && issues.isEmpty();

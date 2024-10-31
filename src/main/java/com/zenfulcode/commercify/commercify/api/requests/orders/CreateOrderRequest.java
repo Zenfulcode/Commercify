@@ -1,4 +1,4 @@
-package com.zenfulcode.commercify.commercify.api.requests;
+package com.zenfulcode.commercify.commercify.api.requests.orders;
 
 import java.util.List;
 

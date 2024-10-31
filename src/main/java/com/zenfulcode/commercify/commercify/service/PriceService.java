@@ -3,13 +3,13 @@ package com.zenfulcode.commercify.commercify.service;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Price;
-import com.zenfulcode.commercify.commercify.api.requests.CreatePriceRequest;
-import com.zenfulcode.commercify.commercify.api.requests.UpdatePriceRequest;
+import com.zenfulcode.commercify.commercify.api.requests.products.CreatePriceRequest;
+import com.zenfulcode.commercify.commercify.api.requests.products.UpdatePriceRequest;
 import com.zenfulcode.commercify.commercify.entity.PriceEntity;
 import com.zenfulcode.commercify.commercify.entity.ProductEntity;
 import com.zenfulcode.commercify.commercify.exception.StripeOperationException;
 import com.zenfulcode.commercify.commercify.repository.PriceRepository;
-import com.zenfulcode.commercify.commercify.service.stripe.StripePriceService;
+import com.zenfulcode.commercify.commercify.service.stripe.StripeProductService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -21,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class PriceService {
     private final PriceRepository priceRepository;
-    private final StripePriceService stripePriceService;
+    private final StripeProductService stripePriceService;
 
     public PriceEntity createPrice(CreatePriceRequest request, ProductEntity product) {
         PriceEntity price = PriceEntity.builder()
@@ -61,7 +61,7 @@ public class PriceService {
         if (!Stripe.apiKey.isBlank() && price.getStripePriceId() != null) {
             try {
                 Price stripePrice = Price.retrieve(price.getStripePriceId());
-                stripePriceService.deactivateStripePrice(stripePrice);
+                stripePriceService.deactivateStripePrices(stripePrice);
             } catch (StripeException e) {
                 log.error("Failed to deactivate Stripe price: {}", e.getMessage());
                 throw new StripeOperationException("Failed to deactivate Stripe price", e);

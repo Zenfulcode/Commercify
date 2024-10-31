@@ -1,7 +1,7 @@
 package com.zenfulcode.commercify.commercify.factory;
 
-import com.zenfulcode.commercify.commercify.api.requests.CreateProductRequest;
-import com.zenfulcode.commercify.commercify.api.requests.UpdateProductRequest;
+import com.zenfulcode.commercify.commercify.api.requests.products.CreateProductRequest;
+import com.zenfulcode.commercify.commercify.api.requests.products.UpdateProductRequest;
 import com.zenfulcode.commercify.commercify.entity.ProductEntity;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

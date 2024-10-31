@@ -2,14 +2,12 @@ package com.zenfulcode.commercify.commercify.service;
 
 import com.stripe.Stripe;
 import com.zenfulcode.commercify.commercify.OrderStatus;
-import com.zenfulcode.commercify.commercify.api.requests.CreatePriceRequest;
-import com.zenfulcode.commercify.commercify.api.requests.CreateProductRequest;
-import com.zenfulcode.commercify.commercify.api.requests.UpdatePriceRequest;
-import com.zenfulcode.commercify.commercify.api.requests.UpdateProductRequest;
-import com.zenfulcode.commercify.commercify.dto.ActiveOrderDTO;
-import com.zenfulcode.commercify.commercify.dto.ProductDTO;
-import com.zenfulcode.commercify.commercify.dto.ProductDeletionValidationResult;
-import com.zenfulcode.commercify.commercify.dto.ProductUpdateResult;
+import com.zenfulcode.commercify.commercify.api.requests.products.CreatePriceRequest;
+import com.zenfulcode.commercify.commercify.api.requests.products.CreateProductRequest;
+import com.zenfulcode.commercify.commercify.api.requests.products.UpdatePriceRequest;
+import com.zenfulcode.commercify.commercify.api.requests.products.UpdateProductRequest;
+import com.zenfulcode.commercify.commercify.dto.*;
+import com.zenfulcode.commercify.commercify.dto.mapper.OrderMapper;
 import com.zenfulcode.commercify.commercify.dto.mapper.ProductMapper;
 import com.zenfulcode.commercify.commercify.entity.PriceEntity;
 import com.zenfulcode.commercify.commercify.entity.ProductEntity;
@@ -22,7 +20,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,6 +36,7 @@ public class ProductService {
     private final ProductMapper mapper;
     private final ProductFactory productFactory;
     private final OrderLineRepository orderLineRepository;
+    private final OrderMapper orderMapper;
 
     @Transactional
     public ProductDTO saveProduct(CreateProductRequest request) {
@@ -157,15 +155,13 @@ public class ProductService {
      * @return A validation result containing any issues found
      */
     public ProductDeletionValidationResult validateProductDeletion(ProductEntity product) {
-        List<String> issues = new ArrayList<>();
 
         // Get sample of active orders for reference
-        List<ActiveOrderDTO> activeOrders = orderLineRepository.findActiveOrdersForProduct(
-                product.getId(),
-                ACTIVE_ORDER_STATUSES,
-                PageRequest.of(0, 1, Sort.by("createdAt").descending())
-        );
+        List<OrderDTO> activeOrders = orderLineRepository.findActiveOrdersForProduct(product.getId(),
+                List.of(OrderStatus.PENDING, OrderStatus.CONFIRMED, OrderStatus.SHIPPED)
+        ).stream().map(orderMapper).collect(Collectors.toList());
 
+        List<String> issues = new ArrayList<>();
         if (!activeOrders.isEmpty()) {
             issues.add(String.format(
                     "Product has %d active orders",
@@ -181,12 +177,11 @@ public class ProductService {
     }
 
     @Transactional
-    public void deleteProduct(Long id) {
-        ProductEntity product = productRepository.findById(id)
-                .orElseThrow(() -> new ProductNotFoundException(id));
+    public void deleteProduct(Long id) throws RuntimeException {
+        ProductEntity productEnt = productRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Product not found"));
 
-        // Check if product can be deleted
-        ProductDeletionValidationResult validationResult = validateProductDeletion(product);
+        ProductDeletionValidationResult validationResult = validateProductDeletion(productEnt);
         if (!validationResult.canDelete()) {
             throw new ProductDeletionException(
                     "Cannot delete product",
@@ -195,26 +190,32 @@ public class ProductService {
             );
         }
 
-        // Handle Stripe deletion if necessary
-        if (!Stripe.apiKey.isBlank() && product.getStripeId() != null) {
-            try {
-                stripeProductService.deleteStripeProduct(product.getStripeId());
-            } catch (Exception e) {
-                log.error("Failed to delete product from Stripe", e);
-                throw new StripeOperationException("Failed to delete product from Stripe", e);
-            }
+        if (!Stripe.apiKey.isBlank() && productEnt.getStripeId() != null) {
+            stripeProductService.deactivateProduct(productEnt);
+        } else if (Stripe.apiKey.isBlank() && productEnt.getStripeId() != null) {
+            throw new RuntimeException("Can't delete product from stripe without stripe key");
         }
 
-        // Deactivate all prices first
-        product.getPrices().forEach(price -> {
-            price.setActive(false);
-            if (price.getStripePriceId() != null) {
-                priceService.deactivatePrice(price);
-            }
-        });
+        productRepository.deleteById(id);
+    }
 
-        // Delete the product
-        productRepository.delete(product);
+    @Transactional
+    public boolean reactivateProduct(Long id) throws RuntimeException {
+        ProductEntity productEnt = productRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Product not found"));
+
+        if (!productEnt.getActive()) {
+            productEnt.setActive(true);
+        }
+
+        if (!Stripe.apiKey.isBlank() && productEnt.getStripeId() != null) {
+            stripeProductService.reactivateProduct(productEnt);
+        } else if (Stripe.apiKey.isBlank() && productEnt.getStripeId() != null) {
+            throw new RuntimeException("Can't reactivate product from stripe without stripe key");
+        }
+
+        productRepository.save(productEnt);
+        return true;
     }
 
     @Transactional
@@ -256,26 +257,10 @@ public class ProductService {
             errors.add("Price amount must be greater than zero");
         }
 
-        if (request.currency() != null && !isSupportedCurrency(request.currency())) {
-            errors.add("Unsupported currency: " + request.currency());
-        }
-
         if (!errors.isEmpty()) {
             throw new ProductValidationException(errors);
         }
     }
-
-    private boolean isSupportedCurrency(String currency) {
-        // Add your supported currencies here
-        Set<String> supportedCurrencies = Set.of("USD", "EUR", "GBP");
-        return supportedCurrencies.contains(currency.toUpperCase());
-    }
-
-    private static final Set<OrderStatus> ACTIVE_ORDER_STATUSES = Set.of(
-            OrderStatus.PENDING,
-            OrderStatus.CONFIRMED,
-            OrderStatus.SHIPPED
-    );
 
     private void handlePriceUpdates(ProductEntity product, List<UpdatePriceRequest> priceUpdates) {
         if (priceUpdates == null || priceUpdates.isEmpty()) {

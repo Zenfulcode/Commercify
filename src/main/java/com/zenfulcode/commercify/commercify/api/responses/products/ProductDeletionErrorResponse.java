@@ -1,6 +1,6 @@
-package com.zenfulcode.commercify.commercify.api.responses;
+package com.zenfulcode.commercify.commercify.api.responses.products;
 
-import com.zenfulcode.commercify.commercify.dto.ActiveOrderDTO;
+import com.zenfulcode.commercify.commercify.dto.OrderDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -11,5 +11,5 @@ import java.util.List;
 public class ProductDeletionErrorResponse {
     private String message;
     private List<String> issues;
-    private List<ActiveOrderDTO> activeOrders;
+    private List<OrderDTO> activeOrders;
 }
