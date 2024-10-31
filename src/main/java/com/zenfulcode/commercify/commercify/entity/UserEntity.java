@@ -16,7 +16,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Table(name = "users")
+@Table(name = "Users")
 @Entity
 @Builder
 @Data
