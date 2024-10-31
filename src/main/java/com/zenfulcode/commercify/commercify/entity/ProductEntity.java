@@ -27,6 +27,7 @@ public class ProductEntity {
     private Integer stock;
     private String stripeId;
     private Boolean active;
+    private String imageUrl;
 
     @CreationTimestamp
     @Column(name = "created_at")

@@ -41,21 +41,7 @@ public class ProductController {
         return ResponseEntity.ok(pagedResourcesAssembler.toModel(products));
     }
 
-    @GetMapping("/active")
-    public ResponseEntity<PagedModel<EntityModel<ProductDTO>>> getActiveProducts(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "productId") String sortBy,
-            @RequestParam(defaultValue = "DESC") String sortDirection
-    ) {
-        Sort.Direction direction = Sort.Direction.fromString(sortDirection.toUpperCase());
-        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
-
-        Page<ProductDTO> products = productService.getActiveProducts(pageRequest);
-
-        return ResponseEntity.ok(pagedResourcesAssembler.toModel(products));
-    }
-
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<ProductDTO> createProduct(@RequestBody CreateProductRequest request) {
         ProductDTO product = productService.saveProduct(request);
@@ -72,12 +58,7 @@ public class ProductController {
         return ResponseEntity.ok(product);
     }
 
-    @PostMapping("/batch")
-    public ResponseEntity<List<ProductDTO>> createBatchProducts(@RequestBody List<CreateProductRequest> request) {
-        List<ProductDTO> products = productService.saveProducts(request);
-        return ResponseEntity.ok(products);
-    }
-
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<DeleteProductResponse> deleteProduct(@PathVariable Long id) {
         try {
@@ -88,6 +69,31 @@ public class ProductController {
         }
     }
 
+
+
+    @GetMapping("/active")
+    public ResponseEntity<PagedModel<EntityModel<ProductDTO>>> getActiveProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "productId") String sortBy,
+            @RequestParam(defaultValue = "DESC") String sortDirection
+    ) {
+        Sort.Direction direction = Sort.Direction.fromString(sortDirection.toUpperCase());
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
+        Page<ProductDTO> products = productService.getActiveProducts(pageRequest);
+
+        return ResponseEntity.ok(pagedResourcesAssembler.toModel(products));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/batch")
+    public ResponseEntity<List<ProductDTO>> createBatchProducts(@RequestBody List<CreateProductRequest> request) {
+        List<ProductDTO> products = productService.saveProducts(request);
+        return ResponseEntity.ok(products);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/deactivate/{id}")
     public ResponseEntity<String> deactivateProduct(@PathVariable Long id) {
         try {
