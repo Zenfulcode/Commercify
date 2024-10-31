@@ -16,4 +16,5 @@ public class ProductDTO {
     private Integer stock;
     private String stripeId;
     private Boolean active;
+    private String imageUrl;
 }

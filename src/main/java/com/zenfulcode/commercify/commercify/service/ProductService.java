@@ -43,6 +43,7 @@ public class ProductService {
                 .unitPrice(request.unitPrice())
                 .stock(request.stock())
                 .active(true)
+                .imageUrl(request.imageUrl())
                 .build();
 
         if (!Stripe.apiKey.isBlank()) {
@@ -76,7 +77,7 @@ public class ProductService {
     public boolean deleteProduct(Long id) throws RuntimeException {
         ProductEntity productEnt = productRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Product not found"));
 
-        if (!Stripe.apiKey.isBlank()) {
+        if (!Stripe.apiKey.isBlank() && productEnt.getStripeId() != null) {
             deleteProductFromStripe(productEnt);
         }
 

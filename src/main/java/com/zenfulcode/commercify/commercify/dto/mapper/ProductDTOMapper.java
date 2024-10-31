@@ -19,6 +19,7 @@ public class ProductDTOMapper implements Function<ProductEntity, ProductDTO> {
                 .stock(product.getStock())
                 .stripeId(product.getStripeId())
                 .active(product.getActive())
+                .imageUrl(product.getImageUrl())
                 .build();
     }
 }

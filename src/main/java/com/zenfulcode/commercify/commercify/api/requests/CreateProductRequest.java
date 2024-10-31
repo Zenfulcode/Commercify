@@ -5,5 +5,6 @@ public record CreateProductRequest(
         String description,
         Double unitPrice,
         String currency,
-        Integer stock) {
+        Integer stock,
+        String imageUrl) {
 }

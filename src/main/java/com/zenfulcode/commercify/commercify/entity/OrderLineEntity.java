@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 
 @Data
 @Entity
-@Table(name = "order_lines")
+@Table(name = "OrderLines")
 @NoArgsConstructor
 public class OrderLineEntity {
     @Id
