@@ -34,7 +34,7 @@ public class OrderLineEntity {
     private String currency;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "orderId", nullable = false, updatable = false)
+    @JoinColumn(name = "order_id", nullable = false, updatable = false)
     private OrderEntity order;
 
     @Transient

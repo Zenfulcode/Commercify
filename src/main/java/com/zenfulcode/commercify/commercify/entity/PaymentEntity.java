@@ -25,10 +25,10 @@ public class PaymentEntity {
 
     private String stripePaymentIntent;
 
-    @Column(name = "orderId", nullable = false)
+    @Column(name = "order_id", nullable = false)
     private Long orderId;
     private Double totalAmount;
-    @Column(name = "paymentMethod")
+    @Column(name = "payment_method")
     private String paymentMethod; // e.g., Credit Card, PayPal
     @Enumerated(EnumType.STRING)
     private PaymentProvider paymentProvider;
@@ -37,10 +37,10 @@ public class PaymentEntity {
     private PaymentStatus status;
 
     @CreationTimestamp
-    @Column(name = "createdAt")
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @Column(name = "updatedAt")
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 }

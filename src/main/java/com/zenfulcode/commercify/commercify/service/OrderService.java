@@ -20,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.AbstractMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,23 +33,17 @@ public class OrderService {
 
     @Transactional
     public OrderDTO createOrder(CreateOrderRequest request) {
-        // 1. Validate the request
         validateCreateOrderRequest(request);
 
-        // 2. Create the Order entity
         OrderEntity order = new OrderEntity(request.userId(), request.currency());
 
-        // 3. Fetch and validate products and prices, create OrderLines
         List<OrderLineEntity> orderLines = createOrderLines(request, order);
 
-        // 4. Calculate order total
         double orderTotal = calculateOrderTotal(orderLines);
 
-        // 5. Set order details
         order.setOrderLines(orderLines);
         order.setTotalAmount(orderTotal);
 
-        // 6. Save the order and order lines
         OrderEntity savedOrder = orderRepository.save(order);
         orderLineRepository.saveAll(orderLines);
 
