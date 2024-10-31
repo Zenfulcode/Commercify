@@ -14,15 +14,24 @@ public class OrderLineEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "orderline_id", nullable = false)
     private Long orderlineId;
-    @Column(name = "stripe_product_id", updatable = false)
-    private String stripeProductId;
 
     @Column(name = "product_id", nullable = false, updatable = false)
     private Long productId;
+
+    @Column(name = "price_id", nullable = false, updatable = false)
+    private Long priceId;
+
+    @Column(name = "stripe_price_id", updatable = false)
+    private String stripePriceId;
+
     @Column(name = "quantity", nullable = false, updatable = false)
     private Integer quantity;
+
     @Column(name = "unit_price", nullable = false, updatable = false)
     private Double unitPrice;
+
+    @Column(name = "currency", nullable = false, updatable = false)
+    private String currency;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false, updatable = false)

@@ -1,10 +1,13 @@
 package com.zenfulcode.commercify.commercify.api.requests;
 
+import java.util.List;
+
 public record CreateProductRequest(
         String name,
         String description,
-        Double unitPrice,
-        String currency,
         Integer stock,
-        String imageUrl) {
+        String imageUrl,
+        Boolean active,
+        List<CreatePriceRequest> prices
+) {
 }

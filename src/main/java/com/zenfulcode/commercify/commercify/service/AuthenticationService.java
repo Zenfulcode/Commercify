@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,8 +30,13 @@ public class AuthenticationService {
 
     @Transactional
     public UserDTO registerUser(RegisterUserRequest registerRequest) {
-        userRepository.findByEmail(registerRequest.email())
-                .orElseThrow(() -> new RuntimeException("User with this email already exists"));
+        Optional<UserEntity> existing = userRepository.findByEmail(registerRequest.email());
+
+        if (existing.isPresent()) {
+            throw new RuntimeException("User with email " + registerRequest.email() + " already exists");
+        } else {
+            System.out.println("User with email " + registerRequest.email() + " does not exist");
+        }
 
         List<AddressEntity> addresses = registerRequest.addresses().stream()
                 .map(addressDTO -> AddressEntity.builder()

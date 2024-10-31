@@ -1,6 +1,5 @@
 package com.zenfulcode.commercify.commercify.controller;
 
-
 import com.zenfulcode.commercify.commercify.OrderStatus;
 import com.zenfulcode.commercify.commercify.api.requests.CreateOrderRequest;
 import com.zenfulcode.commercify.commercify.api.responses.CreateOrderResponse;
@@ -20,6 +19,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 @RestController
 @RequestMapping("/api/v1/orders")
 @AllArgsConstructor
@@ -28,46 +31,84 @@ public class OrderController {
     private final PaymentService paymentService;
     private final PagedResourcesAssembler<OrderDTO> pagedResourcesAssembler;
 
+    private static final Set<String> VALID_SORT_FIELDS = Set.of(
+            "orderId", "userId", "status", "currency", "totalAmount", "createdAt", "updatedAt"
+    );
+
     @PreAuthorize("hasRole('USER')")
     @PostMapping
     public ResponseEntity<CreateOrderResponse> createOrder(@RequestBody CreateOrderRequest orderRequest) {
         try {
+            // Validate currency
+            if (orderRequest.currency() == null || orderRequest.currency().isBlank()) {
+                return ResponseEntity.badRequest()
+                        .body(CreateOrderResponse.from("Currency is required"));
+            }
+
             OrderDTO orderDTO = orderService.createOrder(orderRequest);
             return ResponseEntity.ok(CreateOrderResponse.from(orderDTO));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(CreateOrderResponse.from("Invalid request: " + e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(CreateOrderResponse.from(e.getMessage()));
+            return ResponseEntity.badRequest()
+                    .body(CreateOrderResponse.from(e.getMessage()));
         }
     }
 
     @PreAuthorize("hasRole('USER') and #userId == authentication.principal.userId")
     @GetMapping("/user/{userId}")
-    public ResponseEntity<PagedModel<EntityModel<OrderDTO>>> getOrdersByUserId(
+    public ResponseEntity<?> getOrdersByUserId(
             @PathVariable Long userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "orderId") String sortBy,
-            @RequestParam(defaultValue = "DESC") String sortDirection) {
+            @RequestParam(defaultValue = "DESC") String sortDirection,
+            @RequestParam(required = false) String currency
+    ) {
+        try {
+            validateSortField(sortBy);
+            Sort.Direction direction = Sort.Direction.fromString(sortDirection.toUpperCase());
+            PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-        Sort.Direction direction = Sort.Direction.fromString(sortDirection.toUpperCase());
-        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
+            Page<OrderDTO> orders;
+            if (currency != null && !currency.isBlank()) {
+                orders = orderService.getOrdersByUserIdAndCurrency(userId, currency, pageRequest);
+            } else {
+                orders = orderService.getOrdersByUserId(userId, pageRequest);
+            }
 
-        Page<OrderDTO> orders = orderService.getOrdersByUserId(userId, pageRequest);
-        return ResponseEntity.ok(pagedResourcesAssembler.toModel(orders));
+            return ResponseEntity.ok(pagedResourcesAssembler.toModel(orders));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Invalid request parameters: " + e.getMessage());
+        }
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-    public ResponseEntity<PagedModel<EntityModel<OrderDTO>>> getAllOrders(
+    public ResponseEntity<?> getAllOrders(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "orderId") String sortBy,
-            @RequestParam(defaultValue = "DESC") String sortDirection) {
+            @RequestParam(defaultValue = "DESC") String sortDirection,
+            @RequestParam(required = false) String currency
+    ) {
+        try {
+            validateSortField(sortBy);
+            Sort.Direction direction = Sort.Direction.fromString(sortDirection.toUpperCase());
+            PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-        Sort.Direction direction = Sort.Direction.fromString(sortDirection.toUpperCase());
-        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
+            Page<OrderDTO> orders;
+            if (currency != null && !currency.isBlank()) {
+                orders = orderService.getAllOrdersByCurrency(currency, pageRequest);
+            } else {
+                orders = orderService.getAllOrders(pageRequest);
+            }
 
-        Page<OrderDTO> orders = orderService.getAllOrders(pageRequest);
-        return ResponseEntity.ok(pagedResourcesAssembler.toModel(orders));
+            return ResponseEntity.ok(pagedResourcesAssembler.toModel(orders));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Invalid request parameters: " + e.getMessage());
+        }
     }
 
     @PreAuthorize("hasRole('USER') and @orderService.isOrderOwnedByUser(#orderId, authentication.principal.userId)")
@@ -82,23 +123,57 @@ public class OrderController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/{id}/status")
-    public ResponseEntity<Void> updateOrderStatus(@PathVariable Long id, @RequestBody String status) {
-        OrderStatus orderStatus;
+    @GetMapping("/currency/{currency}")
+    public ResponseEntity<List<OrderDTO>> getOrdersByCurrency(
+            @PathVariable String currency,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
         try {
-            orderStatus = OrderStatus.valueOf(status.toUpperCase());
+            PageRequest pageRequest = PageRequest.of(page, size);
+            Page<OrderDTO> orders = orderService.getAllOrdersByCurrency(currency, pageRequest);
+            return ResponseEntity.ok(orders.getContent());
         } catch (IllegalArgumentException e) {
-            throw new RuntimeException(e);
+            return ResponseEntity.badRequest().build();
         }
-        orderService.updateOrderStatus(id, orderStatus);
-        return ResponseEntity.ok().build();
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{id}/status")
+    public ResponseEntity<Void> updateOrderStatus(
+            @PathVariable Long id,
+            @RequestBody String status
+    ) {
+        try {
+            OrderStatus orderStatus = OrderStatus.valueOf(status.toUpperCase());
+            orderService.updateOrderStatus(id, orderStatus);
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
-        paymentService.cancelPayment(id);
-        orderService.deleteOrder(id);
-        return ResponseEntity.ok().build();
+        try {
+            paymentService.cancelPayment(id);
+            orderService.deleteOrder(id);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    private void validateSortField(String sortBy) {
+        if (!VALID_SORT_FIELDS.contains(sortBy)) {
+            throw new IllegalArgumentException("Invalid sort field: " + sortBy);
+        }
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/statistics/currency")
+    public ResponseEntity<Map<String, Double>> getOrderStatisticsByCurrency() {
+        return ResponseEntity.ok(orderService.getOrderTotalsByCurrency());
     }
 }

@@ -15,7 +15,7 @@ public class OrderLineDTOMapper implements Function<OrderLineEntity, OrderLineDT
         return OrderLineDTO.builder()
                 .quantity(orderLine.getQuantity())
                 .productId(orderLine.getProductId())
-                .stripeProductId(orderLine.getStripeProductId())
+                .stripePriceId(orderLine.getStripePriceId())
                 .unitPrice(orderLine.getUnitPrice())
                 .build();
     }

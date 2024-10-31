@@ -1,6 +1,5 @@
 package com.zenfulcode.commercify.commercify.dto;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -8,12 +7,11 @@ import lombok.Data;
 @Data
 @Builder
 @AllArgsConstructor
-public class OrderLineDTO {
-    private Long productId;
+public class PriceDTO {
     private Long priceId;
-    private String stripePriceId;
-    private Integer quantity;
-    private Double unitPrice;
     private String currency;
-    private ProductDTO product;
+    private Double amount;
+    private String stripePriceId;
+    private Boolean isDefault;
+    private Boolean active;
 }

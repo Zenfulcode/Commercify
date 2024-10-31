@@ -32,6 +32,9 @@ public class OrderEntity {
     @Column(name = "status", nullable = false)
     private OrderStatus status;
 
+    private String currency;
+    private Double totalAmount;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -40,15 +43,10 @@ public class OrderEntity {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    private Double totalAmount;
-
-    public OrderEntity(Long userId) {
+    public OrderEntity(Long userId, String currency) {
         this.userId = userId;
+        this.currency = currency;
         this.status = OrderStatus.PENDING;
         this.updatedAt = null;
-    }
-
-    public void updateStatus(OrderStatus status) {
-        this.status = status;
     }
 }

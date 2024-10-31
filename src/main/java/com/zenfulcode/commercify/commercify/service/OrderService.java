@@ -3,23 +3,27 @@ package com.zenfulcode.commercify.commercify.service;
 import com.zenfulcode.commercify.commercify.OrderStatus;
 import com.zenfulcode.commercify.commercify.api.requests.CreateOrderLineRequest;
 import com.zenfulcode.commercify.commercify.api.requests.CreateOrderRequest;
-import com.zenfulcode.commercify.commercify.dto.OrderDTO;
-import com.zenfulcode.commercify.commercify.dto.OrderDetailsDTO;
-import com.zenfulcode.commercify.commercify.dto.OrderLineDTO;
-import com.zenfulcode.commercify.commercify.dto.ProductDTO;
+import com.zenfulcode.commercify.commercify.dto.*;
 import com.zenfulcode.commercify.commercify.dto.mapper.OrderDTOMapper;
 import com.zenfulcode.commercify.commercify.dto.mapper.OrderLineDTOMapper;
+import com.zenfulcode.commercify.commercify.dto.mapper.ProductDTOMapper;
 import com.zenfulcode.commercify.commercify.entity.OrderEntity;
 import com.zenfulcode.commercify.commercify.entity.OrderLineEntity;
+import com.zenfulcode.commercify.commercify.entity.PriceEntity;
+import com.zenfulcode.commercify.commercify.entity.ProductEntity;
 import com.zenfulcode.commercify.commercify.repository.OrderLineRepository;
 import com.zenfulcode.commercify.commercify.repository.OrderRepository;
+import com.zenfulcode.commercify.commercify.repository.PriceRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.AbstractMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,21 +31,11 @@ import java.util.stream.Collectors;
 public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderLineRepository orderLineRepository;
-
+    private final ProductService productService;
+    private final PriceRepository priceRepository;
     private final OrderDTOMapper mapper;
     private final OrderLineDTOMapper olMapper;
-
-    private final ProductService productService;
-
-    @Transactional(readOnly = true)
-    public Page<OrderDTO> getOrdersByUserId(Long userId, Pageable pageable) {
-        return orderRepository.findByUserId(userId, pageable).map(mapper);
-    }
-
-    @Transactional(readOnly = true)
-    public Page<OrderDTO> getAllOrders(Pageable pageable) {
-        return orderRepository.findAll(pageable).map(mapper);
-    }
+    private final ProductDTOMapper productDTOMapper;
 
     @Transactional
     public OrderDTO createOrder(CreateOrderRequest request) {
@@ -49,9 +43,9 @@ public class OrderService {
         validateCreateOrderRequest(request);
 
         // 2. Create the Order entity
-        OrderEntity order = new OrderEntity(request.userId());
+        OrderEntity order = new OrderEntity(request.userId(), request.currency());
 
-        // 3. Fetch and validate products, create OrderLines
+        // 3. Fetch and validate products and prices, create OrderLines
         List<OrderLineEntity> orderLines = createOrderLines(request, order);
 
         // 4. Calculate order total
@@ -65,63 +59,14 @@ public class OrderService {
         OrderEntity savedOrder = orderRepository.save(order);
         orderLineRepository.saveAll(orderLines);
 
-//        // 7. Initiate payment process (async)
-//        // 8. Update inventory (async)
-//        // 9. Send order confirmation (async)
-
         return mapper.apply(savedOrder);
-    }
-
-    private void validateCreateOrderRequest(CreateOrderRequest request) {
-        if (request.userId() == null || request.orderLines().isEmpty()) {
-            throw new IllegalArgumentException("Invalid order request");
-        }
-    }
-
-    private List<OrderLineEntity> createOrderLines(CreateOrderRequest request, OrderEntity order) {
-        return request.orderLines().stream()
-                .collect(Collectors.groupingBy(CreateOrderLineRequest::productId))
-                .entrySet().stream()
-                .map(entry -> {
-                    ProductDTO product = productService.getProductById(entry.getKey());
-                    if (product == null) {
-                        throw new RuntimeException("Product not found with ID: " + entry.getKey());
-                    }
-                    validateProductAvailability(product, entry.getValue());
-                    return createOrderLine(product, entry.getValue(), order);
-                })
-                .collect(Collectors.toList());
-    }
-
-    private void validateProductAvailability(ProductDTO product, List<CreateOrderLineRequest> requests) {
-        int totalQuantity = requests.stream().mapToInt(CreateOrderLineRequest::quantity).sum();
-        if (product.getStock() < totalQuantity) {
-            throw new RuntimeException("Insufficient stock for product: " + product.getProductId());
-        }
-    }
-
-    private OrderLineEntity createOrderLine(ProductDTO product, List<CreateOrderLineRequest> requests, OrderEntity order) {
-        OrderLineEntity orderLine = new OrderLineEntity();
-        orderLine.setProductId(product.getProductId());
-        orderLine.setProduct(product);
-        orderLine.setQuantity(requests.stream().mapToInt(CreateOrderLineRequest::quantity).sum());
-        orderLine.setUnitPrice(product.getUnitPrice());
-        orderLine.setOrder(order);
-        orderLine.setStripeProductId(product.getStripeId());
-        return orderLine;
-    }
-
-    private double calculateOrderTotal(List<OrderLineEntity> orderLines) {
-        return orderLines.stream()
-                .mapToDouble(line -> line.getUnitPrice() * line.getQuantity())
-                .sum();
     }
 
     @Transactional
     public void updateOrderStatus(Long orderId, OrderStatus status) {
         OrderEntity order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found"));
-        order.updateStatus(status);
+        order.setStatus(status);
         orderRepository.save(order);
     }
 
@@ -151,10 +96,112 @@ public class OrderService {
         return new OrderDetailsDTO(mapper.apply(order), totalPrice, orderLines);
     }
 
+    private void validateCreateOrderRequest(CreateOrderRequest request) {
+        if (request.userId() == null || request.orderLines().isEmpty() || request.currency() == null) {
+            throw new IllegalArgumentException("Invalid order request");
+        }
+    }
+
+    private List<OrderLineEntity> createOrderLines(CreateOrderRequest request, OrderEntity order) {
+        return request.orderLines().stream()
+                .collect(Collectors.groupingBy(line -> new AbstractMap.SimpleEntry<>(line.productId(), request.currency())))
+                .entrySet().stream()
+                .map(entry -> {
+                    ProductDTO product = productService.getProductById(entry.getKey().getKey());
+                    if (product == null) {
+                        throw new RuntimeException("Product not found with ID: " + entry.getKey().getKey());
+                    }
+
+                    PriceEntity price = priceDTOToEntity(product.getPrices().stream()
+                            .filter(p -> p.getCurrency().equals(entry.getKey().getValue()))
+                            .findFirst()
+                            .orElseThrow(() -> new RuntimeException("Price not found for product")));
+
+                    if (!price.getCurrency().equals(request.currency())) {
+                        throw new RuntimeException("Price currency does not match order currency");
+                    }
+
+                    validateProductAvailability(product, entry.getValue());
+                    return createOrderLine(product, price, entry.getValue(), order);
+                })
+                .collect(Collectors.toList());
+    }
+
+    private void validateProductAvailability(ProductDTO product, List<CreateOrderLineRequest> requests) {
+        int totalQuantity = requests.stream().mapToInt(CreateOrderLineRequest::quantity).sum();
+        if (product.getStock() < totalQuantity) {
+            throw new RuntimeException("Insufficient stock for product: " + product.getProductId());
+        }
+    }
+
+    private OrderLineEntity createOrderLine(ProductDTO product, PriceEntity price, List<CreateOrderLineRequest> requests, OrderEntity order) {
+        OrderLineEntity orderLine = new OrderLineEntity();
+        orderLine.setProductId(product.getProductId());
+        orderLine.setPriceId(price.getPriceId());
+        orderLine.setProduct(product);
+        orderLine.setQuantity(requests.stream().mapToInt(CreateOrderLineRequest::quantity).sum());
+        orderLine.setUnitPrice(price.getAmount());
+        orderLine.setCurrency(price.getCurrency());
+        orderLine.setStripePriceId(price.getStripePriceId());
+        orderLine.setOrder(order);
+        return orderLine;
+    }
+
+    private double calculateOrderTotal(List<OrderLineEntity> orderLines) {
+        return orderLines.stream()
+                .mapToDouble(line -> line.getUnitPrice() * line.getQuantity())
+                .sum();
+    }
+
+    // Helper method to convert PriceDTO to PriceEntity
+    private PriceEntity priceDTOToEntity(PriceDTO priceDTO) {
+        return PriceEntity.builder()
+                .priceId(priceDTO.getPriceId())
+                .currency(priceDTO.getCurrency())
+                .amount(priceDTO.getAmount())
+                .stripePriceId(priceDTO.getStripePriceId())
+                .isDefault(priceDTO.getIsDefault())
+                .active(priceDTO.getActive())
+                .build();
+    }
+
+
     @Transactional(readOnly = true)
     public boolean isOrderOwnedByUser(Long orderId, Long userId) {
         return orderRepository.findById(orderId)
                 .map(order -> order.getUserId().equals(userId))
                 .orElse(false);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<OrderDTO> getOrdersByUserIdAndCurrency(Long userId, String currency, Pageable pageable) {
+        return orderRepository.findByUserIdAndCurrency(userId, currency, pageable)
+                .map(mapper);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<OrderDTO> getAllOrdersByCurrency(String currency, Pageable pageable) {
+        return orderRepository.findByCurrency(currency, pageable)
+                .map(mapper);
+    }
+
+    @Transactional(readOnly = true)
+    public Map<String, Double> getOrderTotalsByCurrency() {
+        List<OrderEntity> orders = orderRepository.findAll();
+        return orders.stream()
+                .collect(Collectors.groupingBy(
+                        OrderEntity::getCurrency,
+                        Collectors.summingDouble(OrderEntity::getTotalAmount)
+                ));
+    }
+
+    public Page<OrderDTO> getAllOrders(PageRequest pageRequest) {
+        return orderRepository.findAll(pageRequest)
+                .map(mapper);
+    }
+
+    public Page<OrderDTO> getOrdersByUserId(Long userId, PageRequest pageRequest) {
+        return orderRepository.findByUserId(userId, pageRequest)
+                .map(mapper);
     }
 }
