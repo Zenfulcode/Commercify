@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 public class UserEntity implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long userId;
+    private Long id;
 
     @Column(length = 50, nullable = false)
     private String firstName;
@@ -38,7 +38,7 @@ public class UserEntity implements UserDetails {
     private String password;
 
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
+    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "id"))
     @Column(name = "role")
     private List<String> roles;
 

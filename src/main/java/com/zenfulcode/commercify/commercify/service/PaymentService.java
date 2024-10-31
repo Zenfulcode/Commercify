@@ -41,7 +41,7 @@ public class PaymentService {
         }
 
         if (payment.getPaymentProvider() == PaymentProvider.STRIPE) {
-            return stripeService.cancelPayment(payment.getPaymentId());
+            return stripeService.cancelPayment(payment.getId());
         }
 
         return CancelPaymentResponse.InvalidPaymentProvider();

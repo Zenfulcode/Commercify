@@ -9,12 +9,12 @@ import java.util.function.Function;
 
 @Service
 @RequiredArgsConstructor
-public class OrderDTOMapper implements Function<OrderEntity, OrderDTO> {
+public class OrderMapper implements Function<OrderEntity, OrderDTO> {
 
     @Override
     public OrderDTO apply(OrderEntity order) {
         return OrderDTO.builder()
-                .orderId(order.getOrderId())
+                .id(order.getId())
                 .userId(order.getUserId())
                 .orderStatus(order.getStatus())
                 .createdAt(order.getCreatedAt())

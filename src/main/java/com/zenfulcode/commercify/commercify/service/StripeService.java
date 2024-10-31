@@ -2,7 +2,6 @@ package com.zenfulcode.commercify.commercify.service;
 
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
-import com.stripe.model.Product;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
 import com.zenfulcode.commercify.commercify.OrderStatus;
@@ -38,47 +37,38 @@ public class StripeService {
                         .setMode(SessionCreateParams.Mode.PAYMENT)
                         .setSuccessUrl(paymentRequest.successUrl())
                         .setCancelUrl(paymentRequest.cancelUrl())
-                        .setCurrency(paymentRequest.currency())
+                        .setCurrency(order.getOrder().getCurrency())
                         .addAllLineItem(orderLineDTOS.stream().map(ol -> {
                             Long quantity = Long.valueOf(ol.getQuantity());
                             if (quantity <= 0)
                                 throw new RuntimeException("Invalid quantity for order line");
 
-                            SessionCreateParams.LineItem.Builder lineItem = SessionCreateParams.LineItem.builder()
-                                    .setQuantity(quantity);
-
-                            try {
-                                Product product = Product.retrieve(ol.getStripeProductId());
-                                lineItem.setPrice(product.getDefaultPrice());
-                            } catch (StripeException e) {
-                                throw new RuntimeException(e);
-                            }
-
-                            return lineItem.build();
+                            return SessionCreateParams.LineItem.builder()
+                                    .setPrice(ol.getStripePriceId())
+                                    .setQuantity(quantity)
+                                    .build();
                         }).toList())
                         .putMetadata("orderId", paymentRequest.orderId().toString())
                         .build();
+
         try {
-            // Create the PaymentIntent
             Session session = Session.create(params);
 
-            // Save the payment in our local database with status "PENDING"
+            final double totalAmount = order.getOrder().getTotalAmount();
+
             PaymentEntity payment = PaymentEntity.builder()
                     .orderId(paymentRequest.orderId())
                     .stripePaymentIntent(session.getPaymentIntent())
                     .paymentProvider(PaymentProvider.STRIPE)
                     .status(PaymentStatus.PAID)
+                    .totalAmount(totalAmount)
                     .build();
             paymentRepository.save(payment);
 
-            System.out.println("Payment session created: " + session.getUrl());
-
             orderService.updateOrderStatus(paymentRequest.orderId(), OrderStatus.CONFIRMED);
 
-            // Return the payment intent's client secret for client-side confirmation
-            return new PaymentResponse(payment.getPaymentId(), payment.getStatus(), session.getUrl());
+            return new PaymentResponse(payment.getId(), payment.getStatus(), session.getUrl());
         } catch (StripeException e) {
-            System.out.println("Error processing payment: " + e.getMessage());
             return PaymentResponse.FailedPayment();
         }
     }

@@ -11,9 +11,11 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 public class OrderDTO {
-    private Long orderId;
+    private Long id;
     private Long userId;
     private OrderStatus orderStatus;
+    private String currency;
+    private Double totalAmount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
