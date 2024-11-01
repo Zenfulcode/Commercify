@@ -3,6 +3,8 @@ package com.zenfulcode.commercify.commercify.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.zenfulcode.commercify.commercify.OrderStatus;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
@@ -13,8 +15,10 @@ import java.util.List;
 
 @Entity
 @Table(name = "Orders")
-@NoArgsConstructor
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class OrderEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,10 +46,4 @@ public class OrderEntity {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    public OrderEntity(Long userId, String currency) {
-        this.userId = userId;
-        this.currency = currency;
-        this.status = OrderStatus.PENDING;
-    }
 }

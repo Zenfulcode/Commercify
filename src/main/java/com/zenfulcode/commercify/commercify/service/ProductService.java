@@ -44,7 +44,7 @@ public class ProductService {
 
         ProductEntity product = productFactory.createFromRequest(request);
 
-        if (!Stripe.apiKey.isBlank()) {
+        if (Stripe.apiKey != null && !Stripe.apiKey.isBlank()) {
             String stripeId = stripeProductService.createStripeProduct(product);
             product.setStripeId(stripeId);
         }
@@ -89,7 +89,7 @@ public class ProductService {
 
         productFactory.createFromUpdateRequest(request, product);
 
-        if (!Stripe.apiKey.isBlank() && product.getStripeId() != null) {
+        if (product.getStripeId() != null && Stripe.apiKey != null && !Stripe.apiKey.isBlank()) {
             try {
                 stripeProductService.updateStripeProduct(product.getStripeId(), product);
                 handlePriceUpdates(product, request.prices());
@@ -179,7 +179,7 @@ public class ProductService {
     @Transactional
     public void deleteProduct(Long id) throws RuntimeException {
         ProductEntity productEnt = productRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Product not found"));
+                .orElseThrow(() -> new ProductNotFoundException(id));
 
         ProductDeletionValidationResult validationResult = validateProductDeletion(productEnt);
         if (!validationResult.canDelete()) {
@@ -190,10 +190,12 @@ public class ProductService {
             );
         }
 
-        if (!Stripe.apiKey.isBlank() && productEnt.getStripeId() != null) {
-            stripeProductService.deactivateProduct(productEnt);
-        } else if (Stripe.apiKey.isBlank() && productEnt.getStripeId() != null) {
-            throw new RuntimeException("Can't delete product from stripe without stripe key");
+        if (Stripe.apiKey != null) {
+            if (productEnt.getStripeId() != null && !Stripe.apiKey.isBlank()) {
+                stripeProductService.deactivateProduct(productEnt);
+            } else if (Stripe.apiKey.isBlank() && productEnt.getStripeId() != null) {
+                throw new RuntimeException("Can't delete product from stripe without stripe key");
+            }
         }
 
         productRepository.deleteById(id);
@@ -208,7 +210,7 @@ public class ProductService {
             productEnt.setActive(true);
         }
 
-        if (!Stripe.apiKey.isBlank() && productEnt.getStripeId() != null) {
+        if (Stripe.apiKey != null && !Stripe.apiKey.isBlank() && productEnt.getStripeId() != null) {
             stripeProductService.reactivateProduct(productEnt);
         } else if (Stripe.apiKey.isBlank() && productEnt.getStripeId() != null) {
             throw new RuntimeException("Can't reactivate product from stripe without stripe key");
@@ -216,38 +218,6 @@ public class ProductService {
 
         productRepository.save(productEnt);
         return true;
-    }
-
-    @Transactional
-    public ProductDTO duplicateProduct(Long id) {
-        ProductEntity originalProduct = productRepository.findById(id)
-                .orElseThrow(() -> new ProductNotFoundException(id));
-
-        ProductEntity duplicateProduct = productFactory.duplicate(originalProduct);
-
-        ProductEntity savedDuplicate = productRepository.save(duplicateProduct);
-
-        if (!Stripe.apiKey.isBlank()) {
-            try {
-                String stripeId = stripeProductService.createStripeProduct(savedDuplicate);
-                savedDuplicate.setStripeId(stripeId);
-            } catch (Exception e) {
-                log.error("Failed to create Stripe product for duplicate", e);
-                throw new StripeOperationException("Failed to create Stripe product for duplicate", e);
-            }
-        }
-
-        originalProduct.getPrices().forEach(originalPrice -> {
-            CreatePriceRequest priceRequest = new CreatePriceRequest(
-                    originalPrice.getCurrency(),
-                    originalPrice.getAmount(),
-                    originalPrice.getIsDefault(),
-                    false  // Start with inactive prices
-            );
-            priceService.createPrice(priceRequest, savedDuplicate);
-        });
-
-        return mapper.apply(productRepository.save(savedDuplicate));
     }
 
     private void validatePriceRequest(UpdatePriceRequest request) {
