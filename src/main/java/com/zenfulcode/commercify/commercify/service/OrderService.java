@@ -34,7 +34,11 @@ public class OrderService {
     public OrderDTO createOrder(CreateOrderRequest request) {
         validateCreateOrderRequest(request);
 
-        OrderEntity order = new OrderEntity(request.userId(), request.currency());
+        OrderEntity order = OrderEntity.builder()
+                .userId(request.userId())
+                .status(OrderStatus.PENDING)
+                .currency(request.currency())
+                .build();
 
         List<OrderLineEntity> orderLines = createOrderLines(request, order);
 

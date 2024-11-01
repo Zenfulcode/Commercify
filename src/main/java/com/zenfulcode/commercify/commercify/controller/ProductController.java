@@ -173,21 +173,6 @@ public class ProductController {
         }
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/{id}/duplicate")
-    public ResponseEntity<?> duplicateProduct(@PathVariable Long id) {
-        try {
-            ProductDTO duplicatedProduct = productService.duplicateProduct(id);
-            return ResponseEntity.ok(ProductViewModel.fromDTO(duplicatedProduct));
-        } catch (ProductNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        } catch (Exception e) {
-            log.error("Error duplicating product", e);
-            return ResponseEntity.internalServerError()
-                    .body(new ErrorResponse("Error duplicating product: " + e.getMessage()));
-        }
-    }
-
     private void validateSortField(String sortBy) {
         if (!VALID_SORT_FIELDS.contains(sortBy)) {
             throw new InvalidSortFieldException("Invalid sort field: " + sortBy);
