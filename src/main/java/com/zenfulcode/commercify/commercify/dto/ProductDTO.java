@@ -4,8 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
-import java.util.List;
-
 @Builder
 @Data
 @AllArgsConstructor
@@ -14,15 +12,11 @@ public class ProductDTO {
     private String name;
     private String description;
     private Integer stock;
-    private String stripeId;
     private Boolean active;
     private String imageUrl;
-    private List<PriceDTO> prices;
+    private Double unitPrice;
+    private String currency;
 
-    public PriceDTO getDefaultPrice() {
-        return prices.stream()
-                .filter(PriceDTO::getIsDefault)
-                .findFirst()
-                .orElse(null);
-    }
+    private String stripeId;
+    private String stripePriceId;
 }

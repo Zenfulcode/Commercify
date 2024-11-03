@@ -8,7 +8,6 @@ import com.zenfulcode.commercify.commercify.dto.mapper.OrderMapper;
 import com.zenfulcode.commercify.commercify.dto.mapper.OrderLineMapper;
 import com.zenfulcode.commercify.commercify.entity.OrderEntity;
 import com.zenfulcode.commercify.commercify.entity.OrderLineEntity;
-import com.zenfulcode.commercify.commercify.entity.PriceEntity;
 import com.zenfulcode.commercify.commercify.repository.OrderLineRepository;
 import com.zenfulcode.commercify.commercify.repository.OrderRepository;
 import lombok.AllArgsConstructor;
@@ -87,7 +86,7 @@ public class OrderService {
     }
 
     private void validateCreateOrderRequest(CreateOrderRequest request) {
-        if (request.userId() == null || request.orderLines().isEmpty() || request.currency() == null) {
+        if (request.userId() == null || request.orderLines().isEmpty() || request.currency() == null || request.currency().isBlank()) {
             throw new IllegalArgumentException("Invalid order request");
         }
     }
@@ -102,17 +101,12 @@ public class OrderService {
                         throw new RuntimeException("Product not found with ID: " + entry.getKey().getKey());
                     }
 
-                    PriceEntity price = priceDTOToEntity(product.getPrices().stream()
-                            .filter(p -> p.getCurrency().equals(entry.getKey().getValue()))
-                            .findFirst()
-                            .orElseThrow(() -> new RuntimeException("Price not found for product")));
-
-                    if (!price.getCurrency().equals(request.currency())) {
+                    if (!product.getCurrency().equals(request.currency())) {
                         throw new RuntimeException("Price currency does not match order currency");
                     }
 
                     validateProductAvailability(product, entry.getValue());
-                    return createOrderLine(product, price, entry.getValue(), order);
+                    return createOrderLine(product, entry.getValue(), order);
                 })
                 .collect(Collectors.toList());
     }
@@ -124,15 +118,13 @@ public class OrderService {
         }
     }
 
-    private OrderLineEntity createOrderLine(ProductDTO product, PriceEntity price, List<CreateOrderLineRequest> requests, OrderEntity order) {
+    private OrderLineEntity createOrderLine(ProductDTO product, List<CreateOrderLineRequest> requests, OrderEntity order) {
         OrderLineEntity orderLine = new OrderLineEntity();
         orderLine.setProductId(product.getId());
-        orderLine.setPriceId(price.getId());
         orderLine.setProduct(product);
         orderLine.setQuantity(requests.stream().mapToInt(CreateOrderLineRequest::quantity).sum());
-        orderLine.setUnitPrice(price.getAmount());
-        orderLine.setCurrency(price.getCurrency());
-        orderLine.setStripePriceId(price.getStripePriceId());
+        orderLine.setUnitPrice(product.getUnitPrice());
+        orderLine.setCurrency(product.getCurrency());
         orderLine.setOrder(order);
         return orderLine;
     }
@@ -141,18 +133,6 @@ public class OrderService {
         return orderLines.stream()
                 .mapToDouble(line -> line.getUnitPrice() * line.getQuantity())
                 .sum();
-    }
-
-    // Helper method to convert PriceDTO to PriceEntity
-    private PriceEntity priceDTOToEntity(PriceDTO priceDTO) {
-        return PriceEntity.builder()
-                .id(priceDTO.getId())
-                .currency(priceDTO.getCurrency())
-                .amount(priceDTO.getAmount())
-                .stripePriceId(priceDTO.getStripePriceId())
-                .isDefault(priceDTO.getIsDefault())
-                .active(priceDTO.getActive())
-                .build();
     }
 
     @Transactional(readOnly = true)

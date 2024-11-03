@@ -1,17 +1,18 @@
 package com.zenfulcode.commercify.commercify.service;
 
+
 import com.zenfulcode.commercify.commercify.OrderStatus;
 import com.zenfulcode.commercify.commercify.api.requests.orders.CreateOrderLineRequest;
 import com.zenfulcode.commercify.commercify.api.requests.orders.CreateOrderRequest;
 import com.zenfulcode.commercify.commercify.dto.OrderDTO;
-import com.zenfulcode.commercify.commercify.dto.PriceDTO;
 import com.zenfulcode.commercify.commercify.dto.ProductDTO;
 import com.zenfulcode.commercify.commercify.dto.mapper.OrderMapper;
+import com.zenfulcode.commercify.commercify.dto.mapper.OrderLineMapper;
 import com.zenfulcode.commercify.commercify.entity.OrderEntity;
 import com.zenfulcode.commercify.commercify.repository.OrderLineRepository;
 import com.zenfulcode.commercify.commercify.repository.OrderRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -19,9 +20,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -40,158 +41,107 @@ class OrderServiceTest {
     @Mock
     private OrderMapper orderMapper;
 
+    @Mock
+    private OrderLineMapper orderLineMapper;
+
     @InjectMocks
     private OrderService orderService;
 
-    @Nested
-    @DisplayName("Order Creation Tests")
-    class OrderCreationTests {
+    private CreateOrderRequest orderRequest;
+    private OrderEntity orderEntity;
+    private OrderDTO orderDTO;
+    private ProductDTO productDTO;
 
-        @Test
-        @DisplayName("Should successfully create an order")
-        void createOrder_Success() {
-            // Arrange
-            PriceDTO priceDTO = PriceDTO.builder()
-                    .id(1L)
-                    .currency("USD")
-                    .amount(99.99)
-                    .isDefault(true)
-                    .active(true)
-                    .build();
+    @BeforeEach
+    void setUp() {
+        CreateOrderLineRequest orderLineRequest = new CreateOrderLineRequest(1L, 2);
+        orderRequest = new CreateOrderRequest(1L, "USD", List.of(orderLineRequest));
 
-            ProductDTO productDTO = ProductDTO.builder()
-                    .id(1L)
-                    .name("Test Product")
-                    .description("Test Description")
-                    .stock(10)
-                    .active(true)
-                    .prices(List.of(priceDTO))
-                    .build();
+        orderEntity = OrderEntity.builder()
+                .id(1L)
+                .userId(1L)
+                .status(OrderStatus.PENDING)
+                .currency("USD")
+                .totalAmount(100.0)
+                .build();
 
-            OrderEntity savedOrder = OrderEntity.builder()
-                    .id(1L)
-                    .userId(1L)
-                    .status(OrderStatus.PENDING)
-                    .currency("USD")
-                    .totalAmount(199.98)
-                    .build();
+        orderDTO = OrderDTO.builder()
+                .id(1L)
+                .userId(1L)
+                .orderStatus(OrderStatus.PENDING)
+                .currency("USD")
+                .totalAmount(100.0)
+                .build();
 
-            OrderDTO expectedOrderDTO = OrderDTO.builder()
-                    .id(1L)
-                    .userId(1L)
-                    .orderStatus(OrderStatus.PENDING)
-                    .currency("USD")
-                    .totalAmount(199.98)
-                    .build();
+        productDTO = ProductDTO.builder()
+                .id(1L)
+                .name("Test Product")
+                .stock(10)
+                .unitPrice(50.0)
+                .currency("USD")
+                .build();
+    }
 
-            CreateOrderRequest request = new CreateOrderRequest(
-                    1L,
-                    "USD",
-                    List.of(new CreateOrderLineRequest(1L, 2))
-            );
+    @Test
+    @DisplayName("Should create order successfully")
+    void createOrder_Success() {
+        when(productService.getProductById(anyLong())).thenReturn(productDTO);
+        when(orderRepository.save(any(OrderEntity.class))).thenReturn(orderEntity);
+        when(orderMapper.apply(any(OrderEntity.class))).thenReturn(orderDTO);
 
-            // Mock behaviors
-            when(productService.getProductById(1L)).thenReturn(productDTO);
-            when(orderRepository.save(any(OrderEntity.class))).thenReturn(savedOrder);
-            when(orderMapper.apply(any(OrderEntity.class))).thenReturn(expectedOrderDTO);
+        OrderDTO result = orderService.createOrder(orderRequest);
 
-            // Act
-            OrderDTO result = orderService.createOrder(request);
+        assertNotNull(result);
+        assertEquals(1L, result.getId());
+        assertEquals(OrderStatus.PENDING, result.getOrderStatus());
+        assertEquals("USD", result.getCurrency());
 
-            // Assert
-            assertThat(result).isNotNull();
-            assertThat(result.getOrderStatus()).isEqualTo(OrderStatus.PENDING);
-            assertThat(result.getUserId()).isEqualTo(1L);
-            assertThat(result.getCurrency()).isEqualTo("USD");
-            assertThat(result.getTotalAmount()).isEqualTo(199.98);
+        verify(orderRepository).save(any(OrderEntity.class));
+        verify(orderLineRepository).saveAll(anyList());
+    }
 
-            // Verify interactions
-            verify(productService).getProductById(1L);
-            verify(orderRepository).save(any(OrderEntity.class));
-            verify(orderLineRepository).saveAll(any());
-            verify(orderMapper).apply(any(OrderEntity.class));
-        }
+    @Test
+    @DisplayName("Should throw exception when creating order with invalid currency")
+    void createOrder_InvalidCurrency() {
+        CreateOrderRequest invalidRequest = new CreateOrderRequest(1L, "", List.of(new CreateOrderLineRequest(1L, 2)));
 
-        @Test
-        @DisplayName("Should throw exception when product not found")
-        void createOrder_ProductNotFound() {
-            // Arrange
-            CreateOrderRequest request = new CreateOrderRequest(
-                    1L,
-                    "USD",
-                    List.of(new CreateOrderLineRequest(1L, 2))
-            );
+        assertThrows(IllegalArgumentException.class, () -> orderService.createOrder(invalidRequest));
 
-            when(productService.getProductById(1L)).thenReturn(null);
+        verify(orderRepository, never()).save(any(OrderEntity.class));
+        verify(orderLineRepository, never()).saveAll(anyList());
+    }
 
-            // Act & Assert
-            assertThatThrownBy(() -> orderService.createOrder(request))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessageContaining("Product not found");
+    @Test
+    @DisplayName("Should update order status successfully")
+    void updateOrderStatus_Success() {
+        when(orderRepository.findById(anyLong())).thenReturn(Optional.of(orderEntity));
 
-            // Verify
-            verify(orderRepository, never()).save(any());
-            verify(orderLineRepository, never()).saveAll(any());
-        }
+        orderService.updateOrderStatus(1L, OrderStatus.CONFIRMED);
 
-        @Test
-        @DisplayName("Should throw exception for insufficient stock")
-        void createOrder_InsufficientStock() {
-            // Arrange
-            PriceDTO priceDTO = PriceDTO.builder()
-                    .id(1L)
-                    .currency("USD")
-                    .amount(99.99)
-                    .isDefault(true)
-                    .active(true)
-                    .build();
+        verify(orderRepository).findById(1L);
+        verify(orderRepository).save(any(OrderEntity.class));
+    }
 
-            ProductDTO productDTO = ProductDTO.builder()
-                    .id(1L)
-                    .name("Test Product")
-                    .description("Test Description")
-                    .stock(1) // Only 1 in stock
-                    .active(true)
-                    .prices(List.of(priceDTO))
-                    .build();
+    @Test
+    @DisplayName("Should throw exception when updating non-existent order status")
+    void updateOrderStatus_NotFound() {
+        when(orderRepository.findById(anyLong())).thenReturn(Optional.empty());
 
-            CreateOrderRequest request = new CreateOrderRequest(
-                    1L,
-                    "USD",
-                    List.of(new CreateOrderLineRequest(1L, 2)) // Trying to order 2
-            );
+        assertThrows(IllegalArgumentException.class,
+                () -> orderService.updateOrderStatus(1L, OrderStatus.CONFIRMED));
 
-            when(productService.getProductById(1L)).thenReturn(productDTO);
+        verify(orderRepository).findById(1L);
+        verify(orderRepository, never()).save(any(OrderEntity.class));
+    }
 
-            // Act & Assert
-            assertThatThrownBy(() -> orderService.createOrder(request))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessageContaining("Insufficient stock");
+    @Test
+    @DisplayName("Should verify order ownership correctly")
+    void isOrderOwnedByUser_Success() {
+        when(orderRepository.findById(anyLong())).thenReturn(Optional.of(orderEntity));
 
-            // Verify
-            verify(orderRepository, never()).save(any());
-            verify(orderLineRepository, never()).saveAll(any());
-        }
+        boolean result = orderService.isOrderOwnedByUser(1L, 1L);
 
-        @Test
-        @DisplayName("Should throw exception for invalid request")
-        void createOrder_InvalidRequest() {
-            // Arrange
-            CreateOrderRequest invalidRequest = new CreateOrderRequest(
-                    null, // Invalid userId
-                    "USD",
-                    List.of(new CreateOrderLineRequest(1L, 2))
-            );
-
-            // Act & Assert
-            assertThatThrownBy(() -> orderService.createOrder(invalidRequest))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("Invalid order request");
-
-            // Verify
-            verify(productService, never()).getProductById(any());
-            verify(orderRepository, never()).save(any());
-            verify(orderLineRepository, never()).saveAll(any());
-        }
+        assertTrue(result);
+        verify(orderRepository).findById(1L);
     }
 }

@@ -44,7 +44,7 @@ public class StripeService {
                                 throw new RuntimeException("Invalid quantity for order line");
 
                             return SessionCreateParams.LineItem.builder()
-                                    .setPrice(ol.getStripePriceId())
+                                    .setPrice(ol.getProduct().getStripePriceId())
                                     .setQuantity(quantity)
                                     .build();
                         }).toList())

@@ -16,7 +16,6 @@ public class OrderLineMapper implements Function<OrderLineEntity, OrderLineDTO> 
                 .id(orderLine.getId())
                 .quantity(orderLine.getQuantity())
                 .productId(orderLine.getProductId())
-                .stripePriceId(orderLine.getStripePriceId())
                 .unitPrice(orderLine.getUnitPrice())
                 .build();
     }

@@ -5,7 +5,8 @@ import com.stripe.exception.StripeException;
 import com.stripe.model.Price;
 import com.stripe.model.Product;
 import com.stripe.param.*;
-import com.zenfulcode.commercify.commercify.entity.PriceEntity;
+import com.zenfulcode.commercify.commercify.api.requests.products.CreatePriceRequest;
+import com.zenfulcode.commercify.commercify.api.requests.products.UpdatePriceRequest;
 import com.zenfulcode.commercify.commercify.entity.ProductEntity;
 import com.zenfulcode.commercify.commercify.exception.StripeOperationException;
 import lombok.extern.slf4j.Slf4j;
@@ -51,45 +52,45 @@ public class StripeProductService {
         }
     }
 
-    public String createStripePrice(String productId, PriceEntity price) {
+    public void createStripePrice(ProductEntity product, CreatePriceRequest request) {
         if (Stripe.apiKey.isBlank()) {
-            return null;
+            return;
         }
 
         try {
-            long amountInCents = (long) (price.getAmount() * 100);
+            long amountInCents = (long) (request.amount() * 100);
             PriceCreateParams params = PriceCreateParams.builder()
-                    .setProduct(productId)
-                    .setCurrency(price.getCurrency().toLowerCase())
+                    .setProduct(product.getStripeId())
+                    .setCurrency(request.currency().toLowerCase())
                     .setUnitAmount(amountInCents)
-                    .setActive(price.getActive())
+                    .setActive(product.getActive())
                     .build();
 
             Price stripePrice = Price.create(params);
-            return stripePrice.getId();
+            product.setStripePriceId(stripePrice.getId());
         } catch (StripeException e) {
             log.error("Failed to create Stripe price: {}", e.getMessage());
             throw new StripeOperationException("Failed to create Stripe price", e);
         }
     }
 
-    public void updateStripePrice(PriceEntity price) {
+    public void updateStripePrice(ProductEntity product, UpdatePriceRequest request) {
         try {
-            Price stripePrice = Price.retrieve(price.getStripePriceId());
+            Price stripePrice = Price.retrieve(product.getStripePriceId());
 
-            if (price.getAmount() != null &&
-                    stripePrice.getUnitAmount() != (long) (price.getAmount() * 100)) {
-                // Deactivate old price and create new one
-                deactivateStripePrices(stripePrice);
-                createStripePrice(price.getProduct().getStripeId(), price);
-            } else if (price.getActive() != null &&
-                    stripePrice.getActive() != price.getActive()) {
-                // Update active status
-                PriceUpdateParams params = PriceUpdateParams.builder()
-                        .setActive(price.getActive())
-                        .build();
-                stripePrice.update(params);
-            }
+            long amountInCents = (long) (request.amount() * 100);
+
+            PriceUpdateParams.CurrencyOption currencyOption = PriceUpdateParams.CurrencyOption.builder()
+                    .setUnitAmount(amountInCents)
+                    .build();
+
+            Map<String, PriceUpdateParams.CurrencyOption> unitAmount = Map.of(request.currency(), currencyOption);
+
+            PriceUpdateParams params = PriceUpdateParams.builder()
+                    .setCurrencyOptions(unitAmount)
+                    .build();
+
+            stripePrice.update(params);
         } catch (StripeException e) {
             log.error("Failed to update Stripe price: {}", e.getMessage());
             throw new StripeOperationException("Failed to update Stripe price", e);
