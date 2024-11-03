@@ -8,10 +8,8 @@ import com.zenfulcode.commercify.commercify.dto.mapper.OrderMapper;
 import com.zenfulcode.commercify.commercify.dto.mapper.OrderLineMapper;
 import com.zenfulcode.commercify.commercify.entity.OrderEntity;
 import com.zenfulcode.commercify.commercify.entity.OrderLineEntity;
-import com.zenfulcode.commercify.commercify.entity.PriceEntity;
 import com.zenfulcode.commercify.commercify.repository.OrderLineRepository;
 import com.zenfulcode.commercify.commercify.repository.OrderRepository;
-import com.zenfulcode.commercify.commercify.repository.PriceRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -31,7 +29,6 @@ public class OrderService {
     private final ProductService productService;
     private final OrderMapper mapper;
     private final OrderLineMapper olMapper;
-    private final PriceRepository priceRepository;
 
     @Transactional
     public OrderDTO createOrder(CreateOrderRequest request) {
@@ -105,14 +102,12 @@ public class OrderService {
                         throw new RuntimeException("Product not found with ID: " + entry.getKey().getKey());
                     }
 
-                    PriceEntity price = priceRepository.getReferenceById(product.getPrice().getId());
-
-                    if (!price.getCurrency().equals(request.currency())) {
+                    if (!product.getCurrency().equals(request.currency())) {
                         throw new RuntimeException("Price currency does not match order currency");
                     }
 
                     validateProductAvailability(product, entry.getValue());
-                    return createOrderLine(product, price, entry.getValue(), order);
+                    return createOrderLine(product, entry.getValue(), order);
                 })
                 .collect(Collectors.toList());
     }
@@ -124,15 +119,13 @@ public class OrderService {
         }
     }
 
-    private OrderLineEntity createOrderLine(ProductDTO product, PriceEntity price, List<CreateOrderLineRequest> requests, OrderEntity order) {
+    private OrderLineEntity createOrderLine(ProductDTO product, List<CreateOrderLineRequest> requests, OrderEntity order) {
         OrderLineEntity orderLine = new OrderLineEntity();
         orderLine.setProductId(product.getId());
-        orderLine.setPriceId(price.getId());
         orderLine.setProduct(product);
         orderLine.setQuantity(requests.stream().mapToInt(CreateOrderLineRequest::quantity).sum());
-        orderLine.setUnitPrice(price.getAmount());
-        orderLine.setCurrency(price.getCurrency());
-        orderLine.setStripePriceId(price.getStripePriceId());
+        orderLine.setUnitPrice(product.getUnitPrice());
+        orderLine.setCurrency(product.getCurrency());
         orderLine.setOrder(order);
         return orderLine;
     }

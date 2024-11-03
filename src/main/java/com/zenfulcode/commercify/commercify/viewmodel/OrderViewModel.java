@@ -6,14 +6,16 @@ import com.zenfulcode.commercify.commercify.dto.OrderDTO;
 public record OrderViewModel(
         Long id,
         Long userId,
-        PriceViewModel totalPrice,
+        Double totalPrice,
+        String currency,
         OrderStatus orderStatus
 ) {
     public static OrderViewModel fromDTO(OrderDTO orderDTO) {
         return new OrderViewModel(
                 orderDTO.getId(),
                 orderDTO.getUserId(),
-                PriceViewModel.from(orderDTO.getCurrency(), orderDTO.getTotalAmount()),
+                orderDTO.getTotalAmount(),
+                orderDTO.getCurrency(),
                 orderDTO.getOrderStatus()
         );
     }

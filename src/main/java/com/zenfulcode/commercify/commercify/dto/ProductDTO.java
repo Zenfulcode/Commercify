@@ -12,8 +12,11 @@ public class ProductDTO {
     private String name;
     private String description;
     private Integer stock;
-    private String stripeId;
     private Boolean active;
     private String imageUrl;
-    private PriceDTO price;
+    private Double unitPrice;
+    private String currency;
+
+    private String stripeId;
+    private String stripePriceId;
 }

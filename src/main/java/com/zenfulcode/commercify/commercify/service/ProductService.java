@@ -1,6 +1,7 @@
 package com.zenfulcode.commercify.commercify.service;
 
 import com.stripe.Stripe;
+import com.stripe.service.PriceService;
 import com.zenfulcode.commercify.commercify.OrderStatus;
 import com.zenfulcode.commercify.commercify.api.requests.products.CreatePriceRequest;
 import com.zenfulcode.commercify.commercify.api.requests.products.CreateProductRequest;
@@ -9,7 +10,6 @@ import com.zenfulcode.commercify.commercify.api.requests.products.UpdateProductR
 import com.zenfulcode.commercify.commercify.dto.*;
 import com.zenfulcode.commercify.commercify.dto.mapper.OrderMapper;
 import com.zenfulcode.commercify.commercify.dto.mapper.ProductMapper;
-import com.zenfulcode.commercify.commercify.entity.PriceEntity;
 import com.zenfulcode.commercify.commercify.entity.ProductEntity;
 import com.zenfulcode.commercify.commercify.exception.*;
 import com.zenfulcode.commercify.commercify.factory.ProductFactory;
@@ -31,7 +31,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ProductService {
     private final ProductRepository productRepository;
-    private final PriceService priceService;
     private final StripeProductService stripeProductService;
     private final ProductMapper mapper;
     private final ProductFactory productFactory;
@@ -51,9 +50,14 @@ public class ProductService {
 
         ProductEntity savedProduct = productRepository.save(product);
 
+        CreatePriceRequest priceRequest = new CreatePriceRequest(
+                product.getCurrency(),
+                product.getUnitPrice()
+        );
+
         // Create prices after product is saved
-        PriceEntity price = priceService.createPrice(request.price(), savedProduct);
-        savedProduct.setPrice(price);
+        stripeProductService.createStripePrice(savedProduct, priceRequest);
+
 
         return mapper.apply(savedProduct);
     }
@@ -89,7 +93,7 @@ public class ProductService {
         if (product.getStripeId() != null && Stripe.apiKey != null && !Stripe.apiKey.isBlank()) {
             try {
                 stripeProductService.updateStripeProduct(product.getStripeId(), product);
-                handlePriceUpdates(product, request.price());
+                updateProductPrice(product.getId(), request.price());
             } catch (Exception e) {
                 warnings.add("Stripe update failed: " + e.getMessage());
                 log.error("Stripe update failed", e);
@@ -108,15 +112,13 @@ public class ProductService {
                 .orElseThrow(() -> new ProductNotFoundException(productId));
 
         if (request.priceId() != null) {
-            PriceEntity existingPrice = product.getPrice();
-            priceService.updatePrice(existingPrice, request);
+            stripeProductService.updateStripePrice(product, request);
         } else {
             CreatePriceRequest createRequest = new CreatePriceRequest(
                     request.currency(),
-                    request.amount(),
-                    request.active()
+                    request.amount()
             );
-            priceService.createPrice(createRequest, product);
+            stripeProductService.createStripePrice(product, createRequest);
         }
 
         System.out.println("Product: " + product);
@@ -206,24 +208,6 @@ public class ProductService {
 
         if (!errors.isEmpty()) {
             throw new ProductValidationException(errors);
-        }
-    }
-
-    private void handlePriceUpdates(ProductEntity product, UpdatePriceRequest priceUpdates) {
-        if (priceUpdates == null) {
-            return;
-        }
-
-        PriceEntity existingPrice = product.getPrice();
-        if (existingPrice != null) {
-            priceService.updatePrice(existingPrice, priceUpdates);
-        } else {
-            CreatePriceRequest createRequest = new CreatePriceRequest(
-                    priceUpdates.currency(),
-                    priceUpdates.amount(),
-                    priceUpdates.active()
-            );
-            priceService.createPrice(createRequest, product);
         }
     }
 

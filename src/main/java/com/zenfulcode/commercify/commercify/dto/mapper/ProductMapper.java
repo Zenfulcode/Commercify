@@ -10,7 +10,6 @@ import java.util.function.Function;
 @Service
 @RequiredArgsConstructor
 public class ProductMapper implements Function<ProductEntity, ProductDTO> {
-    private final PriceMapper priceMapper;
 
     @Override
     public ProductDTO apply(ProductEntity product) {
@@ -22,7 +21,9 @@ public class ProductMapper implements Function<ProductEntity, ProductDTO> {
                 .stripeId(product.getStripeId())
                 .active(product.getActive())
                 .imageUrl(product.getImageUrl())
-                .price(priceMapper.apply(product.getPrice()))
+                .unitPrice(product.getUnitPrice())
+                .currency(product.getCurrency())
+                .stripePriceId(product.getStripePriceId())
                 .build();
     }
 }

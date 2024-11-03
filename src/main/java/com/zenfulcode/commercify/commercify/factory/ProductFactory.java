@@ -18,7 +18,8 @@ public class ProductFactory {
                 .stock(request.stock() != null ? request.stock() : 0)
                 .active(true)
                 .imageUrl(request.imageUrl())
-                .price(null)  // Initialize empty prices list
+                .currency(request.price().currency())
+                .unitPrice(request.price().amount())
                 .build();
     }
 
@@ -30,9 +31,12 @@ public class ProductFactory {
                 .stock(request.stock() != null ? request.stock() : existingProduct.getStock())
                 .active(request.active() != null ? request.active() : existingProduct.getActive())
                 .imageUrl(request.imageUrl() != null ? request.imageUrl() : existingProduct.getImageUrl())
+                .currency(request.price().currency() != null ? request.price().currency() : existingProduct.getCurrency())
+                .unitPrice(request.price().amount() != null ? request.price().amount() : existingProduct.getUnitPrice())
                 .stripeId(existingProduct.getStripeId())
-                .price(existingProduct.getPrice())
-                .createdAt(existingProduct.getCreatedAt());
+                .stripePriceId(existingProduct.getStripePriceId())
+                .createdAt(existingProduct.getCreatedAt())
+                .updatedAt(existingProduct.getUpdatedAt());
 
         return builder.build();
     }

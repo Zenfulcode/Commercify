@@ -2,10 +2,11 @@ package com.zenfulcode.commercify.commercify.entity;
 
 import com.zenfulcode.commercify.commercify.dto.ProductDTO;
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Data
+@Getter
+@Setter
+@ToString
 @Entity
 @Table(name = "order_lines")
 @NoArgsConstructor
@@ -18,12 +19,6 @@ public class OrderLineEntity {
     @Column(name = "product_id", nullable = false, updatable = false)
     private Long productId;
 
-    @Column(name = "price_id", nullable = false, updatable = false)
-    private Long priceId;
-
-    @Column(name = "stripe_price_id", updatable = false)
-    private String stripePriceId;
-
     @Column(name = "quantity", nullable = false, updatable = false)
     private Integer quantity;
 
@@ -35,6 +30,7 @@ public class OrderLineEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false, updatable = false)
+    @ToString.Exclude
     private OrderEntity order;
 
     @Transient

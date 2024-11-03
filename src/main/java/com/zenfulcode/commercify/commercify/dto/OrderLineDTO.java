@@ -11,8 +11,6 @@ import lombok.Data;
 public class OrderLineDTO {
     private Long id;
     private Long productId;
-    private Long priceId;
-    private String stripePriceId;
     private Integer quantity;
     private Double unitPrice;
     private String currency;

@@ -9,7 +9,8 @@ public record ProductViewModel(
         Integer stock,
         String imageUrl,
         Boolean active,
-        PriceViewModel price
+        Double unitPrice,
+        String currency
 ) {
     public static ProductViewModel fromDTO(ProductDTO productDTO) {
         return new ProductViewModel(
@@ -19,7 +20,8 @@ public record ProductViewModel(
                 productDTO.getStock(),
                 productDTO.getImageUrl(),
                 productDTO.getActive(),
-                PriceViewModel.fromDTO(productDTO.getPrice())
+                productDTO.getUnitPrice(),
+                productDTO.getCurrency()
         );
     }
 }

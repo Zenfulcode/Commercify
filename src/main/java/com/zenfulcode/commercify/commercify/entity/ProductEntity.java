@@ -6,7 +6,6 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Entity
 @Table(name = "products")
@@ -26,11 +25,11 @@ public class ProductEntity {
     private String stripeId;
     private Boolean active;
     private String imageUrl;
-    private String imageUrl2;
 
-    @OneToOne
-    @JoinColumn(name = "stripe_price_id")
-    private PriceEntity price;
+    //    Prices
+    private String currency;
+    private Double unitPrice;
+    private String stripePriceId;
 
     @CreationTimestamp
     @Column(name = "created_at")
