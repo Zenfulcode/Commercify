@@ -18,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.AbstractMap;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -87,7 +86,7 @@ public class OrderService {
     }
 
     private void validateCreateOrderRequest(CreateOrderRequest request) {
-        if (request.userId() == null || request.orderLines().isEmpty() || request.currency() == null) {
+        if (request.userId() == null || request.orderLines().isEmpty() || request.currency() == null || request.currency().isBlank()) {
             throw new IllegalArgumentException("Invalid order request");
         }
     }
