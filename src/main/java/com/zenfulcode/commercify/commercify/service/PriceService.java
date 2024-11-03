@@ -27,7 +27,6 @@ public class PriceService {
         PriceEntity price = PriceEntity.builder()
                 .currency(request.currency())
                 .amount(request.amount())
-                .isDefault(request.isDefault())
                 .active(request.active())
                 .product(product)
                 .build();
@@ -46,7 +45,6 @@ public class PriceService {
     public void updatePrice(PriceEntity price, UpdatePriceRequest request) {
         if (request.currency() != null) price.setCurrency(request.currency());
         if (request.amount() != null) price.setAmount(request.amount());
-        if (request.isDefault() != null) price.setIsDefault(request.isDefault());
         if (request.active() != null) price.setActive(request.active());
 
         if (!Stripe.apiKey.isBlank() && price.getStripePriceId() != null) {

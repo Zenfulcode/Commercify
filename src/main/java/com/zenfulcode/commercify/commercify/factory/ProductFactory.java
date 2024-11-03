@@ -18,7 +18,7 @@ public class ProductFactory {
                 .stock(request.stock() != null ? request.stock() : 0)
                 .active(true)
                 .imageUrl(request.imageUrl())
-                .prices(new ArrayList<>())  // Initialize empty prices list
+                .price(null)  // Initialize empty prices list
                 .build();
     }
 
@@ -31,21 +31,11 @@ public class ProductFactory {
                 .active(request.active() != null ? request.active() : existingProduct.getActive())
                 .imageUrl(request.imageUrl() != null ? request.imageUrl() : existingProduct.getImageUrl())
                 .stripeId(existingProduct.getStripeId())
-                .prices(new ArrayList<>(existingProduct.getPrices()))
+                .price(existingProduct.getPrice())
                 .createdAt(existingProduct.getCreatedAt());
 
         return builder.build();
     }
 
-    public ProductEntity duplicate(ProductEntity original) {
-        return ProductEntity.builder()
-                .name(original.getName() + " (Copy)")
-                .description(original.getDescription())
-                .stock(0)  // Reset stock for the duplicate
-                .active(false)  // Start as inactive
-                .imageUrl(original.getImageUrl())
-                .prices(new ArrayList<>())  // Initialize empty prices list
-                .build();
-    }
 }
 

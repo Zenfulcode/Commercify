@@ -1,5 +1,6 @@
 package com.zenfulcode.commercify.commercify.factory;
 
+import com.zenfulcode.commercify.commercify.api.requests.products.CreatePriceRequest;
 import com.zenfulcode.commercify.commercify.api.requests.products.CreateProductRequest;
 import com.zenfulcode.commercify.commercify.api.requests.products.UpdateProductRequest;
 import com.zenfulcode.commercify.commercify.entity.PriceEntity;
@@ -9,8 +10,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -33,7 +32,7 @@ class ProductFactoryTest {
                     10,
                     "test-image.jpg",
                     true,
-                    List.of()
+                    new CreatePriceRequest("USD", 100d, true)
             );
 
             // Act
@@ -48,7 +47,7 @@ class ProductFactoryTest {
                         assertThat(product.getStock()).isEqualTo(10);
                         assertThat(product.getActive()).isTrue();
                         assertThat(product.getImageUrl()).isEqualTo("test-image.jpg");
-                        assertThat(product.getPrices()).isEmpty();
+                        assertThat(product.getPrice()).isNotNull();
                     });
         }
 
@@ -62,7 +61,7 @@ class ProductFactoryTest {
                     null,
                     "test-image.jpg",
                     true,
-                    List.of()
+                    new CreatePriceRequest("USD", 100d, true)
             );
 
             // Act
@@ -82,16 +81,14 @@ class ProductFactoryTest {
                     10,
                     "test-image.jpg",
                     true,
-                    List.of()
+                    new CreatePriceRequest("USD", 100d, true)
             );
 
             // Act
             ProductEntity result = productFactory.createFromRequest(request);
 
             // Assert
-            assertThat(result.getPrices())
-                    .isNotNull()
-                    .isEmpty();
+            assertThat(result.getPrice()).isNotNull();
         }
     }
 
@@ -111,7 +108,7 @@ class ProductFactoryTest {
                     .active(false)
                     .imageUrl("original-image.jpg")
                     .stripeId("stripe_123")
-                    .prices(new ArrayList<>())
+                    .price(null)
                     .createdAt(LocalDateTime.now())
                     .build();
 
@@ -121,7 +118,7 @@ class ProductFactoryTest {
                     10,
                     "updated-image.jpg",
                     true,
-                    List.of()
+                    null
             );
 
             // Act
@@ -154,7 +151,7 @@ class ProductFactoryTest {
                     .active(false)
                     .imageUrl("original-image.jpg")
                     .stripeId("stripe_123")
-                    .prices(new ArrayList<>())
+                    .price(null)
                     .createdAt(LocalDateTime.now())
                     .build();
 
@@ -164,7 +161,7 @@ class ProductFactoryTest {
                     null,
                     null,
                     null,
-                    List.of()
+                    null
             );
 
             // Act
@@ -184,15 +181,14 @@ class ProductFactoryTest {
 
         @Test
         @DisplayName("Should copy prices list")
-        void shouldCopyPricesList() {
+        void shouldCopyPrice() {
             // Arrange
-            List<PriceEntity> existingPrices = new ArrayList<>();
-            existingPrices.add(PriceEntity.builder().id(1L).build());
+            PriceEntity existingPrice = PriceEntity.builder().id(1L).build();
 
             ProductEntity existingProduct = ProductEntity.builder()
                     .id(1L)
                     .name("Original Name")
-                    .prices(existingPrices)
+                    .price(existingPrice)
                     .build();
 
             UpdateProductRequest request = new UpdateProductRequest(
@@ -201,73 +197,16 @@ class ProductFactoryTest {
                     null,
                     null,
                     null,
-                    List.of()
+                    null
             );
 
             // Act
             ProductEntity result = productFactory.createFromUpdateRequest(request, existingProduct);
 
             // Assert
-            assertThat(result.getPrices())
+            assertThat(result.getPrice())
                     .isNotNull()
-                    .hasSize(1)
-                    .isNotSameAs(existingProduct.getPrices());
-        }
-    }
-
-    @Nested
-    @DisplayName("Duplicate Tests")
-    class DuplicateTests {
-
-        @Test
-        @DisplayName("Should create duplicate product with modified name")
-        void shouldCreateDuplicateWithModifiedName() {
-            // Arrange
-            ProductEntity original = ProductEntity.builder()
-                    .name("Original Product")
-                    .description("Test Description")
-                    .stock(10)
-                    .active(true)
-                    .imageUrl("test-image.jpg")
-                    .prices(new ArrayList<>())
-                    .build();
-
-            // Act
-            ProductEntity result = productFactory.duplicate(original);
-
-            // Assert
-            assertThat(result)
-                    .isNotNull()
-                    .satisfies(product -> {
-                        assertThat(product.getName()).isEqualTo("Original Product (Copy)");
-                        assertThat(product.getDescription()).isEqualTo(original.getDescription());
-                        assertThat(product.getStock()).isZero();
-                        assertThat(product.getActive()).isFalse();
-                        assertThat(product.getImageUrl()).isEqualTo(original.getImageUrl());
-                        assertThat(product.getPrices()).isEmpty();
-                    });
-        }
-
-        @Test
-        @DisplayName("Should initialize new prices list for duplicate")
-        void shouldInitializeNewPricesListForDuplicate() {
-            // Arrange
-            List<PriceEntity> originalPrices = new ArrayList<>();
-            originalPrices.add(PriceEntity.builder().id(1L).build());
-
-            ProductEntity original = ProductEntity.builder()
-                    .name("Original Product")
-                    .prices(originalPrices)
-                    .build();
-
-            // Act
-            ProductEntity result = productFactory.duplicate(original);
-
-            // Assert
-            assertThat(result.getPrices())
-                    .isNotNull()
-                    .isNotSameAs(originalPrices)
-                    .isEmpty();
+                    .isNotSameAs(existingProduct.getPrice());
         }
     }
 }

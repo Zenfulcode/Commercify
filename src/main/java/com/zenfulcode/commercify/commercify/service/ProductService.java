@@ -52,11 +52,8 @@ public class ProductService {
         ProductEntity savedProduct = productRepository.save(product);
 
         // Create prices after product is saved
-        request.prices().forEach(priceRequest ->
-        {
-            PriceEntity price = priceService.createPrice(priceRequest, savedProduct);
-            savedProduct.addPrice(price);
-        });
+        PriceEntity price = priceService.createPrice(request.price(), savedProduct);
+        savedProduct.setPrice(price);
 
         return mapper.apply(savedProduct);
     }
@@ -68,7 +65,7 @@ public class ProductService {
             errors.add("Product name is required");
         }
 
-        if (request.prices() == null || request.prices().isEmpty()) {
+        if (request.price() == null || request.price().amount() == null || request.price().amount() <= 0) {
             errors.add("At least one price is required");
         }
 
@@ -92,7 +89,7 @@ public class ProductService {
         if (product.getStripeId() != null && Stripe.apiKey != null && !Stripe.apiKey.isBlank()) {
             try {
                 stripeProductService.updateStripeProduct(product.getStripeId(), product);
-                handlePriceUpdates(product, request.prices());
+                handlePriceUpdates(product, request.price());
             } catch (Exception e) {
                 warnings.add("Stripe update failed: " + e.getMessage());
                 log.error("Stripe update failed", e);
@@ -111,38 +108,18 @@ public class ProductService {
                 .orElseThrow(() -> new ProductNotFoundException(productId));
 
         if (request.priceId() != null) {
-            // Update existing price
-            PriceEntity existingPrice = product.getPrices().stream()
-                    .filter(p -> p.getId().equals(request.priceId()))
-                    .findFirst()
-                    .orElseThrow(() -> new PriceNotFoundException(request.priceId()));
-
-            // Check if this is the only active default price
-            if (!request.active() && existingPrice.getIsDefault() &&
-                    product.getPrices().stream()
-                            .filter(p -> !p.getId().equals(request.priceId()))
-                            .filter(PriceEntity::getActive)
-                            .noneMatch(PriceEntity::getIsDefault)) {
-                throw new ProductValidationException(List.of("Cannot deactivate the only default price"));
-            }
-
+            PriceEntity existingPrice = product.getPrice();
             priceService.updatePrice(existingPrice, request);
         } else {
             CreatePriceRequest createRequest = new CreatePriceRequest(
                     request.currency(),
                     request.amount(),
-                    request.isDefault(),
                     request.active()
             );
             priceService.createPrice(createRequest, product);
-
-            // If this is a new default price, update other prices
-            if (request.isDefault()) {
-                product.getPrices().stream()
-                        .filter(p -> !p.getCurrency().equals(request.currency()))
-                        .forEach(p -> p.setIsDefault(false));
-            }
         }
+
+        System.out.println("Product: " + product);
 
         ProductEntity savedProduct = productRepository.save(product);
         return mapper.apply(savedProduct);
@@ -232,44 +209,22 @@ public class ProductService {
         }
     }
 
-    private void handlePriceUpdates(ProductEntity product, List<UpdatePriceRequest> priceUpdates) {
-        if (priceUpdates == null || priceUpdates.isEmpty()) {
+    private void handlePriceUpdates(ProductEntity product, UpdatePriceRequest priceUpdates) {
+        if (priceUpdates == null) {
             return;
         }
 
-        Map<Long, PriceEntity> existingPrices = product.getPrices().stream()
-                .collect(Collectors.toMap(PriceEntity::getId, price -> price));
-
-        priceUpdates.forEach(priceUpdate -> {
-            if (priceUpdate.priceId() == null) {
-                priceService.createPrice(
-                        new CreatePriceRequest(
-                                priceUpdate.currency(),
-                                priceUpdate.amount(),
-                                priceUpdate.isDefault(),
-                                priceUpdate.active()
-                        ),
-                        product
-                );
-            } else {
-                PriceEntity existingPrice = existingPrices.get(priceUpdate.priceId());
-                if (existingPrice != null) {
-                    priceService.updatePrice(existingPrice, priceUpdate);
-                }
-            }
-        });
-
-        // Deactivate prices not in update request
-        Set<Long> updatedPriceIds = priceUpdates.stream()
-                .map(UpdatePriceRequest::priceId)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-
-        existingPrices.forEach((id, price) -> {
-            if (!updatedPriceIds.contains(id)) {
-                priceService.deactivatePrice(price);
-            }
-        });
+        PriceEntity existingPrice = product.getPrice();
+        if (existingPrice != null) {
+            priceService.updatePrice(existingPrice, priceUpdates);
+        } else {
+            CreatePriceRequest createRequest = new CreatePriceRequest(
+                    priceUpdates.currency(),
+                    priceUpdates.amount(),
+                    priceUpdates.active()
+            );
+            priceService.createPrice(createRequest, product);
+        }
     }
 
     public Page<ProductDTO> getAllProducts(PageRequest pageRequest) {

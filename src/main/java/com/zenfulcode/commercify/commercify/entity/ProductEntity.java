@@ -1,19 +1,17 @@
 package com.zenfulcode.commercify.commercify.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.UUID;
 
-@Entity(name = "products")
-@Data
+@Entity
+@Table(name = "products")
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -28,15 +26,11 @@ public class ProductEntity {
     private String stripeId;
     private Boolean active;
     private String imageUrl;
+    private String imageUrl2;
 
-    @OneToMany(
-            mappedBy = "product",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true,
-            fetch = FetchType.LAZY
-    )
-    @Builder.Default // This ensures the list is initialized when using builder
-    private List<PriceEntity> prices = new ArrayList<>();
+    @OneToOne
+    @JoinColumn(name = "stripe_price_id")
+    private PriceEntity price;
 
     @CreationTimestamp
     @Column(name = "created_at")
@@ -45,28 +39,4 @@ public class ProductEntity {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    public void addPrice(PriceEntity price) {
-        prices.add(price);
-        price.setProduct(this);
-    }
-
-    public void removePrice(PriceEntity price) {
-        prices.remove(price);
-        price.setProduct(null);
-    }
-
-    public void setPrices(List<PriceEntity> prices) {
-        this.prices.clear();
-        if (prices != null) {
-            prices.forEach(this::addPrice);
-        }
-    }
-
-    public PriceEntity getDefaultPrice() {
-        return prices.stream()
-                .filter(PriceEntity::getIsDefault)
-                .findFirst()
-                .orElse(null);
-    }
 }

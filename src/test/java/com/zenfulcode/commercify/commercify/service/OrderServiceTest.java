@@ -55,7 +55,6 @@ class OrderServiceTest {
                     .id(1L)
                     .currency("USD")
                     .amount(99.99)
-                    .isDefault(true)
                     .active(true)
                     .build();
 
@@ -65,7 +64,7 @@ class OrderServiceTest {
                     .description("Test Description")
                     .stock(10)
                     .active(true)
-                    .prices(List.of(priceDTO))
+                    .price(priceDTO)
                     .build();
 
             OrderEntity savedOrder = OrderEntity.builder()
@@ -142,7 +141,6 @@ class OrderServiceTest {
                     .id(1L)
                     .currency("USD")
                     .amount(99.99)
-                    .isDefault(true)
                     .active(true)
                     .build();
 
@@ -152,7 +150,7 @@ class OrderServiceTest {
                     .description("Test Description")
                     .stock(1) // Only 1 in stock
                     .active(true)
-                    .prices(List.of(priceDTO))
+                    .price(priceDTO)
                     .build();
 
             CreateOrderRequest request = new CreateOrderRequest(

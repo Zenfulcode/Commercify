@@ -86,7 +86,7 @@ class ProductServiceTest {
                 .description("Test Description")
                 .stock(10)
                 .active(true)
-                .prices(new ArrayList<>())  // Initialize with mutable list
+                .price(null)
                 .build();
 
         mockProductDTO = ProductDTO.builder()
@@ -95,17 +95,16 @@ class ProductServiceTest {
                 .description("Test Description")
                 .stock(10)
                 .active(true)
-                .prices(new ArrayList<>())  // Initialize with mutable list
+                .price(null)
                 .build();
 
         PriceDTO mockPriceDTO = PriceDTO.builder()
                 .currency("USD")
                 .amount(99.99)
-                .isDefault(true)
                 .active(true)
                 .build();
 
-        mockProductDTO.setPrices(List.of(mockPriceDTO));
+        mockProductDTO.setPrice(mockPriceDTO);
 
         validCreateRequest = new CreateProductRequest(
                 "Test Product",
@@ -113,7 +112,7 @@ class ProductServiceTest {
                 10,
                 "image.jpg",
                 true,
-                List.of(new CreatePriceRequest("USD", 99.99, true, true))
+                new CreatePriceRequest("USD", 99.99, true)
         );
 
         validUpdateRequest = new UpdateProductRequest(
@@ -122,7 +121,7 @@ class ProductServiceTest {
                 15,
                 "updated-image.jpg",
                 true,
-                Collections.emptyList()
+                null
         );
     }
 
@@ -138,7 +137,6 @@ class ProductServiceTest {
                     .id(1L)
                     .currency("USD")
                     .amount(99.99)
-                    .isDefault(true)
                     .active(true)
                     .build();
 
@@ -166,7 +164,6 @@ class ProductServiceTest {
                     .id(1L)
                     .currency("USD")
                     .amount(99.99)
-                    .isDefault(true)
                     .active(true)
                     .build();
 
@@ -199,7 +196,7 @@ class ProductServiceTest {
                     10,
                     "image.jpg",
                     true,
-                    List.of(new CreatePriceRequest("USD", 99.99, true, true))
+                    new CreatePriceRequest("USD", 99.99, true)
             );
 
             // Act & Assert
@@ -221,7 +218,7 @@ class ProductServiceTest {
                     10,
                     "image.jpg",
                     true,
-                    List.of(new CreatePriceRequest("USD", 99.99, true, true))
+                    new CreatePriceRequest("USD", 99.99, true)
             );
 
             // Act & Assert
@@ -243,7 +240,7 @@ class ProductServiceTest {
                     10,
                     "image.jpg",
                     true,
-                    List.of(new CreatePriceRequest("USD", 99.99, true, true))
+                    new CreatePriceRequest("USD", 99.99, true)
             );
 
             // Act & Assert
@@ -351,19 +348,17 @@ class ProductServiceTest {
                     .id(1L)
                     .currency("USD")
                     .amount(99.99)
-                    .isDefault(true)
                     .active(true)
                     .build();
 
             // Manually set up the bidirectional relationship
             existingPrice.setProduct(mockProductEntity);
-            mockProductEntity.getPrices().add(existingPrice);
+            mockProductEntity.setPrice(existingPrice);
 
             UpdatePriceRequest priceRequest = new UpdatePriceRequest(
                     1L,
                     "USD",
                     199.99,
-                    true,
                     true
             );
 

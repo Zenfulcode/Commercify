@@ -15,7 +15,6 @@ public class PriceMapper implements Function<PriceEntity, PriceDTO> {
                 .currency(price.getCurrency())
                 .amount(price.getAmount())
                 .stripePriceId(price.getStripePriceId())
-                .isDefault(price.getIsDefault())
                 .active(price.getActive())
                 .build();
     }

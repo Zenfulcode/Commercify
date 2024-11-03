@@ -11,6 +11,7 @@ import com.zenfulcode.commercify.commercify.entity.OrderLineEntity;
 import com.zenfulcode.commercify.commercify.entity.PriceEntity;
 import com.zenfulcode.commercify.commercify.repository.OrderLineRepository;
 import com.zenfulcode.commercify.commercify.repository.OrderRepository;
+import com.zenfulcode.commercify.commercify.repository.PriceRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.AbstractMap;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,6 +31,7 @@ public class OrderService {
     private final ProductService productService;
     private final OrderMapper mapper;
     private final OrderLineMapper olMapper;
+    private final PriceRepository priceRepository;
 
     @Transactional
     public OrderDTO createOrder(CreateOrderRequest request) {
@@ -102,10 +105,7 @@ public class OrderService {
                         throw new RuntimeException("Product not found with ID: " + entry.getKey().getKey());
                     }
 
-                    PriceEntity price = priceDTOToEntity(product.getPrices().stream()
-                            .filter(p -> p.getCurrency().equals(entry.getKey().getValue()))
-                            .findFirst()
-                            .orElseThrow(() -> new RuntimeException("Price not found for product")));
+                    PriceEntity price = priceRepository.getReferenceById(product.getPrice().getId());
 
                     if (!price.getCurrency().equals(request.currency())) {
                         throw new RuntimeException("Price currency does not match order currency");
@@ -141,18 +141,6 @@ public class OrderService {
         return orderLines.stream()
                 .mapToDouble(line -> line.getUnitPrice() * line.getQuantity())
                 .sum();
-    }
-
-    // Helper method to convert PriceDTO to PriceEntity
-    private PriceEntity priceDTOToEntity(PriceDTO priceDTO) {
-        return PriceEntity.builder()
-                .id(priceDTO.getId())
-                .currency(priceDTO.getCurrency())
-                .amount(priceDTO.getAmount())
-                .stripePriceId(priceDTO.getStripePriceId())
-                .isDefault(priceDTO.getIsDefault())
-                .active(priceDTO.getActive())
-                .build();
     }
 
     @Transactional(readOnly = true)

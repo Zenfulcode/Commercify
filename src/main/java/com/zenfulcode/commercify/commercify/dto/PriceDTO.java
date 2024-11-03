@@ -12,6 +12,5 @@ public class PriceDTO {
     private String currency;
     private Double amount;
     private String stripePriceId;
-    private Boolean isDefault;
     private Boolean active;
 }

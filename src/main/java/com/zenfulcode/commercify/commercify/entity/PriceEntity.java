@@ -1,17 +1,16 @@
 package com.zenfulcode.commercify.commercify.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
-@Entity(name = "prices")
-@Data
+@Entity
+@Table(name = "prices")
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -23,7 +22,6 @@ public class PriceEntity {
     private String currency;
     private Double amount;
     private String stripePriceId;
-    private Boolean isDefault;
     private Boolean active;
 
     @ManyToOne(fetch = FetchType.LAZY)

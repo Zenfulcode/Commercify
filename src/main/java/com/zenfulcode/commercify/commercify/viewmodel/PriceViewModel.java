@@ -6,8 +6,7 @@ public record PriceViewModel(
         String currency,
         Double amount
 ) {
-
-    public static PriceViewModel from(PriceDTO priceDTO) {
+    public static PriceViewModel fromDTO(PriceDTO priceDTO) {
         return new PriceViewModel(
                 priceDTO.getCurrency(),
                 priceDTO.getAmount()

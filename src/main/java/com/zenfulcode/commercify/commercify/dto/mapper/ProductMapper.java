@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,9 +22,7 @@ public class ProductMapper implements Function<ProductEntity, ProductDTO> {
                 .stripeId(product.getStripeId())
                 .active(product.getActive())
                 .imageUrl(product.getImageUrl())
-                .prices(product.getPrices().stream()
-                        .map(priceMapper)
-                        .collect(Collectors.toList()))
+                .price(priceMapper.apply(product.getPrice()))
                 .build();
     }
 }
