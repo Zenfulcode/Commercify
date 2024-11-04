@@ -84,7 +84,7 @@ public class StripeProductService {
                     .setUnitAmount(amountInCents)
                     .build();
 
-            Map<String, PriceUpdateParams.CurrencyOption> unitAmount = Map.of(request.currency(), currencyOption);
+            Map<String, PriceUpdateParams.CurrencyOption> unitAmount = Map.of(request.currency().toLowerCase(), currencyOption);
 
             PriceUpdateParams params = PriceUpdateParams.builder()
                     .setCurrencyOptions(unitAmount)

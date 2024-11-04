@@ -2,7 +2,6 @@ package com.zenfulcode.commercify.commercify.controller;
 
 
 import com.zenfulcode.commercify.commercify.api.requests.products.CreateProductRequest;
-import com.zenfulcode.commercify.commercify.api.requests.products.UpdatePriceRequest;
 import com.zenfulcode.commercify.commercify.api.requests.products.UpdateProductRequest;
 import com.zenfulcode.commercify.commercify.api.responses.ErrorResponse;
 import com.zenfulcode.commercify.commercify.api.responses.products.ProductDeletionErrorResponse;
@@ -110,6 +109,8 @@ public class ProductController {
             @PathVariable Long id,
             @Validated @RequestBody UpdateProductRequest request
     ) {
+        System.out.println("UpdateProductRequest: " + request);
+
         try {
             ProductUpdateResult result = productService.updateProduct(id, request);
             if (!result.getWarnings().isEmpty()) {
@@ -131,26 +132,6 @@ public class ProductController {
             log.error("Error updating product", e);
             return ResponseEntity.internalServerError()
                     .body(new ErrorResponse("Error updating product: " + e.getMessage()));
-        }
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @PatchMapping("/{id}/price")
-    public ResponseEntity<?> updateProductPrice(
-            @PathVariable Long id,
-            @Validated @RequestBody UpdatePriceRequest request
-    ) {
-        try {
-            ProductDTO updatedProduct = productService.updateProductPrice(id, request);
-            return ResponseEntity.ok(ProductViewModel.fromDTO(updatedProduct));
-        } catch (ProductNotFoundException | PriceNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        } catch (ProductValidationException e) {
-            return ResponseEntity.badRequest().body(new ValidationErrorResponse(e.getErrors()));
-        } catch (Exception e) {
-            log.error("Error updating product price", e);
-            return ResponseEntity.internalServerError()
-                    .body(new ErrorResponse("Error updating product price: " + e.getMessage()));
         }
     }
 
