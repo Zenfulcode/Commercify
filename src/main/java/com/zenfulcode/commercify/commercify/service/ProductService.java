@@ -83,15 +83,23 @@ public class ProductService {
     @Transactional
     public ProductUpdateResult updateProduct(Long id, UpdateProductRequest request) {
         List<String> warnings = new ArrayList<>();
+
         ProductEntity product = productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException(id));
 
-        productFactory.createFromUpdateRequest(request, product);
+        product.setName(request.name() != null ? request.name() : product.getName());
+        product.setDescription(request.description() != null ? request.description() : product.getDescription());
+        product.setStock(request.stock() != null ? request.stock() : product.getStock());
+        product.setActive(request.active() != null ? request.active() : product.getActive());
+        product.setImageUrl(request.imageUrl() != null ? request.imageUrl() : product.getImageUrl());
+        product.setCurrency(request.price().currency() != null ? request.price().currency() : product.getCurrency());
+        product.setUnitPrice(request.price().amount() != null ? request.price().amount() : product.getUnitPrice());
+
+        updateProductPrice(product, request.price());
 
         if (product.getStripeId() != null && Stripe.apiKey != null && !Stripe.apiKey.isBlank()) {
             try {
                 stripeProductService.updateStripeProduct(product.getStripeId(), product);
-                updateProductPrice(product.getId(), request.price());
             } catch (Exception e) {
                 warnings.add("Stripe update failed: " + e.getMessage());
                 log.error("Stripe update failed", e);
@@ -102,14 +110,10 @@ public class ProductService {
         return ProductUpdateResult.withWarnings(mapper.apply(savedProduct), warnings);
     }
 
-    @Transactional
-    public ProductDTO updateProductPrice(Long productId, UpdatePriceRequest request) {
+    private void updateProductPrice(ProductEntity product, UpdatePriceRequest request) {
         validatePriceRequest(request);
 
-        ProductEntity product = productRepository.findById(productId)
-                .orElseThrow(() -> new ProductNotFoundException(productId));
-
-        if (request.priceId() != null) {
+        if (product.getStripePriceId() != null) {
             stripeProductService.updateStripePrice(product, request);
         } else {
             CreatePriceRequest createRequest = new CreatePriceRequest(
@@ -119,10 +123,8 @@ public class ProductService {
             stripeProductService.createStripePrice(product, createRequest);
         }
 
-        System.out.println("Product: " + product);
-
         ProductEntity savedProduct = productRepository.save(product);
-        return mapper.apply(savedProduct);
+        mapper.apply(savedProduct);
     }
 
     /**
@@ -200,7 +202,7 @@ public class ProductService {
     private void validatePriceRequest(UpdatePriceRequest request) {
         List<String> errors = new ArrayList<>();
 
-        if (request.amount() != null && request.amount() <= 0) {
+        if (request.amount() != null && request.amount() < 0) {
             errors.add("Price amount must be greater than zero");
         }
 
