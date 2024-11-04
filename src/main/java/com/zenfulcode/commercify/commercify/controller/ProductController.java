@@ -90,6 +90,8 @@ public class ProductController {
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<?> createProduct(@Validated @RequestBody CreateProductRequest request) {
+        System.out.println("CreateProductRequest: " + request);
+
         try {
             ProductDTO product = productService.saveProduct(request);
             return ResponseEntity.ok(ProductViewModel.fromDTO(product));

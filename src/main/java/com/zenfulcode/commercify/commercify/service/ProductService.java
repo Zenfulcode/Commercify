@@ -1,7 +1,6 @@
 package com.zenfulcode.commercify.commercify.service;
 
 import com.stripe.Stripe;
-import com.stripe.service.PriceService;
 import com.zenfulcode.commercify.commercify.OrderStatus;
 import com.zenfulcode.commercify.commercify.api.requests.products.CreatePriceRequest;
 import com.zenfulcode.commercify.commercify.api.requests.products.CreateProductRequest;
@@ -58,7 +57,6 @@ public class ProductService {
         // Create prices after product is saved
         stripeProductService.createStripePrice(savedProduct, priceRequest);
 
-
         return mapper.apply(savedProduct);
     }
 
@@ -69,7 +67,7 @@ public class ProductService {
             errors.add("Product name is required");
         }
 
-        if (request.price() == null || request.price().amount() == null || request.price().amount() <= 0) {
+        if (request.price() == null || request.price().amount() == null || request.price().amount() < 0) {
             errors.add("At least one price is required");
         }
 
