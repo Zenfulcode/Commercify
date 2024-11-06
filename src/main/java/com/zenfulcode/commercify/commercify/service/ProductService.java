@@ -97,7 +97,7 @@ public class ProductService {
 
         updateProductPrice(product, request.price());
 
-        if (product.getStripeId() != null && Stripe.apiKey != null && !Stripe.apiKey.isBlank()) {
+        if (product.getStripeId() != null && Stripe.apiKey != null) {
             try {
                 stripeProductService.updateStripeProduct(product.getStripeId(), product);
             } catch (Exception e) {
@@ -134,7 +134,6 @@ public class ProductService {
      * @return A validation result containing any issues found
      */
     public ProductDeletionValidationResult validateProductDeletion(ProductEntity product) {
-
         // Get sample of active orders for reference
         List<OrderDTO> activeOrders = orderLineRepository.findActiveOrdersForProduct(product.getId(),
                 List.of(OrderStatus.PENDING, OrderStatus.CONFIRMED, OrderStatus.SHIPPED)
@@ -169,14 +168,12 @@ public class ProductService {
             );
         }
 
-        if (Stripe.apiKey != null) {
-            if (productEnt.getStripeId() != null && !Stripe.apiKey.isBlank()) {
-                stripeProductService.deactivateProduct(productEnt);
-            } else if (Stripe.apiKey.isBlank() && productEnt.getStripeId() != null) {
-                throw new RuntimeException("Can't delete product from stripe without stripe key");
-            }
+        try {
+            stripeProductService.deactivateProduct(productEnt);
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage(), e);
         }
-
+        
         productRepository.deleteById(id);
     }
 

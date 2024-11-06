@@ -18,9 +18,8 @@ import java.util.Map;
 @Slf4j
 public class StripeProductService {
     public String createStripeProduct(ProductEntity product) {
-        if (Stripe.apiKey.isBlank()) {
-            return null;
-        }
+        if (Stripe.apiKey == null || product.getStripeId() == null || Stripe.apiKey.isBlank())
+            throw new RuntimeException("Can't CREATE product in stripe without stripe key");
 
         try {
             ProductCreateParams params = ProductCreateParams.builder()
@@ -35,9 +34,8 @@ public class StripeProductService {
     }
 
     public void updateStripeProduct(String stripeId, ProductEntity product) {
-        if (Stripe.apiKey.isBlank()) {
-            return;
-        }
+        if (Stripe.apiKey == null || product.getStripeId() == null || Stripe.apiKey.isBlank())
+            throw new RuntimeException("Can't UPDATE product in stripe without stripe key");
 
         try {
             Product stripeProduct = Product.retrieve(stripeId);
@@ -53,9 +51,8 @@ public class StripeProductService {
     }
 
     public void createStripePrice(ProductEntity product, CreatePriceRequest request) {
-        if (Stripe.apiKey.isBlank()) {
-            return;
-        }
+        if (Stripe.apiKey == null || product.getStripeId() == null || Stripe.apiKey.isBlank())
+            throw new RuntimeException("Can't CREATE price from stripe without stripe key");
 
         try {
             long amountInCents = (long) (request.amount() * 100);
@@ -75,45 +72,66 @@ public class StripeProductService {
     }
 
     public void updateStripePrice(ProductEntity product, UpdatePriceRequest request) {
+        if (Stripe.apiKey == null || product.getStripeId() == null || Stripe.apiKey.isBlank())
+            throw new RuntimeException("Can't UPDATE price from stripe without stripe key");
+
+        if (product.getUnitPrice().equals(request.amount()) && product.getCurrency().equals(request.currency())) {
+            return;
+        }
+
         try {
-            Price stripePrice = Price.retrieve(product.getStripePriceId());
+            // First, deactivate the old price
+            Price oldPrice = Price.retrieve(product.getStripePriceId());
+            PriceUpdateParams deactivateParams = PriceUpdateParams.builder()
+                    .setActive(false)
+                    .build();
+            oldPrice.update(deactivateParams);
 
+            // Create a new price
             long amountInCents = (long) (request.amount() * 100);
-
-            PriceUpdateParams.CurrencyOption currencyOption = PriceUpdateParams.CurrencyOption.builder()
+            PriceCreateParams params = PriceCreateParams.builder()
+                    .setProduct(product.getStripeId())
+                    .setCurrency(request.currency().toLowerCase())
                     .setUnitAmount(amountInCents)
+                    .setActive(true)
                     .build();
 
-            Map<String, PriceUpdateParams.CurrencyOption> unitAmount = Map.of(request.currency().toLowerCase(), currencyOption);
+            Price newPrice = Price.create(params);
 
-            PriceUpdateParams params = PriceUpdateParams.builder()
-                    .setCurrencyOptions(unitAmount)
-                    .build();
+            // Update the product entity with the new price ID
+            product.setStripePriceId(newPrice.getId());
+            product.setUnitPrice(request.amount());
+            product.setCurrency(request.currency());
 
-            stripePrice.update(params);
         } catch (StripeException e) {
             log.error("Failed to update Stripe price: {}", e.getMessage());
             throw new StripeOperationException("Failed to update Stripe price", e);
         }
     }
 
-    public void deactivateStripePrices(Price stripePrice) throws StripeException {
-        PriceUpdateParams params = PriceUpdateParams.builder()
-                .setActive(false)
-                .build();
-        stripePrice.update(params);
-    }
-
     public void deactivateProduct(ProductEntity productEnt) {
+        if (Stripe.apiKey == null || productEnt.getStripeId() == null || Stripe.apiKey.isBlank())
+            throw new RuntimeException("Can't DELETE product from stripe without stripe key");
+
         try {
             // Deactivate all associated prices
             deactivateStripePrices(productEnt.getStripeId());
+        } catch (StripeException e) {
+            log.error("Failed to deactivate Stripe prices: {}", e.getMessage());
+            throw new RuntimeException("Failed to deactivate Stripe prices: " + e.getMessage(), e);
+        }
 
+        try {
             // Deactivate the product
             Product stripeProduct = Product.retrieve(productEnt.getStripeId());
-            stripeProduct.update(Map.of("active", false));
+            ProductUpdateParams params = ProductUpdateParams.builder()
+                    .setActive(false)
+                    .build();
+
+            stripeProduct.update(params);
         } catch (StripeException e) {
-            throw new RuntimeException("Stripe error: " + e.getMessage(), e);
+            log.error("Failed to deactivate product: {}", e.getMessage());
+            throw new RuntimeException("Failed to deactivate product: " + e.getMessage(), e);
         }
 
         productEnt.setActive(false);
@@ -132,7 +150,7 @@ public class StripeProductService {
         }
     }
 
-    public void deactivateStripePrices(String stripeProductId) throws StripeException {
+    private void deactivateStripePrices(String stripeProductId) throws StripeException {
         PriceSearchParams params = PriceSearchParams.builder()
                 .setQuery("product:'" + stripeProductId + "' AND active:'true'")
                 .build();
