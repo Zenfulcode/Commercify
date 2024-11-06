@@ -9,9 +9,10 @@ import lombok.Data;
 @Builder
 @AllArgsConstructor
 public class OrderLineDTO {
+    private Long id;
     private Long productId;
-    private String stripeProductId;
     private Integer quantity;
     private Double unitPrice;
+    private String currency;
     private ProductDTO product;
 }

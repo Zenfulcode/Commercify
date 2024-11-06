@@ -11,13 +11,13 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class UserDTOMapper implements Function<UserEntity, UserDTO> {
-    private final AddressDTOMapper addressDTOMapper;
+public class UserMapper implements Function<UserEntity, UserDTO> {
+    private final AddressMapper addressDTOMapper;
 
     @Override
     public UserDTO apply(UserEntity user) {
         return UserDTO.builder()
-                .userId(user.getUserId())
+                .id(user.getId())
                 .email(user.getEmail())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())

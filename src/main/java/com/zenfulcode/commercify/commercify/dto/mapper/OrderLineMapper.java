@@ -9,13 +9,13 @@ import java.util.function.Function;
 
 @Service
 @AllArgsConstructor
-public class OrderLineDTOMapper implements Function<OrderLineEntity, OrderLineDTO> {
+public class OrderLineMapper implements Function<OrderLineEntity, OrderLineDTO> {
     @Override
     public OrderLineDTO apply(OrderLineEntity orderLine) {
         return OrderLineDTO.builder()
+                .id(orderLine.getId())
                 .quantity(orderLine.getQuantity())
                 .productId(orderLine.getProductId())
-                .stripeProductId(orderLine.getStripeProductId())
                 .unitPrice(orderLine.getUnitPrice())
                 .build();
     }

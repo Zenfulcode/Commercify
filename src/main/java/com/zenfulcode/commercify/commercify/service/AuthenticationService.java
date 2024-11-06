@@ -4,7 +4,7 @@ package com.zenfulcode.commercify.commercify.service;
 import com.zenfulcode.commercify.commercify.api.requests.LoginUserRequest;
 import com.zenfulcode.commercify.commercify.api.requests.RegisterUserRequest;
 import com.zenfulcode.commercify.commercify.dto.UserDTO;
-import com.zenfulcode.commercify.commercify.dto.mapper.UserDTOMapper;
+import com.zenfulcode.commercify.commercify.dto.mapper.UserMapper;
 import com.zenfulcode.commercify.commercify.entity.AddressEntity;
 import com.zenfulcode.commercify.commercify.entity.UserEntity;
 import com.zenfulcode.commercify.commercify.repository.UserRepository;
@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,14 +24,19 @@ import java.util.stream.Collectors;
 public class AuthenticationService {
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManager;
-    private final UserDTOMapper mapper;
+    private final UserMapper mapper;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public UserDTO registerUser(RegisterUserRequest registerRequest) {
-        userRepository.findByEmail(registerRequest.email())
-                .orElseThrow(() -> new RuntimeException("User with this email already exists"));
+        Optional<UserEntity> existing = userRepository.findByEmail(registerRequest.email());
+
+        if (existing.isPresent()) {
+            throw new RuntimeException("User with email " + registerRequest.email() + " already exists");
+        } else {
+            System.out.println("User with email " + registerRequest.email() + " does not exist");
+        }
 
         List<AddressEntity> addresses = registerRequest.addresses().stream()
                 .map(addressDTO -> AddressEntity.builder()

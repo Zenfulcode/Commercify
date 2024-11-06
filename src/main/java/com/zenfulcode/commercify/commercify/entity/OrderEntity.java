@@ -3,52 +3,63 @@ package com.zenfulcode.commercify.commercify.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.zenfulcode.commercify.commercify.OrderStatus;
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.proxy.HibernateProxy;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "Orders")
+@Getter
+@Setter
+@ToString
+@Builder
 @NoArgsConstructor
-@Data
+@AllArgsConstructor
 public class OrderEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "order_id", nullable = false)
-    private Long orderId;
+    @Column(name = "id", nullable = false)
+    private Long id;
 
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
     @JsonIgnore
     @OneToMany(mappedBy = "order", fetch = FetchType.LAZY)
+    @ToString.Exclude
     private List<OrderLineEntity> orderLines;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private OrderStatus status;
 
+    private String currency;
+    private Double totalAmount;
+
     @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    private Double totalAmount;
-
-    public OrderEntity(Long userId) {
-        this.userId = userId;
-        this.status = OrderStatus.PENDING;
-        this.updatedAt = null;
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null) return false;
+        Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass() : o.getClass();
+        Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
+        if (thisEffectiveClass != oEffectiveClass) return false;
+        OrderEntity that = (OrderEntity) o;
+        return getId() != null && Objects.equals(getId(), that.getId());
     }
 
-    public void updateStatus(OrderStatus status) {
-        this.status = status;
+    @Override
+    public final int hashCode() {
+        return this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass().hashCode() : getClass().hashCode();
     }
 }

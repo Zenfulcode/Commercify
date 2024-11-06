@@ -1,12 +1,12 @@
-package com.zenfulcode.commercify.commercify.api.responses;
+package com.zenfulcode.commercify.commercify.api.responses.orders;
 
 
-import com.zenfulcode.commercify.commercify.dto.OrderDTO;
+import com.zenfulcode.commercify.commercify.viewmodel.OrderViewModel;
 
 public record CreateOrderResponse(
-        OrderDTO order,
+        OrderViewModel order,
         String message) {
-    public static CreateOrderResponse from(OrderDTO order) {
+    public static CreateOrderResponse from(OrderViewModel order) {
         return new CreateOrderResponse(order, "Order created successfully");
     }
 

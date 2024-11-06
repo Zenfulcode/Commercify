@@ -8,13 +8,15 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class ProductDTO {
-    private Long productId;
+    private Long id;
     private String name;
     private String description;
-    private String currency;
-    private Double unitPrice;
     private Integer stock;
-    private String stripeId;
     private Boolean active;
     private String imageUrl;
+    private Double unitPrice;
+    private String currency;
+
+    private String stripeId;
+    private String stripePriceId;
 }
