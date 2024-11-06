@@ -18,7 +18,7 @@ import java.util.Map;
 @Slf4j
 public class StripeProductService {
     public String createStripeProduct(ProductEntity product) {
-        if (Stripe.apiKey == null || product.getStripeId() == null || Stripe.apiKey.isBlank())
+        if (Stripe.apiKey == null || Stripe.apiKey.isBlank())
             throw new RuntimeException("Can't CREATE product in stripe without stripe key");
 
         try {
@@ -34,7 +34,7 @@ public class StripeProductService {
     }
 
     public void updateStripeProduct(String stripeId, ProductEntity product) {
-        if (Stripe.apiKey == null || product.getStripeId() == null || Stripe.apiKey.isBlank())
+        if (Stripe.apiKey == null || Stripe.apiKey.isBlank())
             throw new RuntimeException("Can't UPDATE product in stripe without stripe key");
 
         try {
