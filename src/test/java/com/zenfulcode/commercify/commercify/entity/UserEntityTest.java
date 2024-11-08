@@ -34,8 +34,7 @@ class UserEntityTest {
                 .firstName("John")
                 .lastName("Doe")
                 .roles(List.of("USER"))
-                .addresses(new ArrayList<>(List.of(address)))
-                .createdAt(new Date())
+                .addresses(Set.of(address))
                 .addresses(Set.of(address))
                 .build();
 

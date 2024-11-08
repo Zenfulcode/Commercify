@@ -9,6 +9,7 @@ import com.zenfulcode.commercify.commercify.entity.AddressEntity;
 import com.zenfulcode.commercify.commercify.entity.UserEntity;
 import com.zenfulcode.commercify.commercify.repository.UserRepository;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,24 +41,24 @@ public class AuthenticationService {
             log.info("Creating user with email: {}", registerRequest.email());
         }
 
-        List<AddressEntity> addresses = registerRequest.addresses().stream()
+        Set<AddressEntity> addresses = registerRequest.addresses().stream()
                 .map(addressDTO -> AddressEntity.builder()
                         .street(addressDTO.getStreet())
                         .city(addressDTO.getCity())
                         .state(addressDTO.getState())
-                        .postalCode(addressDTO.getPostalCode())
+                        .zipCode(addressDTO.getZipCode())
                         .country(addressDTO.getCountry())
                         .isBillingAddress(addressDTO.isBillingAddress())
                         .isShippingAddress(addressDTO.isShippingAddress())
                         .build())
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
 
         UserEntity user = UserEntity.builder()
                 .firstName(registerRequest.firstName())
                 .lastName(registerRequest.lastName())
                 .email(registerRequest.email())
                 .password(passwordEncoder.encode(registerRequest.password()))
-                .roles(Set.of(userRole))
+                .roles(List.of("USER"))
                 .addresses(addresses)
                 .build();
 

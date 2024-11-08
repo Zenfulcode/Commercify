@@ -8,10 +8,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -44,9 +40,10 @@ public class UserEntity implements UserDetails {
     @Builder.Default
     private Set<AddressEntity> addresses = new LinkedHashSet<>();
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    @ToString.Exclude
-    private List<AddressEntity> addresses;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "id"))
+    @Column(name = "role")
+    private List<String> roles;
 
     @Column(name = "created_at", nullable = false)
     @CreationTimestamp
