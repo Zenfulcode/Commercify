@@ -59,7 +59,7 @@ class AuthenticationServiceTest {
                 .street("123 Test St")
                 .city("Test City")
                 .state("Test State")
-                .postalCode("12345")
+                .zipCode("12345")
                 .country("Test Country")
                 .isBillingAddress(true)
                 .isShippingAddress(false)
@@ -80,7 +80,7 @@ class AuthenticationServiceTest {
                 .firstName("John")
                 .lastName("Doe")
                 .roles(List.of("USER"))
-                .addresses(new ArrayList<>())
+                .addresses(new HashSet<>())
                 .build();
 
         userDTO = UserDTO.builder()

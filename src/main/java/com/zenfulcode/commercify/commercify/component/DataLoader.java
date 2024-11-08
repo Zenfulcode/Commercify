@@ -34,7 +34,7 @@ public class AdminDataLoader {
                         .firstName("Admin")
                         .lastName("User")
                         .roles(List.of("ADMIN", "USER"))
-                        .addresses(Collections.emptyList())
+                        .addresses(Collections.emptySet())
                         .build();
 
                 userRepository.save(adminUser);

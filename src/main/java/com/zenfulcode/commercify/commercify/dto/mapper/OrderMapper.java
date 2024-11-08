@@ -5,6 +5,7 @@ import com.zenfulcode.commercify.commercify.entity.OrderEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.function.Function;
 
 @Service
@@ -19,6 +20,9 @@ public class OrderMapper implements Function<OrderEntity, OrderDTO> {
                 .orderStatus(order.getStatus())
                 .createdAt(order.getCreatedAt())
                 .updatedAt(order.getUpdatedAt())
+                .currency(order.getCurrency())
+                .totalAmount(order.getTotalAmount())
                 .build();
     }
+
 }

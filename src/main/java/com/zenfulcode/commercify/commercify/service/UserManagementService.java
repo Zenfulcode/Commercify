@@ -13,7 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 
 @Service
 @RequiredArgsConstructor
@@ -63,7 +63,7 @@ public class UserManagementService {
                 .street(addressDTO.getStreet())
                 .city(addressDTO.getCity())
                 .state(addressDTO.getState())
-                .postalCode(addressDTO.getPostalCode())
+                .zipCode(addressDTO.getZipCode())
                 .country(addressDTO.getCountry())
                 .isBillingAddress(addressDTO.isBillingAddress())
                 .isShippingAddress(addressDTO.isShippingAddress())
@@ -88,7 +88,7 @@ public class UserManagementService {
         address.setStreet(addressDTO.getStreet());
         address.setCity(addressDTO.getCity());
         address.setState(addressDTO.getState());
-        address.setPostalCode(addressDTO.getPostalCode());
+        address.setZipCode(addressDTO.getZipCode());
         address.setCountry(addressDTO.getCountry());
         address.setBillingAddress(addressDTO.isBillingAddress());
         address.setShippingAddress(addressDTO.isShippingAddress());

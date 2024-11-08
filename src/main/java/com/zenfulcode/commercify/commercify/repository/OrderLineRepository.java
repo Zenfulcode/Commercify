@@ -9,10 +9,11 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Set;
 
 @Repository
 public interface OrderLineRepository extends JpaRepository<OrderLineEntity, Long> {
-    List<OrderLineEntity> findByOrder(OrderEntity order);
+    Set<OrderLineEntity> findByOrder(OrderEntity order);
 
     void deleteOrderLinesByOrder(OrderEntity order);
 
@@ -23,7 +24,7 @@ public interface OrderLineRepository extends JpaRepository<OrderLineEntity, Long
             AND o.status IN :activeStatuses
             ORDER BY o.createdAt DESC
             """)
-    List<OrderEntity> findActiveOrdersForProduct(
+    Set<OrderEntity> findActiveOrdersForProduct(
             @Param("productId") Long productId,
             @Param("activeStatuses") List<OrderStatus> activeStatuses
     );

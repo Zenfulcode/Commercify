@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.AbstractMap;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,7 +40,7 @@ public class OrderService {
                 .currency(request.currency())
                 .build();
 
-        List<OrderLineEntity> orderLines = createOrderLines(request, order);
+        Set<OrderLineEntity> orderLines = createOrderLines(request, order);
 
         double orderTotal = calculateOrderTotal(orderLines);
 
@@ -91,7 +92,7 @@ public class OrderService {
         }
     }
 
-    private List<OrderLineEntity> createOrderLines(CreateOrderRequest request, OrderEntity order) {
+    private Set<OrderLineEntity> createOrderLines(CreateOrderRequest request, OrderEntity order) {
         return request.orderLines().stream()
                 .collect(Collectors.groupingBy(line -> new AbstractMap.SimpleEntry<>(line.productId(), request.currency())))
                 .entrySet().stream()
@@ -108,7 +109,7 @@ public class OrderService {
                     validateProductAvailability(product, entry.getValue());
                     return createOrderLine(product, entry.getValue(), order);
                 })
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
 
     private void validateProductAvailability(ProductDTO product, List<CreateOrderLineRequest> requests) {
@@ -119,17 +120,17 @@ public class OrderService {
     }
 
     private OrderLineEntity createOrderLine(ProductDTO product, List<CreateOrderLineRequest> requests, OrderEntity order) {
-        OrderLineEntity orderLine = new OrderLineEntity();
-        orderLine.setProductId(product.getId());
-        orderLine.setProduct(product);
-        orderLine.setQuantity(requests.stream().mapToInt(CreateOrderLineRequest::quantity).sum());
-        orderLine.setUnitPrice(product.getUnitPrice());
-        orderLine.setCurrency(product.getCurrency());
-        orderLine.setOrder(order);
-        return orderLine;
+        return OrderLineEntity.builder()
+                .currency(product.getCurrency())
+                .quantity(requests.stream().mapToInt(CreateOrderLineRequest::quantity).sum())
+                .unitPrice(product.getUnitPrice())
+                .order(order)
+                .product(product)
+                .productId(product.getId())
+                .build();
     }
 
-    private double calculateOrderTotal(List<OrderLineEntity> orderLines) {
+    private double calculateOrderTotal(Set<OrderLineEntity> orderLines) {
         return orderLines.stream()
                 .mapToDouble(line -> line.getUnitPrice() * line.getQuantity())
                 .sum();

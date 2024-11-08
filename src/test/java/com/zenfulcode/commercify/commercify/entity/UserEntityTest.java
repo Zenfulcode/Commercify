@@ -7,10 +7,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.GrantedAuthority;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -24,7 +21,7 @@ class UserEntityTest {
                 .street("123 Test St")
                 .city("Test City")
                 .state("Test State")
-                .postalCode("12345")
+                .zipCode("12345")
                 .country("Test Country")
                 .isBillingAddress(true)
                 .isShippingAddress(false)
@@ -39,6 +36,7 @@ class UserEntityTest {
                 .roles(List.of("USER"))
                 .addresses(new ArrayList<>(List.of(address)))
                 .createdAt(new Date())
+                .addresses(Set.of(address))
                 .build();
 
         // Set up bidirectional relationship
@@ -102,13 +100,13 @@ class UserEntityTest {
                     .street("456 Ship St")
                     .city("Ship City")
                     .state("Ship State")
-                    .postalCode("67890")
+                    .zipCode("67890")
                     .country("Ship Country")
                     .isShippingAddress(true)
                     .isBillingAddress(false)
                     .user(user)
                     .build();
-            user.getAddresses().add(shippingAddress);
+            user.addAddress(shippingAddress);
 
             AddressEntity retrievedAddress = user.getShippingAddress();
             assertNotNull(retrievedAddress);
@@ -119,7 +117,7 @@ class UserEntityTest {
         @Test
         @DisplayName("Should handle no billing address")
         void testNoBillingAddress() {
-            user.setAddresses(Collections.emptyList());
+            user.setAddresses(Collections.emptySet());
             assertNull(user.getBillingAddress());
         }
     }

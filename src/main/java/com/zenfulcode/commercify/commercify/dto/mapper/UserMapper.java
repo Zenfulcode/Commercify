@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -22,7 +23,7 @@ public class UserMapper implements Function<UserEntity, UserDTO> {
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .roles(user.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList())
-                .createdAt(user.getCreatedAt())
+                .createdAt(Date.from(user.getCreatedAt()))
                 .addresses(user.getAddresses().stream().map(addressDTOMapper).collect(Collectors.toList()))
                 .build();
     }

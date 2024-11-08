@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class AuthenticationService {
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManager;
@@ -35,7 +36,7 @@ public class AuthenticationService {
         if (existing.isPresent()) {
             throw new RuntimeException("User with email " + registerRequest.email() + " already exists");
         } else {
-            System.out.println("User with email " + registerRequest.email() + " does not exist");
+            log.info("Creating user with email: {}", registerRequest.email());
         }
 
         List<AddressEntity> addresses = registerRequest.addresses().stream()
@@ -55,7 +56,7 @@ public class AuthenticationService {
                 .lastName(registerRequest.lastName())
                 .email(registerRequest.email())
                 .password(passwordEncoder.encode(registerRequest.password()))
-                .roles(List.of("USER"))
+                .roles(Set.of(userRole))
                 .addresses(addresses)
                 .build();
 

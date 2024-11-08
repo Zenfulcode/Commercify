@@ -15,7 +15,7 @@ public class AddressMapper implements Function<AddressEntity, AddressDTO> {
                 .street(address.getStreet())
                 .city(address.getCity())
                 .state(address.getState())
-                .postalCode(address.getPostalCode())
+                .zipCode(address.getZipCode())
                 .country(address.getCountry())
                 .isBillingAddress(address.isBillingAddress())
                 .isShippingAddress(address.isShippingAddress())

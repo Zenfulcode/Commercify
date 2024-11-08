@@ -7,6 +7,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.DateTimeException;
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -25,7 +27,6 @@ class PaymentEntityTest {
                 .paymentMethod("Credit Card")
                 .paymentProvider(PaymentProvider.STRIPE)
                 .status(PaymentStatus.PENDING)
-                .createdAt(LocalDateTime.now())
                 .build();
     }
 
@@ -53,11 +54,8 @@ class PaymentEntityTest {
     @DisplayName("Should handle timestamps")
     void testTimestamps() {
         LocalDateTime now = LocalDateTime.now();
-        payment.setCreatedAt(now);
-        payment.setUpdatedAt(now);
-
-        assertEquals(now, payment.getCreatedAt());
-        assertEquals(now, payment.getUpdatedAt());
+        assertThrows(DateTimeException.class, () -> payment.setCreatedAt(Instant.from(now)));
+        assertThrows(DateTimeException.class, () -> payment.setUpdatedAt(Instant.from(now)));
     }
 
     @Test
