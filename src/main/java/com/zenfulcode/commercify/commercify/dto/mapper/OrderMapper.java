@@ -19,6 +19,9 @@ public class OrderMapper implements Function<OrderEntity, OrderDTO> {
                 .orderStatus(order.getStatus())
                 .createdAt(order.getCreatedAt())
                 .updatedAt(order.getUpdatedAt())
+                .currency(order.getCurrency())
+                .totalAmount(order.getTotalAmount())
                 .build();
     }
+
 }

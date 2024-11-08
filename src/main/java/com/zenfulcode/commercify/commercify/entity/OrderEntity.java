@@ -1,6 +1,5 @@
 package com.zenfulcode.commercify.commercify.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.zenfulcode.commercify.commercify.OrderStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -8,12 +7,13 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.proxy.HibernateProxy;
 
-import java.time.LocalDateTime;
-import java.util.List;
+import java.time.Instant;
+import java.util.LinkedHashSet;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
-@Table(name = "Orders")
+@Table(name = "orders")
 @Getter
 @Setter
 @ToString
@@ -29,23 +29,26 @@ public class OrderEntity {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    @JsonIgnore
-    @OneToMany(mappedBy = "order", fetch = FetchType.LAZY)
     @ToString.Exclude
-    private List<OrderLineEntity> orderLines;
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private Set<OrderLineEntity> orderLines = new LinkedHashSet<>();
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private OrderStatus status;
 
     private String currency;
+    @Column(name = "total_amount", nullable = false)
     private Double totalAmount;
 
+    @Column(name = "created_at", nullable = false)
     @CreationTimestamp
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
+    @Column(name = "updated_at")
     @UpdateTimestamp
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
     @Override
     public final boolean equals(Object o) {

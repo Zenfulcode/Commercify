@@ -97,7 +97,7 @@ class OrderServiceTest {
         assertEquals("USD", result.getCurrency());
 
         verify(orderRepository).save(any(OrderEntity.class));
-        verify(orderLineRepository).saveAll(anyList());
+        verify(orderLineRepository).saveAll(anySet());
     }
 
     @Test
