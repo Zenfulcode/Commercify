@@ -7,12 +7,14 @@ import org.hibernate.proxy.HibernateProxy;
 
 import java.util.Objects;
 
+@Builder
 @Getter
 @Setter
 @ToString
 @Entity
-@Table(name = "Order_Lines")
+@Table(name = "order_lines")
 @NoArgsConstructor
+@AllArgsConstructor
 public class OrderLineEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,13 +33,12 @@ public class OrderLineEntity {
     @Column(name = "currency", nullable = false, updatable = false)
     private String currency;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", nullable = false, updatable = false)
-    @ToString.Exclude
-    private OrderEntity order;
-
     @Transient
     private ProductDTO product;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "order_id", nullable = false)
+    private OrderEntity order;
 
     @Override
     public final boolean equals(Object o) {

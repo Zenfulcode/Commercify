@@ -9,6 +9,7 @@ import com.zenfulcode.commercify.commercify.entity.AddressEntity;
 import com.zenfulcode.commercify.commercify.entity.UserEntity;
 import com.zenfulcode.commercify.commercify.repository.UserRepository;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,10 +18,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class AuthenticationService {
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManager;
@@ -35,20 +38,20 @@ public class AuthenticationService {
         if (existing.isPresent()) {
             throw new RuntimeException("User with email " + registerRequest.email() + " already exists");
         } else {
-            System.out.println("User with email " + registerRequest.email() + " does not exist");
+            log.info("Creating user with email: {}", registerRequest.email());
         }
 
-        List<AddressEntity> addresses = registerRequest.addresses().stream()
+        Set<AddressEntity> addresses = registerRequest.addresses().stream()
                 .map(addressDTO -> AddressEntity.builder()
                         .street(addressDTO.getStreet())
                         .city(addressDTO.getCity())
                         .state(addressDTO.getState())
-                        .postalCode(addressDTO.getPostalCode())
+                        .zipCode(addressDTO.getZipCode())
                         .country(addressDTO.getCountry())
                         .isBillingAddress(addressDTO.isBillingAddress())
                         .isShippingAddress(addressDTO.isShippingAddress())
                         .build())
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
 
         UserEntity user = UserEntity.builder()
                 .firstName(registerRequest.firstName())
