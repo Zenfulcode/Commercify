@@ -54,7 +54,7 @@ public class OrderController {
         }
     }
 
-    @PreAuthorize("hasRole('USER') and #userId == authentication.principal.id")
+    @PreAuthorize("hasRole('USER') and #userId == authentication.principal.id or hasRole('ADMIN')")
     @GetMapping("/user/{userId}")
     public ResponseEntity<?> getOrdersByUserId(
             @PathVariable Long userId,
@@ -97,7 +97,7 @@ public class OrderController {
         }
     }
 
-    @PreAuthorize("hasRole('USER') and @orderService.isOrderOwnedByUser(#orderId, authentication.principal.id)")
+    @PreAuthorize("hasRole('USER') and @orderService.isOrderOwnedByUser(#orderId, authentication.principal.id) or hasRole('ADMIN')")
     @GetMapping("/{orderId}")
     public ResponseEntity<GetOrderResponse> getOrderById(@PathVariable Long orderId) {
         try {
