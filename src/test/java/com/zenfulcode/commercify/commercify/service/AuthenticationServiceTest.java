@@ -7,6 +7,7 @@ import com.zenfulcode.commercify.commercify.dto.AddressDTO;
 import com.zenfulcode.commercify.commercify.dto.UserDTO;
 import com.zenfulcode.commercify.commercify.dto.mapper.UserMapper;
 import com.zenfulcode.commercify.commercify.entity.UserEntity;
+import com.zenfulcode.commercify.commercify.repository.AddressRepository;
 import com.zenfulcode.commercify.commercify.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -33,6 +34,8 @@ class AuthenticationServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private AddressRepository addressRepository;
     @Mock
     private AuthenticationManager authenticationManager;
 
