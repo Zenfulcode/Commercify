@@ -16,6 +16,6 @@ public class AddressDTO {
     private String state;
     private String zipCode;
     private String country;
-    private boolean isBillingAddress;
-    private boolean isShippingAddress;
+    private Boolean isBilling;
+    private Boolean isShipping;
 }

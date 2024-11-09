@@ -87,7 +87,7 @@ class UserEntityTest {
         void testGetBillingAddress() {
             AddressEntity billingAddress = user.getBillingAddress();
             assertNotNull(billingAddress);
-            assertTrue(billingAddress.isBillingAddress());
+            assertTrue(billingAddress.getIsBillingAddress());
             assertEquals("123 Test St", billingAddress.getStreet());
         }
 
@@ -109,7 +109,7 @@ class UserEntityTest {
 
             AddressEntity retrievedAddress = user.getShippingAddress();
             assertNotNull(retrievedAddress);
-            assertTrue(retrievedAddress.isShippingAddress());
+            assertTrue(retrievedAddress.getIsShippingAddress());
             assertEquals("456 Ship St", retrievedAddress.getStreet());
         }
 
