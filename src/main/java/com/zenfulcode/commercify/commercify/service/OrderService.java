@@ -3,9 +3,12 @@ package com.zenfulcode.commercify.commercify.service;
 import com.zenfulcode.commercify.commercify.OrderStatus;
 import com.zenfulcode.commercify.commercify.api.requests.orders.CreateOrderLineRequest;
 import com.zenfulcode.commercify.commercify.api.requests.orders.CreateOrderRequest;
-import com.zenfulcode.commercify.commercify.dto.*;
-import com.zenfulcode.commercify.commercify.dto.mapper.OrderMapper;
+import com.zenfulcode.commercify.commercify.dto.OrderDTO;
+import com.zenfulcode.commercify.commercify.dto.OrderDetailsDTO;
+import com.zenfulcode.commercify.commercify.dto.OrderLineDTO;
+import com.zenfulcode.commercify.commercify.dto.ProductDTO;
 import com.zenfulcode.commercify.commercify.dto.mapper.OrderLineMapper;
+import com.zenfulcode.commercify.commercify.dto.mapper.OrderMapper;
 import com.zenfulcode.commercify.commercify.entity.OrderEntity;
 import com.zenfulcode.commercify.commercify.entity.OrderLineEntity;
 import com.zenfulcode.commercify.commercify.repository.OrderLineRepository;
@@ -80,7 +83,6 @@ public class OrderService {
                 .orElseThrow(() -> new IllegalArgumentException("Order not found"));
 
         List<OrderLineDTO> orderLines = getOrderLinesByOrderId(order);
-
         orderLines.forEach(ol -> ol.setProduct(productService.getProductById(ol.getProductId())));
 
         return new OrderDetailsDTO(mapper.apply(order), orderLines);
@@ -138,9 +140,9 @@ public class OrderService {
 
     @Transactional(readOnly = true)
     public boolean isOrderOwnedByUser(Long orderId, Long userId) {
-        return orderRepository.findById(orderId)
-                .map(order -> order.getUserId().equals(userId))
-                .orElse(false);
+        OrderEntity order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Order not found"));
+        return order.getUserId().equals(userId);
     }
 
     public Page<OrderDTO> getAllOrders(PageRequest pageRequest) {
