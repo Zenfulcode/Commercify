@@ -4,12 +4,15 @@ package com.zenfulcode.commercify.commercify.controller;
 import com.zenfulcode.commercify.commercify.api.requests.products.CreateProductRequest;
 import com.zenfulcode.commercify.commercify.api.requests.products.UpdateProductRequest;
 import com.zenfulcode.commercify.commercify.api.responses.ErrorResponse;
+import com.zenfulcode.commercify.commercify.api.responses.ValidationErrorResponse;
 import com.zenfulcode.commercify.commercify.api.responses.products.ProductDeletionErrorResponse;
 import com.zenfulcode.commercify.commercify.api.responses.products.ProductUpdateResponse;
-import com.zenfulcode.commercify.commercify.api.responses.ValidationErrorResponse;
 import com.zenfulcode.commercify.commercify.dto.ProductDTO;
 import com.zenfulcode.commercify.commercify.dto.ProductUpdateResult;
-import com.zenfulcode.commercify.commercify.exception.*;
+import com.zenfulcode.commercify.commercify.exception.InvalidSortFieldException;
+import com.zenfulcode.commercify.commercify.exception.ProductDeletionException;
+import com.zenfulcode.commercify.commercify.exception.ProductNotFoundException;
+import com.zenfulcode.commercify.commercify.exception.ProductValidationException;
 import com.zenfulcode.commercify.commercify.service.ProductService;
 import com.zenfulcode.commercify.commercify.viewmodel.ProductViewModel;
 import lombok.AllArgsConstructor;
@@ -128,6 +131,36 @@ public class ProductController {
             return ResponseEntity.notFound().build();
         } catch (ProductValidationException e) {
             return ResponseEntity.badRequest().body(new ValidationErrorResponse(e.getErrors()));
+        } catch (Exception e) {
+            log.error("Error updating product", e);
+            return ResponseEntity.internalServerError()
+                    .body(new ErrorResponse("Error updating product: " + e.getMessage()));
+        }
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/{id}/reactivate")
+    public ResponseEntity<?> reactivateProduct(@PathVariable Long id) {
+        try {
+            productService.reactivateProduct(id);
+            return ResponseEntity.ok("Product reactivated");
+        } catch (ProductNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            log.error("Error updating product", e);
+            return ResponseEntity.internalServerError()
+                    .body(new ErrorResponse("Error updating product: " + e.getMessage()));
+        }
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/{id}/deactivate")
+    public ResponseEntity<?> deactivateProduct(@PathVariable Long id) {
+        try {
+            productService.deactivateProduct(id);
+            return ResponseEntity.ok("Product deactivated");
+        } catch (ProductNotFoundException e) {
+            return ResponseEntity.notFound().build();
         } catch (Exception e) {
             log.error("Error updating product", e);
             return ResponseEntity.internalServerError()
