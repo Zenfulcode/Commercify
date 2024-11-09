@@ -61,8 +61,8 @@ class AuthenticationServiceTest {
                 .state("Test State")
                 .zipCode("12345")
                 .country("Test Country")
-                .isBillingAddress(true)
-                .isShippingAddress(false)
+                .isBilling(true)
+                .isShipping(false)
                 .build();
 
         registerRequest = new RegisterUserRequest(

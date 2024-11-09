@@ -65,8 +65,8 @@ public class UserManagementService {
                 .state(addressDTO.getState())
                 .zipCode(addressDTO.getZipCode())
                 .country(addressDTO.getCountry())
-                .isBillingAddress(addressDTO.isBillingAddress())
-                .isShippingAddress(addressDTO.isShippingAddress())
+                .isBillingAddress(addressDTO.getIsBilling())
+                .isShippingAddress(addressDTO.getIsShipping())
                 .user(user)
                 .build();
 
@@ -90,8 +90,8 @@ public class UserManagementService {
         address.setState(addressDTO.getState());
         address.setZipCode(addressDTO.getZipCode());
         address.setCountry(addressDTO.getCountry());
-        address.setBillingAddress(addressDTO.isBillingAddress());
-        address.setShippingAddress(addressDTO.isShippingAddress());
+        address.setIsBillingAddress(addressDTO.getIsBilling());
+        address.setIsShippingAddress(addressDTO.getIsShipping());
 
         UserEntity updatedUser = userRepository.save(user);
         return mapper.apply(updatedUser);

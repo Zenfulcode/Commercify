@@ -55,14 +55,14 @@ public class UserEntity implements UserDetails {
 
     public AddressEntity getBillingAddress() {
         return addresses.stream()
-                .filter(AddressEntity::isBillingAddress)
+                .filter(AddressEntity::getIsBillingAddress)
                 .findFirst()
                 .orElse(null);
     }
 
     public AddressEntity getShippingAddress() {
         return addresses.stream()
-                .filter(AddressEntity::isShippingAddress)
+                .filter(AddressEntity::getIsShippingAddress)
                 .findFirst()
                 .orElse(null);
     }

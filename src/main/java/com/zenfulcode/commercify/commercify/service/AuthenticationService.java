@@ -7,6 +7,7 @@ import com.zenfulcode.commercify.commercify.dto.UserDTO;
 import com.zenfulcode.commercify.commercify.dto.mapper.UserMapper;
 import com.zenfulcode.commercify.commercify.entity.AddressEntity;
 import com.zenfulcode.commercify.commercify.entity.UserEntity;
+import com.zenfulcode.commercify.commercify.repository.AddressRepository;
 import com.zenfulcode.commercify.commercify.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @Slf4j
 public class AuthenticationService {
+    private final AddressRepository addressRepository;
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManager;
     private final UserMapper mapper;
@@ -48,8 +50,8 @@ public class AuthenticationService {
                         .state(addressDTO.getState())
                         .zipCode(addressDTO.getZipCode())
                         .country(addressDTO.getCountry())
-                        .isBillingAddress(addressDTO.isBillingAddress())
-                        .isShippingAddress(addressDTO.isShippingAddress())
+                        .isBillingAddress(addressDTO.getIsBilling())
+                        .isShippingAddress(addressDTO.getIsShipping())
                         .build())
                 .collect(Collectors.toSet());
 
@@ -63,6 +65,10 @@ public class AuthenticationService {
                 .build();
 
         addresses.forEach(address -> address.setUser(user));
+
+        addressRepository.saveAll(addresses);
+
+        log.info("addresse: {}", addresses);
 
         UserEntity savedUser = userRepository.save(user);
         return mapper.apply(savedUser);
