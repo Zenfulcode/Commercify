@@ -14,8 +14,6 @@ import com.zenfulcode.commercify.commercify.entity.OrderLineEntity;
 import com.zenfulcode.commercify.commercify.repository.OrderLineRepository;
 import com.zenfulcode.commercify.commercify.repository.OrderRepository;
 import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -29,7 +27,6 @@ import java.util.stream.Collectors;
 @Service
 @AllArgsConstructor
 public class OrderService {
-    private static final Logger log = LoggerFactory.getLogger(OrderService.class);
     private final OrderRepository orderRepository;
     private final OrderLineRepository orderLineRepository;
     private final ProductService productService;
@@ -69,12 +66,8 @@ public class OrderService {
 
     @Transactional(readOnly = true)
     public List<OrderLineDTO> getOrderLinesByOrderId(OrderEntity order) {
-        List<OrderLineDTO> orderLines = orderLineRepository.findByOrder(order).stream()
+        return orderLineRepository.findByOrder(order).stream()
                 .map(olMapper).toList();
-
-        log.info("Order lines: {}", orderLines);
-
-        return orderLines;
     }
 
     @Transactional
