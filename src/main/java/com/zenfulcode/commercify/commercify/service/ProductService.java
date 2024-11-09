@@ -6,11 +6,16 @@ import com.zenfulcode.commercify.commercify.api.requests.products.CreatePriceReq
 import com.zenfulcode.commercify.commercify.api.requests.products.CreateProductRequest;
 import com.zenfulcode.commercify.commercify.api.requests.products.UpdatePriceRequest;
 import com.zenfulcode.commercify.commercify.api.requests.products.UpdateProductRequest;
-import com.zenfulcode.commercify.commercify.dto.*;
+import com.zenfulcode.commercify.commercify.dto.OrderDTO;
+import com.zenfulcode.commercify.commercify.dto.ProductDTO;
+import com.zenfulcode.commercify.commercify.dto.ProductDeletionValidationResult;
+import com.zenfulcode.commercify.commercify.dto.ProductUpdateResult;
 import com.zenfulcode.commercify.commercify.dto.mapper.OrderMapper;
 import com.zenfulcode.commercify.commercify.dto.mapper.ProductMapper;
 import com.zenfulcode.commercify.commercify.entity.ProductEntity;
-import com.zenfulcode.commercify.commercify.exception.*;
+import com.zenfulcode.commercify.commercify.exception.ProductDeletionException;
+import com.zenfulcode.commercify.commercify.exception.ProductNotFoundException;
+import com.zenfulcode.commercify.commercify.exception.ProductValidationException;
 import com.zenfulcode.commercify.commercify.factory.ProductFactory;
 import com.zenfulcode.commercify.commercify.repository.OrderLineRepository;
 import com.zenfulcode.commercify.commercify.repository.ProductRepository;
@@ -22,7 +27,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @Service
@@ -173,28 +180,40 @@ public class ProductService {
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage(), e);
         }
-        
+
         productRepository.deleteById(id);
     }
 
     @Transactional
-    public boolean reactivateProduct(Long id) throws RuntimeException {
+    public void reactivateProduct(Long id) throws RuntimeException {
         ProductEntity productEnt = productRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Product not found"));
 
-        if (!productEnt.getActive()) {
-            productEnt.setActive(true);
-        }
-
-        if (Stripe.apiKey != null && !Stripe.apiKey.isBlank() && productEnt.getStripeId() != null) {
+        try {
             stripeProductService.reactivateProduct(productEnt);
-        } else if (Stripe.apiKey.isBlank() && productEnt.getStripeId() != null) {
-            throw new RuntimeException("Can't reactivate product from stripe without stripe key");
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage(), e);
         }
 
+        productEnt.setActive(true);
         productRepository.save(productEnt);
-        return true;
     }
+
+    @Transactional
+    public void deactivateProduct(Long id) throws RuntimeException {
+        ProductEntity productEnt = productRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Product not found"));
+
+        try {
+            stripeProductService.deactivateProduct(productEnt);
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+
+        productEnt.setActive(false);
+        productRepository.save(productEnt);
+    }
+
 
     private void validatePriceRequest(UpdatePriceRequest request) {
         List<String> errors = new ArrayList<>();
