@@ -35,10 +35,10 @@ public class AddressEntity {
     private String country;
 
     @Column(name = "is_billing_address", nullable = false)
-    private boolean isBillingAddress;
+    private Boolean isBillingAddress;
 
     @Column(name = "is_shipping_address", nullable = false)
-    private boolean isShippingAddress;
+    private Boolean isShippingAddress;
 
     @Column(name = "created_at", nullable = false)
     @CreationTimestamp

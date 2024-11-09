@@ -124,6 +124,8 @@ public class StripeProductService {
         try {
             // Deactivate the product
             Product stripeProduct = Product.retrieve(productEnt.getStripeId());
+            if (!stripeProduct.getActive()) return;
+
             ProductUpdateParams params = ProductUpdateParams.builder()
                     .setActive(false)
                     .build();
@@ -138,15 +140,25 @@ public class StripeProductService {
     }
 
     public void reactivateProduct(ProductEntity productEnt) {
+        if (Stripe.apiKey == null || productEnt.getStripeId() == null || Stripe.apiKey.isBlank())
+            throw new RuntimeException("Can't DELETE product from stripe without stripe key");
+
         try {
             // Reactivate the product in Stripe
             Product stripeProduct = Product.retrieve(productEnt.getStripeId());
-            stripeProduct.update(Map.of("active", true));
+            if (stripeProduct.getActive()) return;
+
+            ProductUpdateParams params = ProductUpdateParams.builder()
+                    .setActive(true)
+                    .build();
+
+            stripeProduct.update(params);
 
             // Reactivate associated prices
             activateStripePrices(productEnt.getStripeId());
         } catch (StripeException e) {
-            throw new RuntimeException("Stripe error: " + e.getMessage(), e);
+            log.error("Failed to reactive product: {}", e.getMessage());
+            throw new RuntimeException("Failed to reactivate product: " + e.getMessage(), e);
         }
     }
 

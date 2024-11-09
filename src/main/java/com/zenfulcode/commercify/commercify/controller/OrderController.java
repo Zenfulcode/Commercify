@@ -7,7 +7,6 @@ import com.zenfulcode.commercify.commercify.api.responses.orders.GetOrderRespons
 import com.zenfulcode.commercify.commercify.dto.OrderDTO;
 import com.zenfulcode.commercify.commercify.dto.OrderDetailsDTO;
 import com.zenfulcode.commercify.commercify.service.OrderService;
-import com.zenfulcode.commercify.commercify.service.PaymentService;
 import com.zenfulcode.commercify.commercify.viewmodel.OrderDetailsViewModel;
 import com.zenfulcode.commercify.commercify.viewmodel.OrderViewModel;
 import lombok.AllArgsConstructor;
@@ -26,7 +25,6 @@ import java.util.Set;
 @AllArgsConstructor
 public class OrderController {
     private final OrderService orderService;
-    private final PaymentService paymentService;
     private final PagedResourcesAssembler<OrderViewModel> pagedResourcesAssembler;
 
     private static final Set<String> VALID_SORT_FIELDS = Set.of(
@@ -54,7 +52,7 @@ public class OrderController {
         }
     }
 
-    @PreAuthorize("hasRole('USER') and #userId == authentication.principal.id")
+    @PreAuthorize("hasRole('USER') and #userId == authentication.principal.id or hasRole('ADMIN')")
     @GetMapping("/user/{userId}")
     public ResponseEntity<?> getOrdersByUserId(
             @PathVariable Long userId,
@@ -97,7 +95,7 @@ public class OrderController {
         }
     }
 
-    @PreAuthorize("hasRole('USER') and @orderService.isOrderOwnedByUser(#orderId, authentication.principal.id)")
+    @PreAuthorize("hasRole('USER') and @orderService.isOrderOwnedByUser(#orderId, authentication.principal.id) or hasRole('ADMIN')")
     @GetMapping("/{orderId}")
     public ResponseEntity<GetOrderResponse> getOrderById(@PathVariable Long orderId) {
         try {
@@ -121,18 +119,6 @@ public class OrderController {
             orderService.updateOrderStatus(id, orderStatus);
             return ResponseEntity.ok().build();
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        }
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
-        try {
-            paymentService.cancelPayment(id);
-            orderService.deleteOrder(id);
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
     }
