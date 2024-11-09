@@ -70,13 +70,6 @@ public class OrderService {
                 .map(olMapper).toList();
     }
 
-    @Transactional
-    public void deleteOrder(Long id) {
-        orderLineRepository.deleteOrderLinesByOrder(orderRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Order not found")));
-        orderRepository.deleteById(id);
-    }
-
     @Transactional(readOnly = true)
     public OrderDetailsDTO getOrderById(Long orderId) {
         OrderEntity order = orderRepository.findById(orderId)
