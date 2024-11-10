@@ -1,0 +1,41 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: commercify-mysql
+    environment:
+      - MYSQL_DATABASE=commercifydb
+      - MYSQL_USER=commercifyapp
+      - MYSQL_PASSWORD=password123!
+      - MYSQL_ROOT_PASSWORD=rootpassword
+    ports:
+      - "3307:3306"
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 5s
+      retries: 10
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  commercify:
+    build:
+      context: ../
+      dockerfile: Dockerfile
+    container_name: commercify-app
+    env_file: .env
+    ports:
+      - "6091:6091"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=${DATASOURCE_URL}
+      - SPRING_DATASOURCE_USERNAME=${DATASOURCE_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${DATASOURCE_PASSWORD}
+      - STRIPE_TEST_SECRET=${STRIPE_TEST_SECRET}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+volumes:
+  mysql_data:
