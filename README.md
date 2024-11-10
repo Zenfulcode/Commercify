@@ -1,117 +1,151 @@
-# Commercify Backend
+# Commercify
 
-## Description
-
-Commercify is a backend service for a e-commerce platform. It provides APIs for user authentication, product management,
-order management, and payment gateway integration. The application is built using Java and Spring Boot. The application
-is designed to be modular and scalable, and can be deployed on any cloud platform.
-
----
-
-## Client and Admin Frontends
-
-The admin dashboard is built using React, TypeScript ontop of NextJS. The admin dashboard communicates with the backend
-APIs to perform product management, order management, and inventory management. You can find the admin dashboard
-repository [here](https://github.com/zenfulcode/commercifyweb).
+Commercify is a Spring Boot-based e-commerce backend application that provides a robust API for managing products,
+orders, and payments. It includes user authentication, order management, and integration with Stripe for payment
+processing.
 
 ## Features
 
-- User authentication and authorization
-- Product management
-- Order management
-- Payment gateway integration
-- Inventory management (coming soon)
+- User authentication and authorization with JWT
+- Product management (CRUD operations)
+- Order management system
+- Payment processing with Stripe integration
+- Docker support for easy deployment
+- Database migrations with Liquibase
+- RESTful API with HATEOAS support
 
-## Requirements
+## Prerequisites
 
 - Java 17
-- Maven 3.9.9 (or higher)
-- **Optional:** Docker 20.10.7
-- **Optional:** Docker Compose 1.29.2
+- Maven 3.9.x
+- Docker and Docker Compose
+- MySQL 8.0 or later
+- Stripe account for payment processing
 
-## Running the Application
+## Tech Stack
 
-To set up the application on your local machine, follow these steps:
-Note: You can also use the provided Docker Compose file to run the application.
+- Spring Boot 3.3.5
+- Spring Security
+- Spring Data JPA
+- MySQL
+- Liquibase
+- JWT Authentication
+- Stripe Payment Integration
+- Docker
+- Maven
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/gkhaavik/Commercify.git
-   cd Commercify
-   ```
+## Getting Started
 
-2. **Copy the environment file and update the values**
+### Environment Setup
 
-   ```
-   cp .env.example .env
-   ```
+1. Clone the repository
+2. Create a `.env` file in the `deploy` directory with the following variables:
 
-3. **Start the database**
-   ```bash
-   docker compose -f docker-compose.db.yml up
-   ```
-   Note: If you don't have Docker installed, you can use a local database instead.
+```env
+DATASOURCE_URL=jdbc:mysql://localhost:3306/commercifydev_db
+DATASOURCE_USERNAME=your_username
+DATASOURCE_PASSWORD=your_password
+STRIPE_TEST_SECRET=your_stripe_test_key
+STRIPE_SECRET_WEBHOOK=your_stripe_webhook_secret
+STRIPE_WEBHOOK_ENDPOINT=your_webhook_endpoint
+JWT_SECRET_KEY=your_jwt_secret
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=admin_password
+```
 
-4. **Run the services**
-   ```bash
-   cd UserService && mvn spring-boot:run
-   cd ProductService && mvn spring-boot:run
-   cd OrderService && mvn spring-boot:run
-   cd PaymentService && mvn spring-boot:run
-   ```
-   Note: You can run each service in a separate terminal window.
+### Running with Docker
 
-5. **Run the frontend**
-6. **Access the application**
-   ```
-   orderservice -> http://localhost:8081
-   paymentservice -> http://localhost:8082
-   productservice -> http://localhost:8083
-   userservice -> http://localhost:8084
-   ```
-   Find the postman collection for the
-   APIs to test
-   locally [here](https://elements.getpostman.com/redirect?entityId=15305317-a422f193-3a8c-4d1c-a52f-4f2e6a114519&entityType=collection).
+Use the provided Makefile commands:
 
-### Run using Docker Compose
+```bash
+# Start the application
+make up
 
-To run the application using Docker Compose, follow these steps:
+# Stop the application
+make down
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/gkhaavik/Commercify.git
-   cd Commercify
-   ```
-2. **Copy the environment file and update the values**
+# Rebuild and restart the application
+make update
+```
 
-   ```
-   cp .env.example .env
-   ```
-3. **Start the application**
-   ```bash
-   docker compose up --build
-   ```
-   Note: This will build the Docker images and run the application.
-4. **Stop the application**
-   ```bash
-   docker compose down
-   ```
-   Note: This will stop and remove the Docker containers.
-5. **Access the application**
-   ```
-   orderservice -> http://localhost:8081
-   paymentservice -> http://localhost:8082
-   productservice -> http://localhost:8083
-   userservice -> http://localhost:8084
-   ```
-   Find the postman collection for the
-   APIs to test
-   locally [here](https://elements.getpostman.com/redirect?entityId=15305317-a422f193-3a8c-4d1c-a52f-4f2e6a114519&entityType=collection).
+### Running Locally
 
----
+1. Start MySQL database
+2. Build the project:
+
+```bash
+mvn clean package
+```
+
+3. Run the application:
+
+```bash
+java -jar target/Commercify.jar
+```
+
+#### Alternative: Using Spring Boot Maven Plugin
+
+Still need to start MySQL database first.
+
+```bash
+mvn spring-boot:run
+```
+
+## API Endpoints
+
+View and test the API endpoints in our Postman Workspace.
+
+[![Run in Postman](https://run.pstmn.io/button.svg)](https://www.postman.com/flight-physicist-84721578/workspace/commercify-backend)
+
+## Security
+
+The application uses JWT (JSON Web Token) for authentication. Protected endpoints require a valid JWT token in the
+Authorization header:
+
+```
+Authorization: Bearer <your_jwt_token>
+```
+
+## Docker Support
+
+The application includes a multi-stage Dockerfile for optimized builds and a docker-compose configuration for easy
+deployment. The Docker setup includes:
+
+- Maven build stage
+- JRE runtime stage
+- Automatic environment variable configuration
+- Port mapping (6091)
+- Volume mapping for Liquibase changelog files
+
+## Development
+
+### Adding New Features
+
+1. Create feature branch
+2. Implement changes
+3. Add tests
+4. Create pull request
+
+### Testing
+
+Run the tests using Maven:
+
+```bash
+mvn test
+```
 
 ## Contributing
 
-If you want to contribute to the project, you can fork the repository and make changes as per your requirements. Once
-you are done with the changes, you can create a pull request to the main branch. I will review the changes and merge
-them if they are good.
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a new Pull Request
+
+## License
+
+[Your License Here]
+
+## Support
+
+For support, email commercify@zenfulcode.com

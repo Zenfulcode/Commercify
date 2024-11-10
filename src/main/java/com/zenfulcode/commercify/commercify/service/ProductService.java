@@ -56,13 +56,12 @@ public class ProductService {
 
         ProductEntity savedProduct = productRepository.save(product);
 
-        CreatePriceRequest priceRequest = new CreatePriceRequest(
-                product.getCurrency(),
-                product.getUnitPrice()
-        );
+        CreatePriceRequest priceRequest = new CreatePriceRequest(product.getCurrency(), product.getUnitPrice());
 
         // Create prices after product is saved
-        stripeProductService.createStripePrice(savedProduct, priceRequest);
+        if (Stripe.apiKey != null && !Stripe.apiKey.isBlank()) {
+            stripeProductService.createStripePrice(savedProduct, priceRequest);
+        }
 
         return mapper.apply(savedProduct);
     }
@@ -91,8 +90,7 @@ public class ProductService {
     public ProductUpdateResult updateProduct(Long id, UpdateProductRequest request) {
         List<String> warnings = new ArrayList<>();
 
-        ProductEntity product = productRepository.findById(id)
-                .orElseThrow(() -> new ProductNotFoundException(id));
+        ProductEntity product = productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException(id));
 
         product.setName(request.name() != null ? request.name() : product.getName());
         product.setDescription(request.description() != null ? request.description() : product.getDescription());
@@ -102,9 +100,8 @@ public class ProductService {
         product.setCurrency(request.price().currency() != null ? request.price().currency() : product.getCurrency());
         product.setUnitPrice(request.price().amount() != null ? request.price().amount() : product.getUnitPrice());
 
-        updateProductPrice(product, request.price());
-
         if (product.getStripeId() != null && Stripe.apiKey != null) {
+            updateProductPrice(product, request.price());
             try {
                 stripeProductService.updateStripeProduct(product.getStripeId(), product);
             } catch (Exception e) {
@@ -123,10 +120,7 @@ public class ProductService {
         if (product.getStripePriceId() != null) {
             stripeProductService.updateStripePrice(product, request);
         } else {
-            CreatePriceRequest createRequest = new CreatePriceRequest(
-                    request.currency(),
-                    request.amount()
-            );
+            CreatePriceRequest createRequest = new CreatePriceRequest(request.currency(), request.amount());
             stripeProductService.createStripePrice(product, createRequest);
         }
 
@@ -142,57 +136,47 @@ public class ProductService {
      */
     public ProductDeletionValidationResult validateProductDeletion(ProductEntity product) {
         // Get sample of active orders for reference
-        List<OrderDTO> activeOrders = orderLineRepository.findActiveOrdersForProduct(product.getId(),
-                List.of(OrderStatus.PENDING, OrderStatus.CONFIRMED, OrderStatus.SHIPPED)
-        ).stream().map(orderMapper).collect(Collectors.toList());
+        List<OrderDTO> activeOrders = orderLineRepository.findActiveOrdersForProduct(product.getId(), List.of(OrderStatus.PENDING, OrderStatus.CONFIRMED, OrderStatus.SHIPPED)).stream().map(orderMapper).collect(Collectors.toList());
 
         List<String> issues = new ArrayList<>();
         if (!activeOrders.isEmpty()) {
-            issues.add(String.format(
-                    "Product has %d active orders",
-                    activeOrders.size()
-            ));
+            issues.add(String.format("Product has %d active orders", activeOrders.size()));
         }
 
-        return new ProductDeletionValidationResult(
-                issues.isEmpty(),
-                issues,
-                activeOrders
-        );
+        return new ProductDeletionValidationResult(issues.isEmpty(), issues, activeOrders);
     }
 
     @Transactional
     public void deleteProduct(Long id) throws RuntimeException {
-        ProductEntity productEnt = productRepository.findById(id)
-                .orElseThrow(() -> new ProductNotFoundException(id));
+        ProductEntity productEnt = productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException(id));
 
         ProductDeletionValidationResult validationResult = validateProductDeletion(productEnt);
         if (!validationResult.canDelete()) {
-            throw new ProductDeletionException(
-                    "Cannot delete product",
-                    validationResult.getIssues(),
-                    validationResult.getActiveOrders()
-            );
+            throw new ProductDeletionException("Cannot delete product", validationResult.getIssues(), validationResult.getActiveOrders());
         }
 
-        try {
-            stripeProductService.deactivateProduct(productEnt);
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage(), e);
+        if (productEnt.getStripeId() != null) {
+            try {
+                stripeProductService.deactivateProduct(productEnt);
+            } catch (Exception e) {
+                throw new RuntimeException(e.getMessage(), e);
+            }
         }
+
 
         productRepository.deleteById(id);
     }
 
     @Transactional
     public void reactivateProduct(Long id) throws RuntimeException {
-        ProductEntity productEnt = productRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Product not found"));
+        ProductEntity productEnt = productRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Product not found"));
 
-        try {
-            stripeProductService.reactivateProduct(productEnt);
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage(), e);
+        if (productEnt.getStripeId() != null) {
+            try {
+                stripeProductService.reactivateProduct(productEnt);
+            } catch (Exception e) {
+                throw new RuntimeException(e.getMessage(), e);
+            }
         }
 
         productEnt.setActive(true);
@@ -201,13 +185,14 @@ public class ProductService {
 
     @Transactional
     public void deactivateProduct(Long id) throws RuntimeException {
-        ProductEntity productEnt = productRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Product not found"));
+        ProductEntity productEnt = productRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Product not found"));
+        if (productEnt.getStripeId() != null) {
 
-        try {
-            stripeProductService.deactivateProduct(productEnt);
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage(), e);
+            try {
+                stripeProductService.deactivateProduct(productEnt);
+            } catch (Exception e) {
+                throw new RuntimeException(e.getMessage(), e);
+            }
         }
 
         productEnt.setActive(false);
@@ -228,18 +213,14 @@ public class ProductService {
     }
 
     public Page<ProductDTO> getAllProducts(PageRequest pageRequest) {
-        return productRepository.findAll(pageRequest)
-                .map(mapper);
+        return productRepository.findAll(pageRequest).map(mapper);
     }
 
     public ProductDTO getProductById(Long id) {
-        return productRepository.findById(id)
-                .map(mapper)
-                .orElse(null);
+        return productRepository.findById(id).map(mapper).orElse(null);
     }
 
     public Page<ProductDTO> getActiveProducts(PageRequest pageRequest) {
-        return productRepository.queryAllByActiveTrue(pageRequest)
-                .map(mapper);
+        return productRepository.queryAllByActiveTrue(pageRequest).map(mapper);
     }
 }

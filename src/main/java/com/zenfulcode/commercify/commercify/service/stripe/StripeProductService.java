@@ -110,7 +110,7 @@ public class StripeProductService {
     }
 
     public void deactivateProduct(ProductEntity productEnt) {
-        if (Stripe.apiKey == null || productEnt.getStripeId() == null || Stripe.apiKey.isBlank())
+        if (Stripe.apiKey == null || Stripe.apiKey.isBlank())
             throw new RuntimeException("Can't DELETE product from stripe without stripe key");
 
         try {
@@ -140,7 +140,7 @@ public class StripeProductService {
     }
 
     public void reactivateProduct(ProductEntity productEnt) {
-        if (Stripe.apiKey == null || productEnt.getStripeId() == null || Stripe.apiKey.isBlank())
+        if (Stripe.apiKey == null || Stripe.apiKey.isBlank())
             throw new RuntimeException("Can't DELETE product from stripe without stripe key");
 
         try {

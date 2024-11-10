@@ -33,7 +33,7 @@ public class UserManagementController {
     public ResponseEntity<PagedModel<EntityModel<UserDTO>>> getAllUsers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "userId") String sortBy,
+            @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "DESC") String sortDirection
     ) {
         Sort.Direction direction = Sort.Direction.fromString(sortDirection.toUpperCase());
