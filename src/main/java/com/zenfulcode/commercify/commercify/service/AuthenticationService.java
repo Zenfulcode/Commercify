@@ -68,8 +68,6 @@ public class AuthenticationService {
 
         addressRepository.saveAll(addresses);
 
-        log.info("addresse: {}", addresses);
-
         UserEntity savedUser = userRepository.save(user);
         return mapper.apply(savedUser);
     }
@@ -82,7 +80,7 @@ public class AuthenticationService {
                 )
         );
 
-        return userRepository.findByEmail(login.email())
+        return userRepository.findByEmailWithAddresses(login.email())
                 .map(mapper)
                 .orElseThrow();
     }

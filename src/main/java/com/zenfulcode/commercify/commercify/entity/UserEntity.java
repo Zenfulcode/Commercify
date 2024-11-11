@@ -7,6 +7,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.*;
@@ -53,6 +54,7 @@ public class UserEntity implements UserDetails {
     @UpdateTimestamp
     private Instant updatedAt;
 
+    @Transactional(readOnly = true)
     public AddressEntity getBillingAddress() {
         return addresses.stream()
                 .filter(AddressEntity::getIsBillingAddress)
@@ -60,6 +62,7 @@ public class UserEntity implements UserDetails {
                 .orElse(null);
     }
 
+    @Transactional(readOnly = true)
     public AddressEntity getShippingAddress() {
         return addresses.stream()
                 .filter(AddressEntity::getIsShippingAddress)
@@ -67,6 +70,7 @@ public class UserEntity implements UserDetails {
                 .orElse(null);
     }
 
+    @Transactional(readOnly = true)
     public void addAddress(AddressEntity address) {
         Set<AddressEntity> addressEntities = new HashSet<>(addresses);
         addressEntities.add(address);
