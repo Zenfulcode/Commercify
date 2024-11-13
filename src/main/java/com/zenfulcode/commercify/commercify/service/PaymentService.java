@@ -16,8 +16,6 @@ import java.util.Optional;
 @AllArgsConstructor
 public class PaymentService {
     private final PaymentRepository paymentRepository;
-    private final StripeService stripeService;
-    private final OrderService orderService;
 
     // Get payment status by orderId
     public PaymentStatus getPaymentStatus(Long orderId) {
@@ -40,18 +38,14 @@ public class PaymentService {
             return CancelPaymentResponse.PaymentAlreadyCanceled();
         }
 
-        if (payment.getPaymentProvider() == PaymentProvider.STRIPE) {
-            return stripeService.cancelPayment(payment.getId());
-        }
-
         return CancelPaymentResponse.InvalidPaymentProvider();
     }
 
     public PaymentResponse makePayment(PaymentProvider provider, PaymentRequest paymentRequest) {
-        if (provider == PaymentProvider.STRIPE) {
-            return stripeService.checkoutSession(paymentRequest, orderService);
-        }
-
-        return PaymentResponse.FailedPayment();
+        return switch (provider) {
+            case MOBILEPAY -> throw new UnsupportedOperationException("MobilePay is not supported yet");
+            case STRIPE -> throw new UnsupportedOperationException("Stripe is not supported yet");
+            default -> PaymentResponse.FailedPayment();
+        };
     }
 }

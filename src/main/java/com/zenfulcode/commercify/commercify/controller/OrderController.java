@@ -8,11 +8,9 @@ import com.zenfulcode.commercify.commercify.api.responses.orders.CreateOrderResp
 import com.zenfulcode.commercify.commercify.api.responses.orders.GetOrderResponse;
 import com.zenfulcode.commercify.commercify.dto.OrderDTO;
 import com.zenfulcode.commercify.commercify.dto.OrderDetailsDTO;
-import com.zenfulcode.commercify.commercify.exception.InsufficientStockException;
-import com.zenfulcode.commercify.commercify.exception.InvalidSortFieldException;
-import com.zenfulcode.commercify.commercify.exception.OrderNotFoundException;
-import com.zenfulcode.commercify.commercify.exception.ProductNotFoundException;
-import com.zenfulcode.commercify.commercify.service.OrderService;
+import com.zenfulcode.commercify.commercify.exception.*;
+import com.zenfulcode.commercify.commercify.service.order.OrderService;
+import com.zenfulcode.commercify.commercify.service.order.OrderValidationService;
 import com.zenfulcode.commercify.commercify.viewmodel.OrderDetailsViewModel;
 import com.zenfulcode.commercify.commercify.viewmodel.OrderViewModel;
 import lombok.AllArgsConstructor;
@@ -26,8 +24,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 @RestController
@@ -35,7 +31,9 @@ import java.util.Set;
 @AllArgsConstructor
 @Slf4j
 public class OrderController {
+
     private final OrderService orderService;
+    private final OrderValidationService orderValidationService;
     private final PagedResourcesAssembler<OrderViewModel> pagedResourcesAssembler;
 
     private static final Set<String> VALID_SORT_FIELDS = Set.of(
@@ -46,7 +44,7 @@ public class OrderController {
     @PostMapping
     public ResponseEntity<?> createOrder(@Validated @RequestBody CreateOrderRequest orderRequest) {
         try {
-            validateCreateOrderRequest(orderRequest);
+            orderValidationService.validateCreateOrderRequest(orderRequest);
             OrderDTO orderDTO = orderService.createOrder(orderRequest);
             return ResponseEntity.ok(CreateOrderResponse.from(OrderViewModel.fromDTO(orderDTO)));
         } catch (IllegalArgumentException e) {
@@ -58,6 +56,9 @@ public class OrderController {
         } catch (InsufficientStockException e) {
             return ResponseEntity.badRequest()
                     .body(CreateOrderResponse.from("Insufficient stock: " + e.getMessage()));
+        } catch (OrderValidationException e) {
+            return ResponseEntity.badRequest()
+                    .body(CreateOrderResponse.from(e.getMessage()));
         } catch (Exception e) {
             log.error("Error creating order", e);
             return ResponseEntity.internalServerError()
@@ -178,26 +179,6 @@ public class OrderController {
             log.error("Error canceling order", e);
             return ResponseEntity.internalServerError()
                     .body(new ErrorResponse("Error canceling order: " + e.getMessage()));
-        }
-    }
-
-    private void validateCreateOrderRequest(CreateOrderRequest request) {
-        List<String> errors = new ArrayList<>();
-
-        if (request.userId() == null) {
-            errors.add("User ID is required");
-        }
-
-        if (request.orderLines() == null || request.orderLines().isEmpty()) {
-            errors.add("Order must contain at least one item");
-        }
-
-        if (request.currency() == null || request.currency().isBlank()) {
-            errors.add("Currency is required");
-        }
-
-        if (!errors.isEmpty()) {
-            throw new IllegalArgumentException(String.join(", ", errors));
         }
     }
 

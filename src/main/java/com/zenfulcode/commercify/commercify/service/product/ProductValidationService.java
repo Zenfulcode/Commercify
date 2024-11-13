@@ -50,9 +50,6 @@ public class ProductValidationService {
         if (request.stock() == null || request.stock() < 0) {
             errors.add("Stock must be non-negative");
         }
-        if (request.price() == null || request.price().amount() == null || request.price().amount() < 0) {
-            errors.add("Valid price is required");
-        }
         if (request.options() == null || request.options().isEmpty()) {
             errors.add("At least one variant option is required");
         }

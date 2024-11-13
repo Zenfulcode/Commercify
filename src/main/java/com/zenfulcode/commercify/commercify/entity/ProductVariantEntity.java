@@ -14,7 +14,7 @@ import java.util.Set;
 @Getter
 @Setter
 @Entity
-@Table(name = "variant_option_entity")
+@Table(name = "product_variants")
 @AllArgsConstructor
 @NoArgsConstructor
 public class ProductVariantEntity {
@@ -28,16 +28,12 @@ public class ProductVariantEntity {
     @Column(nullable = false)
     private Integer stock;
 
+    @Column(name = "image_url")
     private String imageUrl;
 
-    @Column(nullable = false)
     private Double price;
 
-    @Column(nullable = false)
     private String currency;
-
-    @Column(name = "stripe_price_id")
-    private String stripePriceId;
 
     @ManyToOne
     @JoinColumn(name = "product_id")

@@ -8,33 +8,47 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
 @Repository
 public interface OrderLineRepository extends JpaRepository<OrderLineEntity, Long> {
-    Set<OrderLineEntity> findByOrder(OrderEntity order);
-
-    void deleteOrderLinesByOrder(OrderEntity order);
-
-    @Query("""
-            SELECT DISTINCT o FROM OrderEntity o
-            JOIN FETCH o.orderLines ol
-            WHERE ol.productId = :productId
-            AND o.status IN :activeStatuses
-            ORDER BY o.createdAt DESC
-            """)
+    @Query("SELECT DISTINCT ol.order FROM OrderLineEntity ol " +
+            "WHERE ol.productId = :productId " +
+            "AND ol.order.status IN :statuses")
     Set<OrderEntity> findActiveOrdersForProduct(
             @Param("productId") Long productId,
-            @Param("activeStatuses") List<OrderStatus> activeStatuses
+            @Param("statuses") Collection<OrderStatus> statuses
     );
 
-    @Query("""
-            SELECT DISTINCT o FROM OrderEntity o
-            JOIN FETCH o.orderLines ol
-            WHERE ol.variantId = :variantId
-            AND o.status IN :activeStatuses
-            ORDER BY o.createdAt DESC
-            """)
-    Set<OrderEntity> findActiveOrdersForVariant(Long id, List<OrderStatus> pending);
+    @Query("SELECT DISTINCT ol.order FROM OrderLineEntity ol " +
+            "JOIN ol.productVariant v " +
+            "WHERE v.id = :variantId " +
+            "AND ol.order.status IN :statuses")
+    Set<OrderEntity> findActiveOrdersForVariant(
+            @Param("variantId") Long variantId,
+            @Param("statuses") Collection<OrderStatus> statuses
+    );
+
+    @Query("SELECT ol FROM OrderLineEntity ol " +
+            "WHERE ol.order.id = :orderId")
+    List<OrderLineEntity> findByOrderId(@Param("orderId") Long orderId);
+
+    @Query("SELECT COUNT(ol) > 0 FROM OrderLineEntity ol " +
+            "WHERE ol.productId = :productId " +
+            "AND ol.order.status IN :statuses")
+    boolean hasActiveOrders(
+            @Param("productId") Long productId,
+            @Param("statuses") Collection<OrderStatus> statuses
+    );
+
+    @Query("SELECT COUNT(ol) > 0 FROM OrderLineEntity ol " +
+            "JOIN ol.productVariant v " +
+            "WHERE v.id = :variantId " +
+            "AND ol.order.status IN :statuses")
+    boolean hasActiveOrdersForVariant(
+            @Param("variantId") Long variantId,
+            @Param("statuses") Collection<OrderStatus> statuses
+    );
 }

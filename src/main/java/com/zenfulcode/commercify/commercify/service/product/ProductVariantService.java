@@ -43,9 +43,10 @@ public class ProductVariantService {
     @Transactional
     public ProductVariantEntityDto updateVariant(Long productId, Long variantId, ProductVariantRequest request) {
         validationService.validateVariantRequest(request);
-        ProductVariantEntity variant = getVariant(productId, variantId);
 
+        ProductVariantEntity variant = getVariant(productId, variantId);
         updateVariantDetails(variant, request);
+
         ProductVariantEntity savedVariant = variantRepository.save(variant);
 
         return variantMapper.apply(savedVariant);
@@ -66,7 +67,18 @@ public class ProductVariantService {
     }
 
     public ProductVariantEntityDto getVariantDto(Long productId, Long variantId) {
-        return variantMapper.apply(getVariant(productId, variantId));
+        ProductVariantEntity variant = getVariant(productId, variantId);
+        ProductVariantEntityDto variantDto = variantMapper.apply(variant);
+
+        if (variantDto.getPrice() == null || variantDto.getCurrency() == null || variantDto.getImageUrl() == null) {
+            ProductEntity product = getProduct(productId);
+
+            variantDto.setPrice(variantDto.getPrice() != null ? variantDto.getPrice() : product.getUnitPrice());
+            variantDto.setCurrency(variantDto.getCurrency() != null ? variantDto.getCurrency() : product.getCurrency());
+            variantDto.setImageUrl(variantDto.getImageUrl() != null ? variantDto.getImageUrl() : product.getImageUrl());
+        }
+
+        return variantDto;
     }
 
     Set<ProductVariantEntity> createVariantsFromRequest(List<ProductVariantRequest> requests, ProductEntity product) {
@@ -83,12 +95,11 @@ public class ProductVariantService {
 
     private ProductVariantEntity getVariant(Long productId, Long variantId) {
         ProductEntity product = getProduct(productId);
-
         return product.getVariants().stream()
                 .filter(variant -> variant.getId().equals(variantId))
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException(
-                        String.format("Variant %d not found for product %d", variantId, productId)
+                        String.format("Variant %d not found for product %d", variantId, product.getId())
                 ));
     }
 
@@ -102,9 +113,15 @@ public class ProductVariantService {
     private void updateVariantDetails(ProductVariantEntity variant, ProductVariantRequest request) {
         variant.setSku(request.sku());
         variant.setStock(request.stock());
-        variant.setImageUrl(request.imageUrl());
-        variant.setPrice(request.price().amount());
-        variant.setCurrency(request.price().currency());
+
+        if (request.imageUrl() != null)
+            variant.setImageUrl(request.imageUrl());
+
+        if (request.price() != null) {
+            variant.setPrice(request.price().amount());
+            variant.setCurrency(request.price().currency());
+        }
+
         updateVariantOptions(variant, request.options());
     }
 

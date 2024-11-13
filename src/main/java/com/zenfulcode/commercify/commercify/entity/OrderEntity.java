@@ -13,7 +13,11 @@ import java.util.Objects;
 import java.util.Set;
 
 @Entity
-@Table(name = "orders")
+@Table(name = "orders", indexes = {
+        @Index(name = "idx_orders_user_id", columnList = "user_id"),
+        @Index(name = "idx_orders_status", columnList = "status"),
+        @Index(name = "idx_orders_user_id_status", columnList = "user_id, status")
+})
 @Getter
 @Setter
 @ToString

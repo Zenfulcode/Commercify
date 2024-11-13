@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1731523417317-1" author="gkhaavik">
+        <createTable tableName="product_variants">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_product_variants"/>
+            </column>
+            <column name="sku" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="stock" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="image_url" type="VARCHAR(255)"/>
+            <column name="price" type="DOUBLE"/>
+            <column name="currency" type="VARCHAR(255)"/>
+            <column name="product_id" type="BIGINT"/>
+            <column name="created_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="DATETIME"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1731523417317-2" author="gkhaavik">
+        <createTable tableName="variant_option_entity">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_variant_option_entity"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="value" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="product_variant_id" type="BIGINT"/>
+            <column name="created_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="DATETIME"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1731523417317-3" author="gkhaavik">
+        <addColumn tableName="order_lines">
+            <column name="product_variant_id" type="BIGINT"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="1731523417317-4" author="gkhaavik">
+        <createIndex indexName="idx_orders_status" tableName="orders">
+            <column name="status"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="1731523417317-5" author="gkhaavik">
+        <createIndex indexName="idx_orders_user_id" tableName="orders">
+            <column name="user_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="1731523417317-6" author="gkhaavik">
+        <createIndex indexName="idx_orders_user_id_status" tableName="orders">
+            <column name="user_id"/>
+            <column name="status"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="1731523417317-7" author="gkhaavik">
+        <addForeignKeyConstraint baseColumnNames="product_variant_id" baseTableName="order_lines"
+                                 constraintName="FK_ORDER_LINES_ON_PRODUCT_VARIANT" referencedColumnNames="id"
+                                 referencedTableName="product_variants"/>
+    </changeSet>
+    <changeSet id="1731523417317-8" author="gkhaavik">
+        <addForeignKeyConstraint baseColumnNames="product_id" baseTableName="product_variants"
+                                 constraintName="FK_PRODUCT_VARIANTS_ON_PRODUCT" referencedColumnNames="id"
+                                 referencedTableName="products"/>
+    </changeSet>
+    <changeSet id="1731523417317-9" author="gkhaavik">
+        <addForeignKeyConstraint baseColumnNames="product_variant_id" baseTableName="variant_option_entity"
+                                 constraintName="FK_VARIANT_OPTION_ENTITY_ON_PRODUCT_VARIANT" referencedColumnNames="id"
+                                 referencedTableName="product_variants"/>
+    </changeSet>
+    <changeSet id="1731523417317-10" author="gkhaavik">
+        <dropColumn columnName="stripe_id" tableName="products"/>
+
+        <dropColumn columnName="stripe_price_id" tableName="products"/>
+    </changeSet>
+
+</databaseChangeLog>

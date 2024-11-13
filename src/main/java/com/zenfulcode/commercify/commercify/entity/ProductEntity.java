@@ -24,8 +24,6 @@ public class ProductEntity {
     private String name;
     private String description;
     private Integer stock;
-    @Column(name = "stripe_id")
-    private String stripeId;
     private Boolean active;
     @Column(name = "image_url")
     private String imageUrl;
@@ -34,8 +32,6 @@ public class ProductEntity {
     private String currency;
     @Column(name = "unit_price")
     private Double unitPrice;
-    @Column(name = "stripe_price_id")
-    private String stripePriceId;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
@@ -61,11 +57,9 @@ public class ProductEntity {
                 "name = " + name + ", " +
                 "description = " + description + ", " +
                 "stock = " + stock + ", " +
-                "stripeId = " + stripeId + ", " +
                 "active = " + active + ", " +
                 "imageUrl = " + imageUrl + ", " +
                 "currency = " + currency + ", " +
-                "unitPrice = " + unitPrice + ", " +
-                "stripePriceId = " + stripePriceId + ")";
+                "unitPrice = " + unitPrice + ")";
     }
 }
