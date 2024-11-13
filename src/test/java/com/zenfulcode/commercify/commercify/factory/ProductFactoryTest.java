@@ -103,7 +103,7 @@ class ProductFactoryTest {
         }
 
         @Test
-        @DisplayName("Should preserve price information in create request")
+        @DisplayName("Should preserve unitPrice information in create request")
         void testCreateFromRequestPriceInfo() {
             PriceRequest priceRequest = new PriceRequest("EUR", 149.99);
             ProductRequest requestWithDifferentPrice = new ProductRequest(

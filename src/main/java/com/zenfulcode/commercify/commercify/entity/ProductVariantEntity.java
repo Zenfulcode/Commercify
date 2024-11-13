@@ -22,7 +22,7 @@ public class ProductVariantEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String sku;
 
     @Column(nullable = false)
@@ -30,10 +30,8 @@ public class ProductVariantEntity {
 
     @Column(name = "image_url")
     private String imageUrl;
-
-    private Double price;
-
-    private String currency;
+    @Column(name = "unit_price")
+    private Double unitPrice;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)

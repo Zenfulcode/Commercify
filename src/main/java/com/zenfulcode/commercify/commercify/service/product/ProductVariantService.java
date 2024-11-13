@@ -71,11 +71,10 @@ public class ProductVariantService {
         ProductVariantEntity variant = getVariant(productId, variantId);
         ProductVariantEntityDto variantDto = variantMapper.apply(variant);
 
-        if (variantDto.getPrice() == null || variantDto.getCurrency() == null || variantDto.getImageUrl() == null) {
+        if (variantDto.getUnitPrice() == null || variantDto.getImageUrl() == null) {
             ProductEntity product = getProduct(productId);
 
-            variantDto.setPrice(variantDto.getPrice() != null ? variantDto.getPrice() : product.getUnitPrice());
-            variantDto.setCurrency(variantDto.getCurrency() != null ? variantDto.getCurrency() : product.getCurrency());
+            variantDto.setUnitPrice(variantDto.getUnitPrice() != null ? variantDto.getUnitPrice() : product.getUnitPrice());
             variantDto.setImageUrl(variantDto.getImageUrl() != null ? variantDto.getImageUrl() : product.getImageUrl());
         }
 
@@ -118,9 +117,8 @@ public class ProductVariantService {
         if (request.imageUrl() != null)
             variant.setImageUrl(request.imageUrl());
 
-        if (request.price() != null) {
-            variant.setPrice(request.price().amount());
-            variant.setCurrency(request.price().currency());
+        if (request.unitPrice() != null) {
+            variant.setUnitPrice(request.unitPrice());
         }
 
         updateVariantOptions(variant, request.options());

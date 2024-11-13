@@ -10,7 +10,7 @@ public record ProductVariantViewModel(
         String sku,
         Integer stock,
         String imageUrl,
-        PriceViewModel price,
+        Double unitPrice,
         List<VariantOptionViewModel> options
 ) {
     public static ProductVariantViewModel fromDTO(ProductVariantEntityDto dto) {
@@ -19,7 +19,7 @@ public record ProductVariantViewModel(
                 dto.getSku(),
                 dto.getStock(),
                 dto.getImageUrl(),
-                new PriceViewModel(dto.getCurrency(), dto.getPrice()),
+                dto.getUnitPrice(),
                 dto.getOptions().stream()
                         .map(VariantOptionViewModel::fromDTO)
                         .collect(Collectors.toList())

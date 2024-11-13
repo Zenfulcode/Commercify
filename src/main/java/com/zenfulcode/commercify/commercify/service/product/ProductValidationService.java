@@ -30,7 +30,7 @@ public class ProductValidationService {
             errors.add("Product name is required");
         }
         if (request.price() == null || request.price().amount() == null || request.price().amount() < 0) {
-            errors.add("Valid price is required");
+            errors.add("Valid unitPrice is required");
         }
         if (request.stock() != null && request.stock() < 0) {
             errors.add("Stock cannot be negative");

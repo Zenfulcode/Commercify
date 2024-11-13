@@ -16,7 +16,6 @@ public class ProductVariantEntityDto implements Serializable {
     String sku;
     Integer stock;
     String imageUrl;
-    Double price;
-    String currency;
+    Double unitPrice;
     Set<VariantOptionEntityDto> options;
 }

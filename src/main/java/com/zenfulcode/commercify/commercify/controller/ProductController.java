@@ -209,6 +209,7 @@ public class ProductController {
         }
     }
 
+    //    TODO: DELETING variant options instead of just updating them
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{productId}/variants/{variantId}")
     public ResponseEntity<?> updateVariant(

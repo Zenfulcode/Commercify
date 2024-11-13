@@ -6,6 +6,6 @@ public record ProductVariantRequest(
         String sku,
         Integer stock,
         String imageUrl,
-        PriceRequest price,
+        Double unitPrice,
         List<CreateVariantOptionRequest> options
 ) {}

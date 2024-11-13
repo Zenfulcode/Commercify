@@ -16,17 +16,16 @@ public class ProductVariantMapper implements Function<ProductVariantEntity, Prod
     private final VariantOptionMapper variantOptionMapper;
 
     @Override
-    public ProductVariantEntityDto apply(ProductVariantEntity product) {
-        Set<VariantOptionEntityDto> options = product.getOptions().stream()
+    public ProductVariantEntityDto apply(ProductVariantEntity productVariant) {
+        Set<VariantOptionEntityDto> options = productVariant.getOptions().stream()
                 .map(variantOptionMapper).collect(Collectors.toSet());
 
         return ProductVariantEntityDto.builder()
-                .id(product.getId())
-                .sku(product.getSku())
-                .stock(product.getStock())
-                .imageUrl(product.getImageUrl())
-                .price(product.getPrice())
-                .currency(product.getCurrency())
+                .id(productVariant.getId())
+                .sku(productVariant.getSku())
+                .stock(productVariant.getStock())
+                .imageUrl(productVariant.getImageUrl())
+                .unitPrice(productVariant.getUnitPrice())
                 .options(options)
                 .build();
     }
