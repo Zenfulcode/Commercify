@@ -33,8 +33,7 @@ public class ProductEntity {
     @Column(name = "unit_price")
     private Double unitPrice;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
+    @OneToMany(mappedBy = "product", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private Set<ProductVariantEntity> variants = new HashSet<>();
 
     @Column(name = "created_at", nullable = false)

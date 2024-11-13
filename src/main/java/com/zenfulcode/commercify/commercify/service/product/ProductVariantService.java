@@ -59,6 +59,7 @@ public class ProductVariantService {
         variantRepository.delete(variant);
     }
 
+    @Transactional(readOnly = true)
     public Page<ProductVariantEntityDto> getProductVariants(Long productId, PageRequest pageRequest) {
         // Verify product exists
         getProduct(productId);
@@ -81,13 +82,13 @@ public class ProductVariantService {
         return variantDto;
     }
 
+    @Transactional(readOnly = true)
     Set<ProductVariantEntity> createVariantsFromRequest(List<ProductVariantRequest> requests, ProductEntity product) {
         return requests.stream()
                 .map(request -> createVariantFromRequest(request, product))
                 .collect(Collectors.toSet());
     }
 
-    // Helper methods to get entities and check permissions
     private ProductEntity getProduct(Long productId) {
         return productRepository.findById(productId)
                 .orElseThrow(() -> new ProductNotFoundException(productId));
