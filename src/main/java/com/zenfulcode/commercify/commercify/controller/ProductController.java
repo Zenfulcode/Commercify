@@ -89,7 +89,7 @@ public class ProductController {
         } catch (ProductNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
-            log.error("Error retrieving product", e);
+            log.error("Error retrieving product {}", e.getMessage());
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -103,7 +103,7 @@ public class ProductController {
         } catch (ProductValidationException e) {
             return ResponseEntity.badRequest().body(new ValidationErrorResponse(e.getErrors()));
         } catch (Exception e) {
-            log.error("Error creating product", e);
+            log.error("Error creating product {}", e.getMessage());
             return ResponseEntity.internalServerError()
                     .body(new ErrorResponse("Error creating product: " + e.getMessage()));
         }
@@ -129,7 +129,7 @@ public class ProductController {
             return ResponseEntity.badRequest()
                     .body(new ValidationErrorResponse(e.getErrors()));
         } catch (Exception e) {
-            log.error("Error updating product", e);
+            log.error("Error updating product {}", e.getMessage());
             return ResponseEntity.internalServerError()
                     .body(new ErrorResponse("Error updating product: " + e.getMessage()));
         }
@@ -144,7 +144,7 @@ public class ProductController {
         } catch (ProductNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
-            log.error("Error reactivating product", e);
+            log.error("Error reactivating product {}", e.getMessage());
             return ResponseEntity.internalServerError()
                     .body(new ErrorResponse("Error reactivating product: " + e.getMessage()));
         }
@@ -159,7 +159,7 @@ public class ProductController {
         } catch (ProductNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
-            log.error("Error deactivating product", e);
+            log.error("Error deactivating product {}", e.getMessage());
             return ResponseEntity.internalServerError()
                     .body(new ErrorResponse("Error deactivating product: " + e.getMessage()));
         }
@@ -181,7 +181,7 @@ public class ProductController {
                             e.getActiveOrders()
                     ));
         } catch (Exception e) {
-            log.error("Error deleting product", e);
+            log.error("Error deleting product {}", e.getMessage());
             return ResponseEntity.internalServerError()
                     .body(new ErrorResponse("Error deleting product: " + e.getMessage()));
         }
@@ -203,7 +203,7 @@ public class ProductController {
             return ResponseEntity.badRequest()
                     .body(new ValidationErrorResponse(e.getErrors()));
         } catch (Exception e) {
-            log.error("Error adding variant", e);
+            log.error("Error adding variant {}", e.getMessage());
             return ResponseEntity.internalServerError()
                     .body(new ErrorResponse("Error adding variant: " + e.getMessage()));
         }
@@ -225,18 +225,19 @@ public class ProductController {
             return ResponseEntity.badRequest()
                     .body(new ValidationErrorResponse(e.getErrors()));
         } catch (Exception e) {
-            log.error("Error updating variant", e);
+            log.error("Error updating variant{}", e.getMessage());
             return ResponseEntity.internalServerError()
                     .body(new ErrorResponse("Error updating variant: " + e.getMessage()));
         }
     }
 
+    //    TODO: the variant doesnt seem to get deleted
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{productId}/variants/{variantId}")
     public ResponseEntity<?> deleteVariant(@PathVariable Long productId, @PathVariable Long variantId) {
         try {
             variantService.deleteVariant(productId, variantId);
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok("Deleted");
         } catch (ProductNotFoundException | IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
         } catch (ProductDeletionException e) {
@@ -247,7 +248,7 @@ public class ProductController {
                             e.getActiveOrders()
                     ));
         } catch (Exception e) {
-            log.error("Error deleting variant", e);
+            log.error("Error deleting variant {}", e.getMessage());
             return ResponseEntity.internalServerError()
                     .body(new ErrorResponse("Error deleting variant: " + e.getMessage()));
         }
@@ -268,7 +269,7 @@ public class ProductController {
         } catch (ProductNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
-            log.error("Error retrieving variants", e);
+            log.error("Error retrieving variants {}", e.getMessage());
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -284,7 +285,7 @@ public class ProductController {
         } catch (ProductNotFoundException | IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
-            log.error("Error retrieving variant", e);
+            log.error("Error retrieving variant {}", e.getMessage());
             return ResponseEntity.internalServerError().build();
         }
     }
