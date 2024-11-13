@@ -2,23 +2,25 @@ package com.zenfulcode.commercify.commercify.service;
 
 import com.stripe.Stripe;
 import com.zenfulcode.commercify.commercify.OrderStatus;
-import com.zenfulcode.commercify.commercify.api.requests.products.CreatePriceRequest;
-import com.zenfulcode.commercify.commercify.api.requests.products.CreateProductRequest;
-import com.zenfulcode.commercify.commercify.api.requests.products.UpdatePriceRequest;
-import com.zenfulcode.commercify.commercify.api.requests.products.UpdateProductRequest;
-import com.zenfulcode.commercify.commercify.dto.OrderDTO;
-import com.zenfulcode.commercify.commercify.dto.ProductDTO;
-import com.zenfulcode.commercify.commercify.dto.ProductDeletionValidationResult;
-import com.zenfulcode.commercify.commercify.dto.ProductUpdateResult;
+import com.zenfulcode.commercify.commercify.api.requests.products.CreateVariantOptionRequest;
+import com.zenfulcode.commercify.commercify.api.requests.products.PriceRequest;
+import com.zenfulcode.commercify.commercify.api.requests.products.ProductRequest;
+import com.zenfulcode.commercify.commercify.api.requests.products.ProductVariantRequest;
+import com.zenfulcode.commercify.commercify.dto.*;
 import com.zenfulcode.commercify.commercify.dto.mapper.OrderMapper;
 import com.zenfulcode.commercify.commercify.dto.mapper.ProductMapper;
+import com.zenfulcode.commercify.commercify.dto.mapper.ProductVariantMapper;
+import com.zenfulcode.commercify.commercify.entity.OrderEntity;
 import com.zenfulcode.commercify.commercify.entity.ProductEntity;
+import com.zenfulcode.commercify.commercify.entity.ProductVariantEntity;
+import com.zenfulcode.commercify.commercify.entity.VariantOptionEntity;
 import com.zenfulcode.commercify.commercify.exception.ProductDeletionException;
 import com.zenfulcode.commercify.commercify.exception.ProductNotFoundException;
 import com.zenfulcode.commercify.commercify.exception.ProductValidationException;
 import com.zenfulcode.commercify.commercify.factory.ProductFactory;
 import com.zenfulcode.commercify.commercify.repository.OrderLineRepository;
 import com.zenfulcode.commercify.commercify.repository.ProductRepository;
+import com.zenfulcode.commercify.commercify.repository.ProductVariantRepository;
 import com.zenfulcode.commercify.commercify.service.stripe.StripeProductService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,9 +29,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,36 +37,219 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ProductService {
     private final ProductRepository productRepository;
-    private final StripeProductService stripeProductService;
-    private final ProductMapper mapper;
-    private final ProductFactory productFactory;
+    private final ProductVariantRepository variantRepository;
     private final OrderLineRepository orderLineRepository;
+    private final StripeProductService stripeProductService;
+    private final ProductMapper productMapper;
+    private final ProductVariantMapper variantMapper;
+    private final ProductFactory productFactory;
     private final OrderMapper orderMapper;
 
     @Transactional
-    public ProductDTO saveProduct(CreateProductRequest request) {
+    public ProductDTO saveProduct(ProductRequest request) {
         validateProductRequest(request);
 
         ProductEntity product = productFactory.createFromRequest(request);
 
-        if (Stripe.apiKey != null && !Stripe.apiKey.isBlank()) {
-            String stripeId = stripeProductService.createStripeProduct(product);
-            product.setStripeId(stripeId);
+        // Create variants if provided
+        if (request.variants() != null && !request.variants().isEmpty()) {
+            Set<ProductVariantEntity> variants = createVariantsFromRequest(request.variants(), product);
+            product.setVariants(variants);
         }
 
         ProductEntity savedProduct = productRepository.save(product);
-
-        CreatePriceRequest priceRequest = new CreatePriceRequest(product.getCurrency(), product.getUnitPrice());
-
-        // Create prices after product is saved
-        if (Stripe.apiKey != null && !Stripe.apiKey.isBlank()) {
-            stripeProductService.createStripePrice(savedProduct, priceRequest);
-        }
-
-        return mapper.apply(savedProduct);
+        return productMapper.apply(savedProduct);
     }
 
-    private void validateProductRequest(CreateProductRequest request) {
+    @Transactional
+    public ProductDTO addVariantToProduct(Long productId, ProductVariantRequest request) {
+        validateVariantRequest(request);
+
+        ProductEntity product = productRepository.findById(productId)
+                .orElseThrow(() -> new ProductNotFoundException(productId));
+
+        ProductVariantEntity variant = createVariantFromRequest(request, product);
+
+        product.addVariant(variant);
+        ProductEntity savedProduct = productRepository.save(product);
+
+        return productMapper.apply(savedProduct);
+    }
+
+    @Transactional
+    public ProductDTO updateVariant(Long productId, Long variantId, ProductVariantRequest request) {
+        validateVariantRequest(request);
+
+        ProductEntity product = productRepository.findById(productId)
+                .orElseThrow(() -> new ProductNotFoundException(productId));
+
+        ProductVariantEntity variant = product.getVariants().stream()
+                .filter(v -> v.getId().equals(variantId))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Variant not found"));
+
+        updateVariantFromRequest(variant, request);
+
+        ProductEntity savedProduct = productRepository.save(product);
+        return productMapper.apply(savedProduct);
+    }
+
+    @Transactional
+    public void deleteVariant(Long productId, Long variantId) {
+        ProductEntity product = productRepository.findById(productId)
+                .orElseThrow(() -> new ProductNotFoundException(productId));
+
+        ProductVariantEntity variant = product.getVariants().stream()
+                .filter(v -> v.getId().equals(variantId))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Variant not found"));
+
+        validateVariantDeletion(variant);
+
+        product.getVariants().remove(variant);
+        productRepository.save(product);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ProductVariantEntityDto> getProductVariants(Long productId, PageRequest pageRequest) {
+        productRepository.findById(productId)
+                .orElseThrow(() -> new ProductNotFoundException(productId));
+
+        return variantRepository.findByProductId(productId, pageRequest)
+                .map(variantMapper);
+    }
+
+    @Transactional(readOnly = true)
+    public ProductVariantEntityDto getProductVariant(Long productId, Long variantId) {
+        ProductEntity product = productRepository.findById(productId)
+                .orElseThrow(() -> new ProductNotFoundException(productId));
+
+        return product.getVariants().stream()
+                .filter(v -> v.getId().equals(variantId))
+                .findFirst()
+                .map(variantMapper)
+                .orElse(null);
+    }
+
+    @Transactional
+    public ProductDTO updateVariantStock(Long productId, Long variantId, Integer stock) {
+        if (stock < 0) {
+            throw new IllegalArgumentException("Stock cannot be negative");
+        }
+
+        ProductEntity product = productRepository.findById(productId)
+                .orElseThrow(() -> new ProductNotFoundException(productId));
+
+        ProductVariantEntity variant = product.getVariants().stream()
+                .filter(v -> v.getId().equals(variantId))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Variant not found"));
+
+        variant.setStock(stock);
+
+        ProductEntity savedProduct = productRepository.save(product);
+        return productMapper.apply(savedProduct);
+    }
+
+    // Helper methods
+    private Set<ProductVariantEntity> createVariantsFromRequest(List<ProductVariantRequest> variantRequests, ProductEntity product) {
+        return variantRequests.stream()
+                .map(request -> createVariantFromRequest(request, product))
+                .collect(Collectors.toSet());
+    }
+
+    private ProductVariantEntity createVariantFromRequest(ProductVariantRequest request, ProductEntity product) {
+        ProductVariantEntity variant = ProductVariantEntity.builder()
+                .sku(request.sku())
+                .stock(request.stock())
+                .imageUrl(request.imageUrl())
+                .price(request.price().amount())
+                .currency(request.price().currency())
+                .product(product)
+                .options(new HashSet<>())
+                .build();
+
+        // Create variant options
+        for (CreateVariantOptionRequest optionRequest : request.options()) {
+            VariantOptionEntity option = VariantOptionEntity.builder()
+                    .name(optionRequest.name())
+                    .value(optionRequest.value())
+                    .productVariant(variant)
+                    .build();
+            variant.addOption(option);
+        }
+
+        return variant;
+    }
+
+    private void updateVariantFromRequest(ProductVariantEntity variant, ProductVariantRequest request) {
+        variant.setSku(request.sku());
+        variant.setStock(request.stock());
+        variant.setImageUrl(request.imageUrl());
+        variant.setPrice(request.price().amount());
+        variant.setCurrency(request.price().currency());
+
+        // Update options
+        variant.getOptions().clear();
+        for (CreateVariantOptionRequest optionRequest : request.options()) {
+            VariantOptionEntity option = VariantOptionEntity.builder()
+                    .name(optionRequest.name())
+                    .value(optionRequest.value())
+                    .productVariant(variant)
+                    .build();
+            variant.addOption(option);
+        }
+    }
+
+    private void validateVariantRequest(ProductVariantRequest request) {
+        List<String> errors = new ArrayList<>();
+
+        if (request.sku() == null || request.sku().isBlank()) {
+            errors.add("SKU is required");
+        }
+
+        if (request.stock() == null || request.stock() < 0) {
+            errors.add("Stock must be non-negative");
+        }
+
+        if (request.price() == null || request.price().amount() == null || request.price().amount() < 0) {
+            errors.add("Price is required and must be non-negative");
+        }
+
+        if (request.options() == null || request.options().isEmpty()) {
+            errors.add("At least one variant option is required");
+        }
+
+        if (!errors.isEmpty()) {
+            throw new ProductValidationException(errors);
+        }
+    }
+
+    private void validateVariantDeletion(ProductVariantEntity variant) {
+        // Check for active orders using this variant
+        Set<OrderEntity> activeOrders = orderLineRepository.findActiveOrdersForVariant(
+                variant.getId(),
+                List.of(OrderStatus.PENDING, OrderStatus.CONFIRMED, OrderStatus.SHIPPED)
+        );
+
+        if (!activeOrders.isEmpty()) {
+            List<OrderDTO> activeOrderDTOs = activeOrders.stream()
+                    .map(orderMapper)
+                    .collect(Collectors.toList());
+
+            throw new ProductDeletionException(
+                    "Cannot delete variant with active orders",
+                    List.of("Variant has active orders"),
+                    activeOrderDTOs
+            );
+        }
+    }
+
+    private boolean stripeEnabled() {
+        return Stripe.apiKey != null && !Stripe.apiKey.isBlank();
+    }
+
+    private void validateProductRequest(ProductRequest request) {
         List<String> errors = new ArrayList<>();
 
         if (request.name() == null || request.name().isBlank()) {
@@ -87,7 +270,7 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductUpdateResult updateProduct(Long id, UpdateProductRequest request) {
+    public ProductUpdateResult updateProduct(Long id, ProductRequest request) {
         List<String> warnings = new ArrayList<>();
 
         ProductEntity product = productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException(id));
@@ -97,35 +280,21 @@ public class ProductService {
         product.setStock(request.stock() != null ? request.stock() : product.getStock());
         product.setActive(request.active() != null ? request.active() : product.getActive());
         product.setImageUrl(request.imageUrl() != null ? request.imageUrl() : product.getImageUrl());
-        product.setCurrency(request.price().currency() != null ? request.price().currency() : product.getCurrency());
-        product.setUnitPrice(request.price().amount() != null ? request.price().amount() : product.getUnitPrice());
 
-        if (product.getStripeId() != null && Stripe.apiKey != null) {
-            updateProductPrice(product, request.price());
-            try {
-                stripeProductService.updateStripeProduct(product.getStripeId(), product);
-            } catch (Exception e) {
-                warnings.add("Stripe update failed: " + e.getMessage());
-                log.error("Stripe update failed", e);
-            }
-        }
+        updateProductPrice(product, request.price());
 
         ProductEntity savedProduct = productRepository.save(product);
-        return ProductUpdateResult.withWarnings(mapper.apply(savedProduct), warnings);
+        return ProductUpdateResult.withWarnings(productMapper.apply(savedProduct), warnings);
     }
 
-    private void updateProductPrice(ProductEntity product, UpdatePriceRequest request) {
+    private void updateProductPrice(ProductEntity product, PriceRequest request) {
         validatePriceRequest(request);
 
-        if (product.getStripePriceId() != null) {
-            stripeProductService.updateStripePrice(product, request);
-        } else {
-            CreatePriceRequest createRequest = new CreatePriceRequest(request.currency(), request.amount());
-            stripeProductService.createStripePrice(product, createRequest);
-        }
+        product.setUnitPrice(request.amount());
+        product.setCurrency(request.currency());
 
         ProductEntity savedProduct = productRepository.save(product);
-        mapper.apply(savedProduct);
+        productMapper.apply(savedProduct);
     }
 
     /**
@@ -155,30 +324,12 @@ public class ProductService {
             throw new ProductDeletionException("Cannot delete product", validationResult.getIssues(), validationResult.getActiveOrders());
         }
 
-        if (productEnt.getStripeId() != null) {
-            try {
-                stripeProductService.deactivateProduct(productEnt);
-            } catch (Exception e) {
-                throw new RuntimeException(e.getMessage(), e);
-            }
-        }
-
-
         productRepository.deleteById(id);
     }
 
     @Transactional
     public void reactivateProduct(Long id) throws RuntimeException {
         ProductEntity productEnt = productRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Product not found"));
-
-        if (productEnt.getStripeId() != null) {
-            try {
-                stripeProductService.reactivateProduct(productEnt);
-            } catch (Exception e) {
-                throw new RuntimeException(e.getMessage(), e);
-            }
-        }
-
         productEnt.setActive(true);
         productRepository.save(productEnt);
     }
@@ -186,21 +337,11 @@ public class ProductService {
     @Transactional
     public void deactivateProduct(Long id) throws RuntimeException {
         ProductEntity productEnt = productRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Product not found"));
-        if (productEnt.getStripeId() != null) {
-
-            try {
-                stripeProductService.deactivateProduct(productEnt);
-            } catch (Exception e) {
-                throw new RuntimeException(e.getMessage(), e);
-            }
-        }
-
         productEnt.setActive(false);
         productRepository.save(productEnt);
     }
 
-
-    private void validatePriceRequest(UpdatePriceRequest request) {
+    private void validatePriceRequest(PriceRequest request) {
         List<String> errors = new ArrayList<>();
 
         if (request.amount() != null && request.amount() < 0) {
@@ -213,14 +354,14 @@ public class ProductService {
     }
 
     public Page<ProductDTO> getAllProducts(PageRequest pageRequest) {
-        return productRepository.findAll(pageRequest).map(mapper);
+        return productRepository.findAll(pageRequest).map(productMapper);
     }
 
     public ProductDTO getProductById(Long id) {
-        return productRepository.findById(id).map(mapper).orElse(null);
+        return productRepository.findById(id).map(productMapper).orElse(null);
     }
 
     public Page<ProductDTO> getActiveProducts(PageRequest pageRequest) {
-        return productRepository.queryAllByActiveTrue(pageRequest).map(mapper);
+        return productRepository.queryAllByActiveTrue(pageRequest).map(productMapper);
     }
 }

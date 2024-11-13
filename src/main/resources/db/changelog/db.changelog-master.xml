@@ -6,4 +6,5 @@
 
 
     <include file="db/changelog/migrations/241108185143-changelog.xml"/>
+    <include file="db/changelog/migrations/241113164917-changelog.xml"/>
 </databaseChangeLog>

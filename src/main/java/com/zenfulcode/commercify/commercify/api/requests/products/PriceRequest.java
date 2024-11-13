@@ -1,6 +1,7 @@
 package com.zenfulcode.commercify.commercify.api.requests.products;
 
-public record CreatePriceRequest(
+public record PriceRequest(
         String currency,
-        Double amount) {
+        Double amount
+) {
 }

@@ -30,41 +30,43 @@ public class StripeService {
             throw new RuntimeException("Order not found");
         }
 
-        List<OrderLineDTO> orderLineDTOS = order.getOrderLines();
-
-        SessionCreateParams params =
-                SessionCreateParams.builder()
-                        .setMode(SessionCreateParams.Mode.PAYMENT)
-                        .setSuccessUrl(paymentRequest.successUrl())
-                        .setCancelUrl(paymentRequest.cancelUrl())
-                        .setCurrency(order.getOrder().getCurrency())
-                        .addAllLineItem(orderLineDTOS.stream().map(ol -> {
-                            Long quantity = Long.valueOf(ol.getQuantity());
-                            if (quantity <= 0)
-                                throw new RuntimeException("Invalid quantity for order line");
-
-                            return SessionCreateParams.LineItem.builder()
-                                    .setPrice(ol.getProduct().getStripePriceId())
-                                    .setQuantity(quantity)
-                                    .build();
-                        }).toList())
-                        .putMetadata("orderId", paymentRequest.orderId().toString())
-                        .build();
+        List<OrderLineDTO> orderLines = order.getOrderLines();
 
         try {
-            Session session = Session.create(params);
+            SessionCreateParams params = SessionCreateParams.builder()
+                    .setMode(SessionCreateParams.Mode.PAYMENT)
+                    .setSuccessUrl(paymentRequest.successUrl())
+                    .setCancelUrl(paymentRequest.cancelUrl())
+                    .setCurrency(order.getOrder().getCurrency())
+                    .addAllLineItem(orderLines.stream().map(ol -> {
+                        Long quantity = Long.valueOf(ol.getQuantity());
+                        if (quantity <= 0)
+                            throw new RuntimeException("Invalid quantity for order line");
 
-            final double totalAmount = order.getOrder().getTotalAmount();
+                        // Use variant's stripe price ID if available, otherwise use product's
+                        String stripePriceId = ol.getVariant() != null ?
+                                ol.getVariant().getStripePriceId() :
+                                ol.getProduct().getStripePriceId();
+
+                        return SessionCreateParams.LineItem.builder()
+                                .setPrice(stripePriceId)
+                                .setQuantity(quantity)
+                                .build();
+                    }).toList())
+                    .putMetadata("orderId", paymentRequest.orderId().toString())
+                    .build();
+
+            Session session = Session.create(params);
 
             PaymentEntity payment = PaymentEntity.builder()
                     .orderId(paymentRequest.orderId())
                     .stripePaymentIntent(session.getPaymentIntent())
                     .paymentProvider(PaymentProvider.STRIPE)
-                    .status(PaymentStatus.PAID)
-                    .totalAmount(totalAmount)
+                    .status(PaymentStatus.PENDING)
+                    .totalAmount(order.getOrder().getTotalAmount())
                     .build();
-            paymentRepository.save(payment);
 
+            paymentRepository.save(payment);
             orderService.updateOrderStatus(paymentRequest.orderId(), OrderStatus.CONFIRMED);
 
             return new PaymentResponse(payment.getId(), payment.getStatus(), session.getUrl());

@@ -10,7 +10,6 @@ import java.util.Objects;
 @Builder
 @Getter
 @Setter
-@ToString
 @Entity
 @Table(name = "order_lines")
 @NoArgsConstructor
@@ -36,6 +35,13 @@ public class OrderLineEntity {
     @Transient
     private ProductDTO product;
 
+    @Column(name = "variant_id")
+    private Long variantId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "variant_id", insertable = false, updatable = false)
+    private ProductVariantEntity variant;
+
     @ManyToOne(optional = false)
     @JoinColumn(name = "order_id", nullable = false)
     private OrderEntity order;
@@ -54,5 +60,16 @@ public class OrderLineEntity {
     @Override
     public final int hashCode() {
         return this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass().hashCode() : getClass().hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "(" +
+                "id = " + id + ", " +
+                "productId = " + productId + ", " +
+                "quantity = " + quantity + ", " +
+                "unitPrice = " + unitPrice + ", " +
+                "currency = " + currency + ", " +
+                "variantId = " + variantId + ")";
     }
 }

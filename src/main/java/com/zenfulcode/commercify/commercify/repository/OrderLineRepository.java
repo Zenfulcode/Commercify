@@ -28,4 +28,13 @@ public interface OrderLineRepository extends JpaRepository<OrderLineEntity, Long
             @Param("productId") Long productId,
             @Param("activeStatuses") List<OrderStatus> activeStatuses
     );
+
+    @Query("""
+            SELECT DISTINCT o FROM OrderEntity o
+            JOIN FETCH o.orderLines ol
+            WHERE ol.variantId = :variantId
+            AND o.status IN :activeStatuses
+            ORDER BY o.createdAt DESC
+            """)
+    Set<OrderEntity> findActiveOrdersForVariant(Long id, List<OrderStatus> pending);
 }

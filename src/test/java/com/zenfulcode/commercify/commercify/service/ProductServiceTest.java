@@ -1,8 +1,8 @@
 package com.zenfulcode.commercify.commercify.service;
 
 import com.zenfulcode.commercify.commercify.OrderStatus;
-import com.zenfulcode.commercify.commercify.api.requests.products.CreatePriceRequest;
-import com.zenfulcode.commercify.commercify.api.requests.products.CreateProductRequest;
+import com.zenfulcode.commercify.commercify.api.requests.products.PriceRequest;
+import com.zenfulcode.commercify.commercify.api.requests.products.ProductRequest;
 import com.zenfulcode.commercify.commercify.dto.OrderDTO;
 import com.zenfulcode.commercify.commercify.dto.ProductDTO;
 import com.zenfulcode.commercify.commercify.dto.ProductDeletionValidationResult;
@@ -54,7 +54,7 @@ class ProductServiceTest {
     @InjectMocks
     private ProductService productService;
 
-    private CreateProductRequest productRequest;
+    private ProductRequest productRequest;
     private ProductEntity productEntity;
     private ProductDTO productDTO;
     private Set<OrderEntity> activeOrders;
@@ -62,14 +62,15 @@ class ProductServiceTest {
 
     @BeforeEach
     void setUp() {
-        CreatePriceRequest priceRequest = new CreatePriceRequest("USD", 99.99);
-        productRequest = new CreateProductRequest(
+        PriceRequest priceRequest = new PriceRequest("USD", 99.99);
+        productRequest = new ProductRequest(
                 "Test Product",
                 "Test Description",
                 10,
                 "test-image.jpg",
                 true,
-                priceRequest
+                priceRequest,
+                new ArrayList<>()
         );
 
         productEntity = ProductEntity.builder()

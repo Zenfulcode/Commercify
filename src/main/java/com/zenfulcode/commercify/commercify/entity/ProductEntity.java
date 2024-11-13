@@ -6,13 +6,14 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "products")
 @Builder
 @Getter
 @Setter
-@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductEntity {
@@ -36,6 +37,10 @@ public class ProductEntity {
     @Column(name = "stripe_price_id")
     private String stripePriceId;
 
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private Set<ProductVariantEntity> variants = new HashSet<>();
+
     @Column(name = "created_at", nullable = false)
     @CreationTimestamp
     private Instant createdAt;
@@ -43,4 +48,24 @@ public class ProductEntity {
     @Column(name = "updated_at")
     @UpdateTimestamp
     private Instant updatedAt;
+
+    public void addVariant(ProductVariantEntity variant) {
+        variants.add(variant);
+        variant.setProduct(this);
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "(" +
+                "id = " + id + ", " +
+                "name = " + name + ", " +
+                "description = " + description + ", " +
+                "stock = " + stock + ", " +
+                "stripeId = " + stripeId + ", " +
+                "active = " + active + ", " +
+                "imageUrl = " + imageUrl + ", " +
+                "currency = " + currency + ", " +
+                "unitPrice = " + unitPrice + ", " +
+                "stripePriceId = " + stripePriceId + ")";
+    }
 }

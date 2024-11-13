@@ -1,12 +1,15 @@
 package com.zenfulcode.commercify.commercify.controller;
 
 import com.zenfulcode.commercify.commercify.OrderStatus;
+import com.zenfulcode.commercify.commercify.api.requests.orders.CreateOrderLineRequest;
 import com.zenfulcode.commercify.commercify.api.requests.orders.CreateOrderRequest;
 import com.zenfulcode.commercify.commercify.api.responses.orders.CreateOrderResponse;
 import com.zenfulcode.commercify.commercify.api.responses.orders.GetOrderResponse;
 import com.zenfulcode.commercify.commercify.dto.OrderDTO;
 import com.zenfulcode.commercify.commercify.dto.OrderDetailsDTO;
+import com.zenfulcode.commercify.commercify.dto.ProductVariantEntityDto;
 import com.zenfulcode.commercify.commercify.service.OrderService;
+import com.zenfulcode.commercify.commercify.service.ProductService;
 import com.zenfulcode.commercify.commercify.viewmodel.OrderDetailsViewModel;
 import com.zenfulcode.commercify.commercify.viewmodel.OrderViewModel;
 import lombok.AllArgsConstructor;
@@ -25,6 +28,7 @@ import java.util.Set;
 @AllArgsConstructor
 public class OrderController {
     private final OrderService orderService;
+    private final ProductService productService;
     private final PagedResourcesAssembler<OrderViewModel> pagedResourcesAssembler;
 
     private static final Set<String> VALID_SORT_FIELDS = Set.of(
@@ -35,10 +39,24 @@ public class OrderController {
     @PostMapping
     public ResponseEntity<CreateOrderResponse> createOrder(@RequestBody CreateOrderRequest orderRequest) {
         try {
-            // Validate currency
             if (orderRequest.currency() == null || orderRequest.currency().isBlank()) {
                 return ResponseEntity.badRequest()
                         .body(CreateOrderResponse.from("Currency is required"));
+            }
+
+            // Validate that variants exist and belong to their respective products
+            for (CreateOrderLineRequest line : orderRequest.orderLines()) {
+                if (line.variantId() != null) {
+                    ProductVariantEntityDto variant = productService.getProductVariant(line.productId(), line.variantId());
+                    if (variant == null) {
+                        return ResponseEntity.badRequest()
+                                .body(CreateOrderResponse.from("Invalid variant ID: " + line.variantId()));
+                    }
+                    if (variant.getStock() < line.quantity()) {
+                        return ResponseEntity.badRequest()
+                                .body(CreateOrderResponse.from("Insufficient stock for variant: " + line.variantId()));
+                    }
+                }
             }
 
             OrderDTO orderDTO = orderService.createOrder(orderRequest);
