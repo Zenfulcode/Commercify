@@ -2,20 +2,26 @@ package com.zenfulcode.commercify.commercify.controller;
 
 import com.zenfulcode.commercify.commercify.OrderStatus;
 import com.zenfulcode.commercify.commercify.api.requests.orders.CreateOrderRequest;
+import com.zenfulcode.commercify.commercify.api.requests.orders.OrderStatusUpdateRequest;
+import com.zenfulcode.commercify.commercify.api.responses.ErrorResponse;
 import com.zenfulcode.commercify.commercify.api.responses.orders.CreateOrderResponse;
 import com.zenfulcode.commercify.commercify.api.responses.orders.GetOrderResponse;
 import com.zenfulcode.commercify.commercify.dto.OrderDTO;
 import com.zenfulcode.commercify.commercify.dto.OrderDetailsDTO;
-import com.zenfulcode.commercify.commercify.service.OrderService;
+import com.zenfulcode.commercify.commercify.exception.*;
+import com.zenfulcode.commercify.commercify.service.order.OrderService;
+import com.zenfulcode.commercify.commercify.service.order.OrderValidationService;
 import com.zenfulcode.commercify.commercify.viewmodel.OrderDetailsViewModel;
 import com.zenfulcode.commercify.commercify.viewmodel.OrderViewModel;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Set;
@@ -23,8 +29,11 @@ import java.util.Set;
 @RestController
 @RequestMapping("/api/v1/orders")
 @AllArgsConstructor
+@Slf4j
 public class OrderController {
+
     private final OrderService orderService;
+    private final OrderValidationService orderValidationService;
     private final PagedResourcesAssembler<OrderViewModel> pagedResourcesAssembler;
 
     private static final Set<String> VALID_SORT_FIELDS = Set.of(
@@ -33,22 +42,27 @@ public class OrderController {
 
     @PreAuthorize("hasRole('USER')")
     @PostMapping
-    public ResponseEntity<CreateOrderResponse> createOrder(@RequestBody CreateOrderRequest orderRequest) {
+    public ResponseEntity<?> createOrder(@Validated @RequestBody CreateOrderRequest orderRequest) {
         try {
-            // Validate currency
-            if (orderRequest.currency() == null || orderRequest.currency().isBlank()) {
-                return ResponseEntity.badRequest()
-                        .body(CreateOrderResponse.from("Currency is required"));
-            }
-
+            orderValidationService.validateCreateOrderRequest(orderRequest);
             OrderDTO orderDTO = orderService.createOrder(orderRequest);
             return ResponseEntity.ok(CreateOrderResponse.from(OrderViewModel.fromDTO(orderDTO)));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest()
                     .body(CreateOrderResponse.from("Invalid request: " + e.getMessage()));
-        } catch (Exception e) {
+        } catch (ProductNotFoundException e) {
+            return ResponseEntity.badRequest()
+                    .body(CreateOrderResponse.from("Product not found: " + e.getMessage()));
+        } catch (InsufficientStockException e) {
+            return ResponseEntity.badRequest()
+                    .body(CreateOrderResponse.from("Insufficient stock: " + e.getMessage()));
+        } catch (OrderValidationException e) {
             return ResponseEntity.badRequest()
                     .body(CreateOrderResponse.from(e.getMessage()));
+        } catch (Exception e) {
+            log.error("Error creating order", e);
+            return ResponseEntity.internalServerError()
+                    .body(CreateOrderResponse.from("Error creating order: " + e.getMessage()));
         }
     }
 
@@ -66,11 +80,18 @@ public class OrderController {
             Sort.Direction direction = Sort.Direction.fromString(sortDirection.toUpperCase());
             PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-            Page<OrderViewModel> orders = orderService.getOrdersByUserId(userId, pageRequest).map(OrderViewModel::fromDTO);
+            Page<OrderViewModel> orders = orderService.getOrdersByUserId(userId, pageRequest)
+                    .map(OrderViewModel::fromDTO);
 
             return ResponseEntity.ok(pagedResourcesAssembler.toModel(orders));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body("Invalid request parameters: " + e.getMessage());
+            log.error("Invalid request parameters", e);
+            return ResponseEntity.badRequest()
+                    .body(new ErrorResponse("Invalid request parameters: " + e.getMessage()));
+        } catch (Exception e) {
+            log.error("Error retrieving orders", e);
+            return ResponseEntity.internalServerError()
+                    .body(new ErrorResponse("Error retrieving orders: " + e.getMessage()));
         }
     }
 
@@ -87,11 +108,18 @@ public class OrderController {
             Sort.Direction direction = Sort.Direction.fromString(sortDirection.toUpperCase());
             PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-            Page<OrderViewModel> orders = orderService.getAllOrders(pageRequest).map(OrderViewModel::fromDTO);
+            Page<OrderViewModel> orders = orderService.getAllOrders(pageRequest)
+                    .map(OrderViewModel::fromDTO);
 
             return ResponseEntity.ok(pagedResourcesAssembler.toModel(orders));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body("Invalid request parameters: " + e.getMessage());
+            log.error("Invalid request parameters", e);
+            return ResponseEntity.badRequest()
+                    .body(new ErrorResponse("Invalid request parameters: " + e.getMessage()));
+        } catch (Exception e) {
+            log.error("Error retrieving orders", e);
+            return ResponseEntity.internalServerError()
+                    .body(new ErrorResponse("Error retrieving orders: " + e.getMessage()));
         }
     }
 
@@ -99,33 +127,64 @@ public class OrderController {
     @GetMapping("/{orderId}")
     public ResponseEntity<GetOrderResponse> getOrderById(@PathVariable Long orderId) {
         try {
-            final OrderDetailsDTO orderDetails = orderService.getOrderById(orderId);
-            final OrderDetailsViewModel orderDetailsViewModel = OrderDetailsViewModel.fromDTO(orderDetails);
-
+            OrderDetailsDTO orderDetails = orderService.getOrderById(orderId);
+            OrderDetailsViewModel orderDetailsViewModel = OrderDetailsViewModel.fromDTO(orderDetails);
             return ResponseEntity.ok(GetOrderResponse.from(orderDetailsViewModel));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(GetOrderResponse.from(e.getMessage()));
+        } catch (OrderNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            log.error("Error retrieving order", e);
+            return ResponseEntity.badRequest()
+                    .body(GetOrderResponse.from("Error retrieving order: " + e.getMessage()));
         }
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/{id}/status")
-    public ResponseEntity<Void> updateOrderStatus(
-            @PathVariable Long id,
-            @RequestBody String status
+    @PutMapping("/{orderId}/status")
+    public ResponseEntity<?> updateOrderStatus(
+            @PathVariable Long orderId,
+            @Validated @RequestBody OrderStatusUpdateRequest request
     ) {
         try {
-            OrderStatus orderStatus = OrderStatus.valueOf(status.toUpperCase());
-            orderService.updateOrderStatus(id, orderStatus);
+            OrderStatus orderStatus = OrderStatus.valueOf(request.status().toUpperCase());
+            orderService.updateOrderStatus(orderId, orderStatus);
             return ResponseEntity.ok().build();
+        } catch (OrderNotFoundException e) {
+            return ResponseEntity.notFound().build();
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest()
+                    .body(new ErrorResponse("Invalid order status: " + e.getMessage()));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest()
+                    .body(new ErrorResponse("Invalid status transition: " + e.getMessage()));
+        } catch (Exception e) {
+            log.error("Error updating order status", e);
+            return ResponseEntity.internalServerError()
+                    .body(new ErrorResponse("Error updating order status: " + e.getMessage()));
+        }
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{orderId}")
+    public ResponseEntity<?> cancelOrder(@PathVariable Long orderId) {
+        try {
+            orderService.cancelOrder(orderId);
+            return ResponseEntity.ok().build();
+        } catch (OrderNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest()
+                    .body(new ErrorResponse("Cannot cancel order: " + e.getMessage()));
+        } catch (Exception e) {
+            log.error("Error canceling order", e);
+            return ResponseEntity.internalServerError()
+                    .body(new ErrorResponse("Error canceling order: " + e.getMessage()));
         }
     }
 
     private void validateSortField(String sortBy) {
         if (!VALID_SORT_FIELDS.contains(sortBy)) {
-            throw new IllegalArgumentException("Invalid sort field: " + sortBy);
+            throw new InvalidSortFieldException("Invalid sort field: " + sortBy);
         }
     }
 }

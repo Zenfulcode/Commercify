@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.List;
+
 @Builder
 @Data
 @AllArgsConstructor
@@ -16,7 +18,5 @@ public class ProductDTO {
     private String imageUrl;
     private Double unitPrice;
     private String currency;
-
-    private String stripeId;
-    private String stripePriceId;
+    private List<ProductVariantEntityDto> variants;
 }

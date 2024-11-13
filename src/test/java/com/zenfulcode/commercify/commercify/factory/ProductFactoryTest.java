@@ -1,9 +1,7 @@
 package com.zenfulcode.commercify.commercify.factory;
 
-import com.zenfulcode.commercify.commercify.api.requests.products.CreatePriceRequest;
-import com.zenfulcode.commercify.commercify.api.requests.products.CreateProductRequest;
-import com.zenfulcode.commercify.commercify.api.requests.products.UpdatePriceRequest;
-import com.zenfulcode.commercify.commercify.api.requests.products.UpdateProductRequest;
+import com.zenfulcode.commercify.commercify.api.requests.products.PriceRequest;
+import com.zenfulcode.commercify.commercify.api.requests.products.ProductRequest;
 import com.zenfulcode.commercify.commercify.entity.ProductEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -13,6 +11,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -21,33 +21,35 @@ class ProductFactoryTest {
     @InjectMocks
     private ProductFactory productFactory;
 
-    private CreateProductRequest createRequest;
-    private UpdateProductRequest updateRequest;
+    private ProductRequest createRequest;
+    private ProductRequest updateRequest;
     private ProductEntity existingProduct;
 
     @BeforeEach
     void setUp() {
-        CreatePriceRequest createPriceRequest = new CreatePriceRequest("USD", 99.99);
-        createRequest = new CreateProductRequest(
+        PriceRequest createPriceRequest = new PriceRequest("USD", 99.99);
+        createRequest = new ProductRequest(
                 "Test Product",
                 "Test Description",
                 10,
                 "test-image.jpg",
                 true,
-                createPriceRequest
+                createPriceRequest,
+                new ArrayList<>()
         );
 
-        UpdatePriceRequest updatePriceRequest = new UpdatePriceRequest(
+        PriceRequest priceRequest = new PriceRequest(
                 "USD",
                 99.99
         );
-        updateRequest = new UpdateProductRequest(
+        updateRequest = new ProductRequest(
                 "Updated Product",
                 "Updated Description",
                 20,
                 "updated-image.jpg",
                 true,
-                updatePriceRequest
+                priceRequest,
+                new ArrayList<>()
         );
 
         existingProduct = ProductEntity.builder()
@@ -86,13 +88,14 @@ class ProductFactoryTest {
         @Test
         @DisplayName("Should handle null stock in create request")
         void testCreateFromRequestWithNullStock() {
-            CreateProductRequest requestWithNullStock = new CreateProductRequest(
+            ProductRequest requestWithNullStock = new ProductRequest(
                     "Test Product",
                     "Test Description",
                     null,
                     "test-image.jpg",
                     true,
-                    new CreatePriceRequest("USD", 99.99)
+                    new PriceRequest("USD", 99.99),
+                    new ArrayList<>()
             );
 
             ProductEntity result = productFactory.createFromRequest(requestWithNullStock);
@@ -104,14 +107,15 @@ class ProductFactoryTest {
         @Test
         @DisplayName("Should preserve price information in create request")
         void testCreateFromRequestPriceInfo() {
-            CreatePriceRequest priceRequest = new CreatePriceRequest("EUR", 149.99);
-            CreateProductRequest requestWithDifferentPrice = new CreateProductRequest(
+            PriceRequest priceRequest = new PriceRequest("EUR", 149.99);
+            ProductRequest requestWithDifferentPrice = new ProductRequest(
                     "Test Product",
                     "Test Description",
                     10,
                     "test-image.jpg",
                     true,
-                    priceRequest
+                    priceRequest,
+                    new ArrayList<>()
             );
 
             ProductEntity result = productFactory.createFromRequest(requestWithDifferentPrice);

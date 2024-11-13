@@ -11,8 +11,10 @@ import lombok.Data;
 public class OrderLineDTO {
     private Long id;
     private Long productId;
+    private Long variantId;
     private Integer quantity;
     private Double unitPrice;
     private String currency;
     private ProductDTO product;
+    private ProductVariantEntityDto variant;
 }
