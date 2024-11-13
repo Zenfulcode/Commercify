@@ -13,6 +13,7 @@ import com.zenfulcode.commercify.commercify.entity.OrderEntity;
 import com.zenfulcode.commercify.commercify.entity.OrderLineEntity;
 import com.zenfulcode.commercify.commercify.repository.OrderLineRepository;
 import com.zenfulcode.commercify.commercify.repository.OrderRepository;
+import com.zenfulcode.commercify.commercify.service.product.ProductService;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -146,5 +147,9 @@ public class OrderService {
     public Page<OrderDTO> getOrdersByUserId(Long userId, PageRequest pageRequest) {
         return orderRepository.findByUserId(userId, pageRequest)
                 .map(mapper);
+    }
+
+    public void cancelOrder(Long orderId) {
+
     }
 }
