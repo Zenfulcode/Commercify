@@ -18,12 +18,10 @@ class ProductEntityTest {
                 .name("Test Product")
                 .description("Test Description")
                 .stock(10)
-                .stripeId("stripe_prod_123")
                 .active(true)
                 .imageUrl("test-image.jpg")
                 .currency("USD")
                 .unitPrice(99.99)
-                .stripePriceId("stripe_price_123")
                 .build();
     }
 
@@ -37,13 +35,6 @@ class ProductEntityTest {
         assertTrue(product.getActive());
         assertEquals("USD", product.getCurrency());
         assertEquals(99.99, product.getUnitPrice());
-    }
-
-    @Test
-    @DisplayName("Should handle stripe integration fields")
-    void testStripeFields() {
-        assertEquals("stripe_prod_123", product.getStripeId());
-        assertEquals("stripe_price_123", product.getStripePriceId());
     }
 
     @Test

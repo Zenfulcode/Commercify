@@ -61,8 +61,6 @@ class ProductFactoryTest {
                 .imageUrl("existing-image.jpg")
                 .currency("USD")
                 .unitPrice(79.99)
-                .stripeId("stripe_prod_123")
-                .stripePriceId("stripe_price_123")
                 .build();
     }
 
