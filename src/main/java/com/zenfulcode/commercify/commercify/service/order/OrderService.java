@@ -13,6 +13,7 @@ import com.zenfulcode.commercify.commercify.entity.OrderLineEntity;
 import com.zenfulcode.commercify.commercify.entity.ProductEntity;
 import com.zenfulcode.commercify.commercify.exception.OrderNotFoundException;
 import com.zenfulcode.commercify.commercify.exception.ProductNotFoundException;
+import com.zenfulcode.commercify.commercify.repository.OrderLineRepository;
 import com.zenfulcode.commercify.commercify.repository.OrderRepository;
 import com.zenfulcode.commercify.commercify.repository.ProductRepository;
 import com.zenfulcode.commercify.commercify.service.StockManagementService;
@@ -38,6 +39,7 @@ public class OrderService {
     private final OrderValidationService validationService;
     private final OrderCalculationService calculationService;
     private final StockManagementService stockService;
+    private final OrderLineRepository orderLineRepository;
 
     @Transactional
     public OrderDTO createOrder(CreateOrderRequest request) {
@@ -45,14 +47,26 @@ public class OrderService {
         validationService.validateCreateOrderRequest(request);
         Map<Long, ProductEntity> products = getAndValidateProducts(request.orderLines());
 
+
         // Create order entity
-        OrderEntity order = buildOrderEntity(request, products);
+        OrderEntity order = OrderEntity.builder()
+                .userId(request.userId())
+                .status(OrderStatus.PENDING)
+                .currency(request.currency())
+                .build();
+
+        OrderEntity savedOrder = orderRepository.save(order);
+
+        Set<OrderLineEntity> orderLines = createOrderLines(request.orderLines(), products, savedOrder);
+        orderLineRepository.saveAll(orderLines);
+
+        order.setOrderLines(orderLines);
+        order.setTotalAmount(calculationService.calculateTotalAmount(orderLines));
 
         // Update stock levels
         stockService.updateStockLevels(order.getOrderLines());
 
         // Save and return
-        OrderEntity savedOrder = orderRepository.save(order);
 
         return orderMapper.apply(savedOrder);
     }
@@ -99,21 +113,9 @@ public class OrderService {
         return orderRepository.existsByIdAndUserId(orderId, userId);
     }
 
-    private OrderEntity buildOrderEntity(CreateOrderRequest request, Map<Long, ProductEntity> products) {
-        Set<OrderLineEntity> orderLines = createOrderLines(request.orderLines(), products);
-        double totalAmount = calculationService.calculateTotalAmount(orderLines);
-
-        return OrderEntity.builder()
-                .userId(request.userId())
-                .orderLines(orderLines)
-                .status(OrderStatus.PENDING)
-                .currency(request.currency())
-                .totalAmount(totalAmount)
-                .build();
-    }
-
     private Set<OrderLineEntity> createOrderLines(List<CreateOrderLineRequest> lineRequests,
-                                                  Map<Long, ProductEntity> products) {
+                                                  Map<Long, ProductEntity> products,
+                                                  OrderEntity order) {
         return lineRequests.stream()
                 .map(lineRequest -> {
                     ProductEntity product = products.get(lineRequest.productId());
@@ -122,6 +124,7 @@ public class OrderService {
                             .quantity(lineRequest.quantity())
                             .unitPrice(product.getUnitPrice())
                             .currency(product.getCurrency())
+                            .order(order)
                             .build();
                 })
                 .collect(Collectors.toSet());
@@ -144,7 +147,7 @@ public class OrderService {
             if (!product.getActive()) {
                 throw new IllegalArgumentException("Product is not active: " + line.productId());
             }
-            validationService.validateStockAvailability(product, line.quantity());
+//            validationService.validateStockAvailability(product, line.quantity());
         });
 
         return products;

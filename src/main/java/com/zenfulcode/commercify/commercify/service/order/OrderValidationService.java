@@ -33,16 +33,16 @@ public class OrderValidationService {
         }
         if (request.orderLines() == null || request.orderLines().isEmpty()) {
             errors.add("Order must contain at least one item");
+        } else {
+            request.orderLines().forEach(line -> {
+                if (line.quantity() <= 0) {
+                    errors.add("Quantity must be greater than 0 for product: " + line.productId());
+                }
+            });
         }
         if (request.currency() == null || request.currency().isBlank()) {
             errors.add("Currency is required");
         }
-
-        request.orderLines().forEach(line -> {
-            if (line.quantity() <= 0) {
-                errors.add("Quantity must be greater than 0 for product: " + line.productId());
-            }
-        });
 
         if (!errors.isEmpty()) {
             throw new OrderValidationException("Order validation failed: " + String.join(", ", errors));
