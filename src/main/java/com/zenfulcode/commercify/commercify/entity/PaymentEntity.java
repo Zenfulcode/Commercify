@@ -24,13 +24,16 @@ public class PaymentEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String stripePaymentIntent;
+    @Column(name = "payment_reference", unique = true)
+    private String mobilePayReference;
 
     @Column(name = "order_id", nullable = false)
     private Long orderId;
+    @Column(name = "total_amount")
     private Double totalAmount;
     @Column(name = "payment_method")
-    private String paymentMethod; // e.g., Credit Card, PayPal
+    private String paymentMethod; // e.g., WALLET; CARD
+    @Column(name = "payment_provider")
     @Enumerated(EnumType.STRING)
     private PaymentProvider paymentProvider;
 

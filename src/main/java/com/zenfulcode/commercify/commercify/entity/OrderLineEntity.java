@@ -36,7 +36,7 @@ public class OrderLineEntity {
     private ProductVariantEntity productVariant;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "order_id", nullable = false)
+    @JoinColumn(name = "order_id")
     private OrderEntity order;
 
     @Override
