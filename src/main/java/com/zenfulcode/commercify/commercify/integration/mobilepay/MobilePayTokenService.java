@@ -81,8 +81,6 @@ public class MobilePayTokenService {
         try {
             HttpHeaders headers = createTokenRequestHeaders();
 
-            log.info("Token Request headers: {}", headers);
-
             ResponseEntity<MobilePayTokenResponse> response = restTemplate.exchange(
                     apiUrl + "/accesstoken/get",
                     HttpMethod.POST,

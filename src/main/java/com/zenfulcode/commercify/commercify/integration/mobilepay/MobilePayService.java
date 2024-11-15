@@ -128,7 +128,8 @@ public class MobilePayService {
 
         // Amount object
         Map<String, Object> amount = new HashMap<>();
-        amount.put("value", Math.round(order.getTotalAmount() * 100)); // Convert to minor units
+        String value = String.valueOf(Math.round(order.getTotalAmount() * 100)); // Convert to minor units
+        amount.put("value", value); // Convert to minor units
         amount.put("currency", "DKK");
         paymentRequest.put("amount", amount);
 
@@ -143,7 +144,8 @@ public class MobilePayService {
         paymentRequest.put("customer", customer);
 
         // Other fields
-        paymentRequest.put("reference", systemName + "-order-" + order.getId().toString());
+        String reference = systemName + "-order-" + order.getId().toString() + "-" + value;
+        paymentRequest.put("reference", reference);
         paymentRequest.put("returnUrl", request.returnUrl() + "?orderId=" + order.getId());
         paymentRequest.put("userFlow", "WEB_REDIRECT");
         paymentRequest.put("paymentDescription", "Order #" + order.getId());
