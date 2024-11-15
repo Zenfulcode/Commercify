@@ -7,12 +7,11 @@ processing.
 ## Features
 
 - User authentication and authorization with JWT
-- Product management (CRUD operations)
+- Product management
 - Order management system
-- Payment processing with Stripe integration
+- Payment processing with Mobilepay and Stripe integration(coming soon)
 - Docker support for easy deployment
 - Database migrations with Liquibase
-- RESTful API with HATEOAS support
 
 ## Prerequisites
 
@@ -20,7 +19,8 @@ processing.
 - Maven 3.9.x
 - Docker and Docker Compose
 - MySQL 8.0 or later
-- Stripe account for payment processing
+- MobilePay Vipps account
+- Stripe account for payment processing (Coming soon)
 
 ## Tech Stack
 
@@ -39,19 +39,7 @@ processing.
 ### Environment Setup
 
 1. Clone the repository
-2. Create a `.env` file in the `deploy` directory with the following variables:
-
-```env
-DATASOURCE_URL=jdbc:mysql://localhost:3306/commercifydev_db
-DATASOURCE_USERNAME=your_username
-DATASOURCE_PASSWORD=your_password
-STRIPE_TEST_SECRET=your_stripe_test_key
-STRIPE_SECRET_WEBHOOK=your_stripe_webhook_secret
-STRIPE_WEBHOOK_ENDPOINT=your_webhook_endpoint
-JWT_SECRET_KEY=your_jwt_secret
-ADMIN_EMAIL=admin@example.com
-ADMIN_PASSWORD=admin_password
-```
+2. Create a `.env` file in the `deploy` directory: `cp .env.example .env`
 
 ### Running with Docker
 
