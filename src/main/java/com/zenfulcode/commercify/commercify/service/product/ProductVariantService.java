@@ -48,7 +48,6 @@ public class ProductVariantService {
         updateVariantDetails(variant, request);
 
         ProductVariantEntity savedVariant = variantRepository.save(variant);
-
         return variantMapper.apply(savedVariant);
     }
 
@@ -69,16 +68,16 @@ public class ProductVariantService {
 
     public ProductVariantEntityDto getVariantDto(Long productId, Long variantId) {
         ProductVariantEntity variant = getVariant(productId, variantId);
-        ProductVariantEntityDto variantDto = variantMapper.apply(variant);
+        ProductEntity product = variant.getProduct();
 
-        if (variantDto.getUnitPrice() == null || variantDto.getImageUrl() == null) {
-            ProductEntity product = getProduct(productId);
+        ProductVariantEntityDto dto = variantMapper.apply(variant);
 
-            variantDto.setUnitPrice(variantDto.getUnitPrice() != null ? variantDto.getUnitPrice() : product.getUnitPrice());
-            variantDto.setImageUrl(variantDto.getImageUrl() != null ? variantDto.getImageUrl() : product.getImageUrl());
-        }
+        // Apply inheritance only when retrieving
+        dto.setStock(variant.getStock() != null ? variant.getStock() : product.getStock());
+        dto.setImageUrl(variant.getImageUrl() != null ? variant.getImageUrl() : product.getImageUrl());
+        dto.setUnitPrice(variant.getUnitPrice() != null ? variant.getUnitPrice() : product.getUnitPrice());
 
-        return variantDto;
+        return dto;
     }
 
     @Transactional(readOnly = true)
@@ -113,14 +112,8 @@ public class ProductVariantService {
     private void updateVariantDetails(ProductVariantEntity variant, ProductVariantRequest request) {
         variant.setSku(request.sku());
         variant.setStock(request.stock());
-
-        if (request.imageUrl() != null)
-            variant.setImageUrl(request.imageUrl());
-
-        if (request.unitPrice() != null) {
-            variant.setUnitPrice(request.unitPrice());
-        }
-
+        variant.setImageUrl(request.imageUrl());
+        variant.setUnitPrice(request.unitPrice());
         updateVariantOptions(variant, request.options());
     }
 

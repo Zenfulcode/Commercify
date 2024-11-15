@@ -47,9 +47,6 @@ public class ProductValidationService {
         if (request.sku() == null || request.sku().isBlank()) {
             errors.add("SKU is required");
         }
-        if (request.stock() == null || request.stock() < 0) {
-            errors.add("Stock must be non-negative");
-        }
         if (request.options() == null || request.options().isEmpty()) {
             errors.add("At least one variant option is required");
         }

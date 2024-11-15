@@ -25,7 +25,6 @@ public class ProductVariantEntity {
     @Column(nullable = false, unique = true)
     private String sku;
 
-    @Column(nullable = false)
     private Integer stock;
 
     @Column(name = "image_url")

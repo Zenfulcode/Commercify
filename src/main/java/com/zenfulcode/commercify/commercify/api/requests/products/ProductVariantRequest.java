@@ -8,4 +8,5 @@ public record ProductVariantRequest(
         String imageUrl,
         Double unitPrice,
         List<CreateVariantOptionRequest> options
-) {}
+) {
+}
