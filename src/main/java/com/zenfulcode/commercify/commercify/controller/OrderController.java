@@ -40,12 +40,12 @@ public class OrderController {
             "id", "userId", "status", "currency", "totalAmount", "createdAt", "updatedAt"
     );
 
-    @PreAuthorize("hasRole('USER')")
-    @PostMapping
-    public ResponseEntity<?> createOrder(@Validated @RequestBody CreateOrderRequest orderRequest) {
+    @PreAuthorize("hasRole('USER') and #userId == authentication.principal.id")
+    @PostMapping("/{userId}")
+    public ResponseEntity<?> createOrder(@PathVariable Long userId, @Validated @RequestBody CreateOrderRequest orderRequest) {
         try {
             orderValidationService.validateCreateOrderRequest(orderRequest);
-            OrderDTO orderDTO = orderService.createOrder(orderRequest);
+            OrderDTO orderDTO = orderService.createOrder(userId, orderRequest);
             return ResponseEntity.ok(CreateOrderResponse.from(OrderViewModel.fromDTO(orderDTO)));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest()

@@ -42,15 +42,14 @@ public class OrderService {
     private final OrderLineRepository orderLineRepository;
 
     @Transactional
-    public OrderDTO createOrder(CreateOrderRequest request) {
+    public OrderDTO createOrder(Long userId, CreateOrderRequest request) {
         // Validate request and check stock
         validationService.validateCreateOrderRequest(request);
         Map<Long, ProductEntity> products = getAndValidateProducts(request.orderLines());
 
-
         // Create order entity
         OrderEntity order = OrderEntity.builder()
-                .userId(request.userId())
+                .userId(userId)
                 .status(OrderStatus.PENDING)
                 .currency(request.currency())
                 .build();
@@ -67,7 +66,6 @@ public class OrderService {
         stockService.updateStockLevels(order.getOrderLines());
 
         // Save and return
-
         return orderMapper.apply(savedOrder);
     }
 

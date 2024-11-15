@@ -27,10 +27,7 @@ public class OrderValidationService {
 
     public void validateCreateOrderRequest(CreateOrderRequest request) {
         List<String> errors = new ArrayList<>();
-
-        if (request.userId() == null) {
-            errors.add("User ID is required");
-        }
+        
         if (request.orderLines() == null || request.orderLines().isEmpty()) {
             errors.add("Order must contain at least one item");
         } else {

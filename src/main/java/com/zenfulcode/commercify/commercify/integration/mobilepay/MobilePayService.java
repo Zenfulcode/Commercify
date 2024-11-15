@@ -143,7 +143,7 @@ public class MobilePayService {
         paymentRequest.put("customer", customer);
 
         // Other fields
-        paymentRequest.put("reference", systemName + "-" + order.getId().toString());
+        paymentRequest.put("reference", systemName + "-order-" + order.getId().toString());
         paymentRequest.put("returnUrl", request.returnUrl() + "?orderId=" + order.getId());
         paymentRequest.put("userFlow", "WEB_REDIRECT");
         paymentRequest.put("paymentDescription", "Order #" + order.getId());
