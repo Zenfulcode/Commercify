@@ -17,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -39,21 +40,7 @@ public class AuthenticationService {
 
         if (existing.isPresent()) {
             throw new RuntimeException("User with email " + registerRequest.email() + " already exists");
-        } else {
-            log.info("Creating user with email: {}", registerRequest.email());
         }
-
-        Set<AddressEntity> addresses = registerRequest.addresses().stream()
-                .map(addressDTO -> AddressEntity.builder()
-                        .street(addressDTO.getStreet())
-                        .city(addressDTO.getCity())
-                        .state(addressDTO.getState())
-                        .zipCode(addressDTO.getZipCode())
-                        .country(addressDTO.getCountry())
-                        .isBillingAddress(addressDTO.getIsBilling())
-                        .isShippingAddress(addressDTO.getIsShipping())
-                        .build())
-                .collect(Collectors.toSet());
 
         UserEntity user = UserEntity.builder()
                 .firstName(registerRequest.firstName())
@@ -61,12 +48,26 @@ public class AuthenticationService {
                 .email(registerRequest.email())
                 .password(passwordEncoder.encode(registerRequest.password()))
                 .roles(List.of("USER"))
-                .addresses(addresses)
+                .addresses(new HashSet<>())
                 .build();
 
-        addresses.forEach(address -> address.setUser(user));
+        if (!registerRequest.addresses().isEmpty()) {
+            Set<AddressEntity> addresses = registerRequest.addresses().stream()
+                    .map(addressDTO -> AddressEntity.builder()
+                            .street(addressDTO.getStreet())
+                            .city(addressDTO.getCity())
+                            .state(addressDTO.getState())
+                            .zipCode(addressDTO.getZipCode())
+                            .country(addressDTO.getCountry())
+                            .isBillingAddress(addressDTO.getIsBilling())
+                            .isShippingAddress(addressDTO.getIsShipping())
+                            .user(user)
+                            .build())
+                    .collect(Collectors.toSet());
 
-        addressRepository.saveAll(addresses);
+            user.setAddresses(addresses);
+            addressRepository.saveAll(addresses);
+        }
 
         UserEntity savedUser = userRepository.save(user);
         return mapper.apply(savedUser);

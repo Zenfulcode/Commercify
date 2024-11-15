@@ -1,11 +1,12 @@
 package com.zenfulcode.commercify.commercify.service;
 
 
-import com.zenfulcode.commercify.commercify.dto.AddressDTO;
+import com.zenfulcode.commercify.commercify.api.requests.addresses.AddressRequest;
 import com.zenfulcode.commercify.commercify.dto.UserDTO;
 import com.zenfulcode.commercify.commercify.dto.mapper.UserMapper;
 import com.zenfulcode.commercify.commercify.entity.AddressEntity;
 import com.zenfulcode.commercify.commercify.entity.UserEntity;
+import com.zenfulcode.commercify.commercify.repository.AddressRepository;
 import com.zenfulcode.commercify.commercify.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -20,6 +21,7 @@ import java.util.ArrayList;
 public class UserManagementService {
     private final UserRepository userRepository;
     private final UserMapper mapper;
+    private final AddressRepository addressRepository;
 
     @Transactional(readOnly = true)
     public UserDTO getUserById(Long id) {
@@ -55,28 +57,31 @@ public class UserManagementService {
     }
 
     @Transactional
-    public UserDTO addAddress(Long userId, AddressDTO addressDTO) {
+    public UserDTO addAddress(Long userId, AddressRequest addressDTO) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         AddressEntity address = AddressEntity.builder()
-                .street(addressDTO.getStreet())
-                .city(addressDTO.getCity())
-                .state(addressDTO.getState())
-                .zipCode(addressDTO.getZipCode())
-                .country(addressDTO.getCountry())
-                .isBillingAddress(addressDTO.getIsBilling())
-                .isShippingAddress(addressDTO.getIsShipping())
+                .street(addressDTO.street())
+                .city(addressDTO.city())
+                .state(addressDTO.state())
+                .zipCode(addressDTO.zipCode())
+                .country(addressDTO.country())
+                .isBillingAddress(addressDTO.isBilling())
+                .isShippingAddress(addressDTO.isShipping())
                 .user(user)
                 .build();
 
+        addressRepository.save(address);
+
         user.getAddresses().add(address);
         UserEntity updatedUser = userRepository.save(user);
+
         return mapper.apply(updatedUser);
     }
 
     @Transactional
-    public UserDTO updateAddress(Long userId, Long addressId, AddressDTO addressDTO) {
+    public UserDTO updateAddress(Long userId, Long addressId, AddressRequest addressDTO) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -85,15 +90,17 @@ public class UserManagementService {
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Address not found"));
 
-        address.setStreet(addressDTO.getStreet());
-        address.setCity(addressDTO.getCity());
-        address.setState(addressDTO.getState());
-        address.setZipCode(addressDTO.getZipCode());
-        address.setCountry(addressDTO.getCountry());
-        address.setIsBillingAddress(addressDTO.getIsBilling());
-        address.setIsShippingAddress(addressDTO.getIsShipping());
+        address.setStreet(addressDTO.street());
+        address.setCity(addressDTO.city());
+        address.setState(addressDTO.state());
+        address.setZipCode(addressDTO.zipCode());
+        address.setCountry(addressDTO.country());
+        address.setIsBillingAddress(addressDTO.isBilling());
+        address.setIsShippingAddress(addressDTO.isShipping());
 
         UserEntity updatedUser = userRepository.save(user);
+        addressRepository.save(address);
+
         return mapper.apply(updatedUser);
     }
 
@@ -104,6 +111,9 @@ public class UserManagementService {
 
         user.getAddresses().removeIf(address -> address.getId().equals(addressId));
         UserEntity updatedUser = userRepository.save(user);
+
+        addressRepository.deleteById(addressId);
+
         return mapper.apply(updatedUser);
     }
 

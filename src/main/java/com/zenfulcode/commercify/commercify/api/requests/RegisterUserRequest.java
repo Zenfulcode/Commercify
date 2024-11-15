@@ -3,6 +3,7 @@ package com.zenfulcode.commercify.commercify.api.requests;
 
 import com.zenfulcode.commercify.commercify.dto.AddressDTO;
 
+import java.util.Collections;
 import java.util.List;
 
 public record RegisterUserRequest(
@@ -11,4 +12,9 @@ public record RegisterUserRequest(
         String firstName,
         String lastName,
         List<AddressDTO> addresses) {
+    public RegisterUserRequest {
+        if (addresses == null) {
+            addresses = Collections.emptyList();
+        }
+    }
 }
