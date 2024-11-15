@@ -25,7 +25,6 @@ public class AddressEntity {
     @Column(nullable = false)
     private String city;
 
-    @Column(nullable = false)
     private String state;
 
     @Column(name = "zip_code", nullable = false)

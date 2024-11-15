@@ -1,7 +1,7 @@
 package com.zenfulcode.commercify.commercify.controller;
 
 
-import com.zenfulcode.commercify.commercify.dto.AddressDTO;
+import com.zenfulcode.commercify.commercify.api.requests.addresses.AddressRequest;
 import com.zenfulcode.commercify.commercify.dto.UserDTO;
 import com.zenfulcode.commercify.commercify.service.UserManagementService;
 import lombok.RequiredArgsConstructor;
@@ -59,14 +59,14 @@ public class UserManagementController {
 
     @PostMapping("/{id}/addresses")
     @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
-    public ResponseEntity<UserDTO> addAddress(@PathVariable Long id, @RequestBody AddressDTO addressDTO) {
-        return ResponseEntity.ok(userManagementService.addAddress(id, addressDTO));
+    public ResponseEntity<UserDTO> addAddress(@PathVariable Long id, @RequestBody AddressRequest request) {
+        return ResponseEntity.ok(userManagementService.addAddress(id, request));
     }
 
     @PutMapping("/{userId}/addresses/{addressId}")
     @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.id")
-    public ResponseEntity<UserDTO> updateAddress(@PathVariable Long userId, @PathVariable Long addressId, @RequestBody AddressDTO addressDTO) {
-        return ResponseEntity.ok(userManagementService.updateAddress(userId, addressId, addressDTO));
+    public ResponseEntity<UserDTO> updateAddress(@PathVariable Long userId, @PathVariable Long addressId, @RequestBody AddressRequest request) {
+        return ResponseEntity.ok(userManagementService.updateAddress(userId, addressId, request));
     }
 
     @DeleteMapping("/{userId}/addresses/{addressId}")

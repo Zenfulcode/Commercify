@@ -132,7 +132,7 @@ class AuthenticationServiceTest {
     @Test
     @DisplayName("Should successfully authenticate user")
     void authenticate_Success() {
-        when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(userEntity));
+        when(userRepository.findByEmailWithAddresses(anyString())).thenReturn(Optional.of(userEntity));
         when(userMapper.apply(any(UserEntity.class))).thenReturn(userDTO);
 
         UserDTO result = authenticationService.authenticate(loginRequest);
