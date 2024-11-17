@@ -3,12 +3,15 @@ package com.zenfulcode.commercify.commercify.viewmodel;
 import com.zenfulcode.commercify.commercify.OrderStatus;
 import com.zenfulcode.commercify.commercify.dto.OrderDTO;
 
+import java.time.Instant;
+
 public record OrderViewModel(
         Long id,
         Long userId,
         Double totalPrice,
         String currency,
-        OrderStatus orderStatus
+        OrderStatus orderStatus,
+        Instant createdAt
 ) {
     public static OrderViewModel fromDTO(OrderDTO orderDTO) {
         return new OrderViewModel(
@@ -16,7 +19,8 @@ public record OrderViewModel(
                 orderDTO.getUserId(),
                 orderDTO.getTotalAmount(),
                 orderDTO.getCurrency(),
-                orderDTO.getOrderStatus()
+                orderDTO.getOrderStatus(),
+                orderDTO.getCreatedAt()
         );
     }
 }

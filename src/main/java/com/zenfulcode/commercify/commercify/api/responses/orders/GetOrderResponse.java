@@ -1,14 +1,37 @@
 package com.zenfulcode.commercify.commercify.api.responses.orders;
 
 
-import com.zenfulcode.commercify.commercify.viewmodel.OrderDetailsViewModel;
+import com.zenfulcode.commercify.commercify.OrderStatus;
+import com.zenfulcode.commercify.commercify.dto.OrderDTO;
+import com.zenfulcode.commercify.commercify.dto.OrderDetailsDTO;
+import com.zenfulcode.commercify.commercify.viewmodel.OrderLineViewModel;
 
-public record GetOrderResponse(OrderDetailsViewModel orderDetails, String message) {
-    public static GetOrderResponse from(OrderDetailsViewModel orderDetails) {
-        return new GetOrderResponse(orderDetails, null);
-    }
+import java.time.Instant;
+import java.util.List;
 
-    public static GetOrderResponse from(String message) {
-        return new GetOrderResponse(null, message);
+public record GetOrderResponse(
+        Long id,
+        Long userId,
+        OrderStatus orderStatus,
+        String currency,
+        Double totalAmount,
+        Instant createdAt,
+        Instant updatedAt,
+        List<OrderLineViewModel> orderLines
+) {
+    public static GetOrderResponse from(OrderDetailsDTO orderDetails) {
+        OrderDTO order = orderDetails.getOrder();
+        return new GetOrderResponse(
+                order.getId(),
+                order.getUserId(),
+                order.getOrderStatus(),
+                order.getCurrency(),
+                order.getTotalAmount(),
+                order.getCreatedAt(),
+                order.getUpdatedAt(),
+                orderDetails.getOrderLines().stream()
+                        .map(OrderLineViewModel::fromDTO)
+                        .toList()
+        );
     }
 }

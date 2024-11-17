@@ -11,7 +11,6 @@ import com.zenfulcode.commercify.commercify.dto.OrderDetailsDTO;
 import com.zenfulcode.commercify.commercify.exception.*;
 import com.zenfulcode.commercify.commercify.service.order.OrderService;
 import com.zenfulcode.commercify.commercify.service.order.OrderValidationService;
-import com.zenfulcode.commercify.commercify.viewmodel.OrderDetailsViewModel;
 import com.zenfulcode.commercify.commercify.viewmodel.OrderViewModel;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -128,14 +127,12 @@ public class OrderController {
     public ResponseEntity<GetOrderResponse> getOrderById(@PathVariable Long orderId) {
         try {
             OrderDetailsDTO orderDetails = orderService.getOrderById(orderId);
-            OrderDetailsViewModel orderDetailsViewModel = OrderDetailsViewModel.fromDTO(orderDetails);
-            return ResponseEntity.ok(GetOrderResponse.from(orderDetailsViewModel));
+            return ResponseEntity.ok(GetOrderResponse.from(orderDetails));
         } catch (OrderNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
             log.error("Error retrieving order", e);
-            return ResponseEntity.badRequest()
-                    .body(GetOrderResponse.from("Error retrieving order: " + e.getMessage()));
+            return ResponseEntity.badRequest().build();
         }
     }
 
