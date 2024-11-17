@@ -1,19 +1,27 @@
 package com.zenfulcode.commercify.commercify.viewmodel;
 
 import com.zenfulcode.commercify.commercify.dto.OrderLineDTO;
+import com.zenfulcode.commercify.commercify.dto.ProductDTO;
 
 public record OrderLineViewModel(
-        ProductViewModel product,
-        Integer quantity
+        String name,
+        String description,
+        Integer quantity,
+        String imageUrl,
+        Double unitPrice,
+        ProductVariantViewModel variant
 ) {
-    public static OrderLineViewModel from(ProductViewModel product, Integer quantity) {
-        return new OrderLineViewModel(product, quantity);
-    }
-
     public static OrderLineViewModel fromDTO(OrderLineDTO orderLineDTO) {
+        ProductDTO product = orderLineDTO.getProduct();
         return new OrderLineViewModel(
-                ProductViewModel.fromDTO(orderLineDTO.getProduct()),
-                orderLineDTO.getQuantity()
+                product.getName(),
+                product.getDescription(),
+                orderLineDTO.getQuantity(),
+                product.getImageUrl(),
+                orderLineDTO.getUnitPrice(),
+                orderLineDTO.getVariant() != null ?
+                        ProductVariantViewModel.fromDTO(orderLineDTO.getVariant()) :
+                        null
         );
     }
 }
