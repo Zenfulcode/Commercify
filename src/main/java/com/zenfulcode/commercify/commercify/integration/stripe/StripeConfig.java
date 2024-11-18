@@ -1,4 +1,4 @@
-package com.zenfulcode.commercify.commercify.config;
+package com.zenfulcode.commercify.commercify.integration.stripe;
 
 import com.stripe.Stripe;
 import jakarta.annotation.PostConstruct;
