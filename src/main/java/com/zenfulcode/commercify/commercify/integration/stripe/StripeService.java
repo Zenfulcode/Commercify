@@ -7,11 +7,11 @@ import com.zenfulcode.commercify.commercify.PaymentProvider;
 import com.zenfulcode.commercify.commercify.PaymentStatus;
 import com.zenfulcode.commercify.commercify.api.requests.PaymentRequest;
 import com.zenfulcode.commercify.commercify.api.responses.PaymentResponse;
-import com.zenfulcode.commercify.commercify.dto.OrderLineDTO;
 import com.zenfulcode.commercify.commercify.dto.ProductDTO;
-import com.zenfulcode.commercify.commercify.dto.mapper.OrderLineMapper;
 import com.zenfulcode.commercify.commercify.entity.OrderEntity;
+import com.zenfulcode.commercify.commercify.entity.OrderLineEntity;
 import com.zenfulcode.commercify.commercify.entity.PaymentEntity;
+import com.zenfulcode.commercify.commercify.entity.VariantOptionEntity;
 import com.zenfulcode.commercify.commercify.exception.OrderNotFoundException;
 import com.zenfulcode.commercify.commercify.exception.PaymentProcessingException;
 import com.zenfulcode.commercify.commercify.repository.OrderRepository;
@@ -20,8 +20,10 @@ import com.zenfulcode.commercify.commercify.service.product.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -29,27 +31,22 @@ import java.util.*;
 public class StripeService {
     private final OrderRepository orderRepository;
     private final PaymentRepository paymentRepository;
-    private final OrderLineMapper orderLineMapper;
     private final ProductService productService;
 
+    @Transactional
     public PaymentResponse initiatePayment(PaymentRequest request) {
         try {
             OrderEntity order = orderRepository.findById(request.orderId())
                     .orElseThrow(() -> new OrderNotFoundException(request.orderId()));
 
-            // Create MobilePay payment request
-            Map<String, Object> paymentRequest = createStripeRequest(order, request);
+            Session session = createCheckoutSession(order, request);
 
-            // Call MobilePay API
-            StripePaymentResponse stripeResponse = createStripePayment(paymentRequest);
-
-            // Create and save payment entity
             PaymentEntity payment = PaymentEntity.builder()
                     .orderId(order.getId())
                     .totalAmount(order.getTotalAmount())
                     .paymentProvider(PaymentProvider.STRIPE)
                     .status(PaymentStatus.PENDING)
-                    .paymentMethod(request.paymentMethod()) // 'WALLET' or 'CARD'
+                    .paymentMethod(request.paymentMethod())
                     .build();
 
             PaymentEntity savedPayment = paymentRepository.save(payment);
@@ -57,105 +54,57 @@ public class StripeService {
             return new PaymentResponse(
                     savedPayment.getId(),
                     savedPayment.getStatus(),
-                    stripeResponse.redirectUrl()
+                    session.getUrl()
             );
         } catch (Exception e) {
-            log.error("Error creating Stripe payment", e);
-            throw new PaymentProcessingException("Failed to create Stripe payment", e);
+            log.error("Error creating Stripe checkout session", e);
+            throw new PaymentProcessingException("Failed to create Stripe checkout session", e);
         }
     }
 
-    private StripePaymentResponse createStripePayment(Map<String, Object> paymentRequest) {
-        System.out.println("Payment request: " + paymentRequest);
-
-        System.out.println("2 Payment request: " + paymentRequest.get("redirectUrl"));
-        return new StripePaymentResponse((String) paymentRequest.get("redirectUrl"));
-    }
-
-    private Map<String, Object> createStripeRequest(OrderEntity order, PaymentRequest request) {
-        validationPaymentRequest(request);
-
-        Map<String, Object> paymentRequest = new HashMap<>();
-
-        Session session;
-        try {
-            List<SessionCreateParams.LineItem> lineItems = createLineItems(order);
-
-            System.out.println("Line items: " + lineItems.size());
-
-
-            SessionCreateParams params =
-                    SessionCreateParams.builder()
-                            .setMode(SessionCreateParams.Mode.PAYMENT)
-                            .setUiMode(SessionCreateParams.UiMode.EMBEDDED)
-                            .setReturnUrl(request.returnUrl())
-                            .addAllLineItem(lineItems)
-                            .build();
-
-            session = Session.create(params);
-            System.out.println("1 Payment request: " + session.getUrl());
-
-            paymentRequest.put("redirectUrl", session.getUrl());
-
-            return paymentRequest;
-        } catch (StripeException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private List<SessionCreateParams.LineItem> createLineItems(OrderEntity order) {
-        List<OrderLineDTO> orderLines = order.getOrderLines().stream().map(orderLineMapper).toList();
-
+    private Session createCheckoutSession(OrderEntity order, PaymentRequest request) throws StripeException {
         List<SessionCreateParams.LineItem> lineItems = new ArrayList<>();
-        for (OrderLineDTO orderLine : orderLines) {
-            ProductDTO product = productService.getProductById(orderLine.getProductId());
 
-            System.out.println("Product: " + product);
+        for (OrderLineEntity line : order.getOrderLines()) {
+            ProductDTO product = productService.getProductById(line.getProductId());
+            SessionCreateParams.LineItem.PriceData.ProductData.Builder productDataBuilder = SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                    .setName(product.getName())
+                    .setDescription(product.getDescription())
+                    .addImage(product.getImageUrl());
 
-            SessionCreateParams.LineItem lineItem = SessionCreateParams.LineItem.builder()
-                    .setQuantity(orderLine.getQuantity().longValue())
-                    .setPriceData(
-                            SessionCreateParams.LineItem.PriceData.builder()
-                                    .setCurrency(order.getCurrency())
-                                    .setUnitAmount(orderLine.getUnitPrice().longValue() * 100L)
-                                    .setProductData(
-                                            SessionCreateParams.LineItem.PriceData.ProductData.builder()
-                                                    .setName(product.getName())
-                                                    .addImage(product.getImageUrl())
-                                                    .setDescription(product.getDescription())
-                                                    .build()
-                                    ).build()
-                    ).build();
+            // Add variant information if present
+            if (line.getProductVariant() != null) {
+                StringBuilder variantInfo = new StringBuilder();
+                for (VariantOptionEntity option : line.getProductVariant().getOptions()) {
+                    variantInfo.append(option.getName())
+                            .append(": ")
+                            .append(option.getValue())
+                            .append(", ");
+                }
+                // Remove trailing comma and space
+                if (!variantInfo.isEmpty()) {
+                    variantInfo.setLength(variantInfo.length() - 2);
+                    productDataBuilder.putMetadata("variant", variantInfo.toString());
+                }
+            }
 
-            System.out.println("Line item: " + lineItem.getPriceData().getProduct());
-            lineItems.add(lineItem);
+            lineItems.add(SessionCreateParams.LineItem.builder()
+                    .setPriceData(SessionCreateParams.LineItem.PriceData.builder()
+                            .setCurrency(order.getCurrency().toLowerCase())
+                            .setUnitAmount((long) (line.getUnitPrice() * 100))
+                            .setProductData(productDataBuilder.build())
+                            .build())
+                    .setQuantity((long) line.getQuantity())
+                    .build());
         }
 
-        return lineItems;
+        SessionCreateParams params = SessionCreateParams.builder()
+                .setMode(SessionCreateParams.Mode.PAYMENT)
+                .setSuccessUrl(request.returnUrl() + "?success=true&orderId=" + order.getId())
+                .setCancelUrl(request.returnUrl() + "?success=false&orderId=" + order.getId())
+                .addAllLineItem(lineItems)
+                .build();
+
+        return Session.create(params);
     }
-
-    private void validationPaymentRequest(PaymentRequest request) {
-        List<String> errors = new ArrayList<>();
-
-        if (request.paymentMethod() == null || request.paymentMethod().isEmpty()) {
-            errors.add("Payment method is required");
-        }
-
-        if (!Objects.equals(request.paymentMethod(), "WALLET") && !Objects.equals(request.paymentMethod(), "CARD")) {
-            errors.add("Invalid payment method");
-        }
-
-        if (request.returnUrl() == null || request.returnUrl().isEmpty()) {
-            errors.add("Return URL is required");
-        }
-
-        if (!errors.isEmpty()) {
-            throw new PaymentProcessingException("Invalid payment request: " + String.join(", ", errors), null);
-        }
-    }
-}
-
-record StripePaymentResponse(
-        String redirectUrl
-) {
 }
