@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class StripeController {
     private final StripeService stripeService;
+    private final StripeWebhookHandler webhookHandler;
 
     @PostMapping("/create")
     public ResponseEntity<PaymentResponse> createPayment(@RequestBody PaymentRequest request) {
@@ -20,5 +21,14 @@ public class StripeController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(PaymentResponse.FailedPayment());
         }
+    }
+
+
+    @PostMapping("/webhook")
+    public ResponseEntity<Void> handleWebhook(
+            @RequestBody String payload,
+            @RequestHeader("Stripe-Signature") String sigHeader) {
+        webhookHandler.handleWebhookEvent(payload, sigHeader);
+        return ResponseEntity.ok().build();
     }
 }

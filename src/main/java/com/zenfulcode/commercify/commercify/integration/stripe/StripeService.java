@@ -72,7 +72,6 @@ public class StripeService {
                     .setDescription(product.getDescription())
                     .addImage(product.getImageUrl());
 
-            // Add variant information if present
             if (line.getProductVariant() != null) {
                 StringBuilder variantInfo = new StringBuilder();
                 for (VariantOptionEntity option : line.getProductVariant().getOptions()) {
@@ -81,7 +80,6 @@ public class StripeService {
                             .append(option.getValue())
                             .append(", ");
                 }
-                // Remove trailing comma and space
                 if (!variantInfo.isEmpty()) {
                     variantInfo.setLength(variantInfo.length() - 2);
                     productDataBuilder.putMetadata("variant", variantInfo.toString());
@@ -102,6 +100,7 @@ public class StripeService {
                 .setMode(SessionCreateParams.Mode.PAYMENT)
                 .setSuccessUrl(request.returnUrl() + "?success=true&orderId=" + order.getId())
                 .setCancelUrl(request.returnUrl() + "?success=false&orderId=" + order.getId())
+                .putMetadata("orderId", order.getId().toString())
                 .addAllLineItem(lineItems)
                 .build();
 

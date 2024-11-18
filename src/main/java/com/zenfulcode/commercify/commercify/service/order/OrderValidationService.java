@@ -6,30 +6,21 @@ import com.zenfulcode.commercify.commercify.entity.OrderEntity;
 import com.zenfulcode.commercify.commercify.entity.ProductEntity;
 import com.zenfulcode.commercify.commercify.exception.InsufficientStockException;
 import com.zenfulcode.commercify.commercify.exception.OrderValidationException;
+import com.zenfulcode.commercify.commercify.flow.OrderStateFlow;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @AllArgsConstructor
 public class OrderValidationService {
-    private static final Map<OrderStatus, Set<OrderStatus>> VALID_TRANSITIONS = new HashMap<>();
-
-    static {
-        VALID_TRANSITIONS.put(OrderStatus.PENDING, Set.of(OrderStatus.CONFIRMED, OrderStatus.CANCELLED));
-        VALID_TRANSITIONS.put(OrderStatus.CONFIRMED, Set.of(OrderStatus.SHIPPED, OrderStatus.CANCELLED));
-        VALID_TRANSITIONS.put(OrderStatus.SHIPPED, Set.of(OrderStatus.COMPLETED, OrderStatus.RETURNED));
-        VALID_TRANSITIONS.put(OrderStatus.COMPLETED, Set.of(OrderStatus.RETURNED));
-        VALID_TRANSITIONS.put(OrderStatus.CANCELLED, Collections.emptySet());
-        VALID_TRANSITIONS.put(OrderStatus.RETURNED, Collections.emptySet());
-    }
-
-
+    private OrderStateFlow orderStateFlow;
 
     public void validateCreateOrderRequest(CreateOrderRequest request) {
         List<String> errors = new ArrayList<>();
-        
+
         if (request.orderLines() == null || request.orderLines().isEmpty()) {
             errors.add("Order must contain at least one item");
         } else {
@@ -49,18 +40,15 @@ public class OrderValidationService {
     }
 
     public void validateStatusTransition(OrderStatus currentStatus, OrderStatus newStatus) {
-        Set<OrderStatus> validNextStatuses = VALID_TRANSITIONS.get(currentStatus);
-        if (!validNextStatuses.contains(newStatus)) {
+        if (!orderStateFlow.canTransition(currentStatus, newStatus)) {
             throw new IllegalStateException(
-                    String.format("Cannot transition from %s to %s", currentStatus, newStatus)
+                    String.format("Invalid status transition from %s to %s", currentStatus, newStatus)
             );
         }
     }
 
     public void validateOrderCancellation(OrderEntity order) {
-        if (order.getStatus() == OrderStatus.SHIPPED ||
-                order.getStatus() == OrderStatus.COMPLETED ||
-                order.getStatus() == OrderStatus.CANCELLED) {
+        if (orderStateFlow.canTransition(order.getStatus(), OrderStatus.CANCELLED)) {
             throw new IllegalStateException(
                     String.format("Cannot cancel order in status: %s", order.getStatus())
             );
