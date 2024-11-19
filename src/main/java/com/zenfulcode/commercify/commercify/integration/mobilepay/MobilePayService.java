@@ -43,6 +43,8 @@ public class MobilePayService {
     @Value("${mobilepay.api-url}")
     private String apiUrl;
 
+    @Value("${mobilepay.oauth.auth-url}")
+    private String authUrl;
 
     @Transactional
     public PaymentResponse initiatePayment(PaymentRequest request) {
@@ -191,6 +193,67 @@ public class MobilePayService {
             default -> throw new PaymentProcessingException("Unknown MobilePay status: " + status, null);
         };
     }
+
+    public String getLoginUrl(String phoneNumber, String returnUrl, String state) {
+        try {
+            HttpHeaders headers = mobilePayRequestHeaders();
+
+            Map<String, Object> request = new HashMap<>();
+            request.put("phoneNumber", phoneNumber);
+            request.put("returnUrl", returnUrl);
+            request.put("state", state);
+            request.put("scope", "openid profile email phone");
+
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(request, headers);
+
+            ResponseEntity<LoginUrlResponse> response = restTemplate.exchange(
+                    apiUrl + "/access-management-1.0/access/oauth2/token",
+                    HttpMethod.POST,
+                    entity,
+                    LoginUrlResponse.class
+            );
+
+            if (response.getBody() == null) {
+                throw new PaymentProcessingException("No response from MobilePay API", null);
+            }
+
+            return response.getBody().redirectUrl();
+
+        } catch (Exception e) {
+            throw new PaymentProcessingException("Failed to get login URL", e);
+        }
+    }
+
+    public MobilePayUserInfo getUserInfo(String code) {
+        try {
+            HttpHeaders headers = mobilePayRequestHeaders();
+            headers.set("Authorization", "Bearer " + code);
+
+            HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+            ResponseEntity<MobilePayUserInfoResponse> response = restTemplate.exchange(
+                    authUrl + "/userinfo",
+                    HttpMethod.GET,
+                    entity,
+                    MobilePayUserInfoResponse.class
+            );
+
+            if (response.getBody() == null) {
+                throw new PaymentProcessingException("No user info from MobilePay", null);
+            }
+
+            MobilePayUserInfoResponse userInfo = response.getBody();
+            return new MobilePayUserInfo(
+                    userInfo.email(),
+                    userInfo.firstName(),
+                    userInfo.lastName(),
+                    userInfo.phoneNumber()
+            );
+
+        } catch (Exception e) {
+            throw new PaymentProcessingException("Failed to get user info", e);
+        }
+    }
 }
 
 record MobilePayResponse(
@@ -199,3 +262,13 @@ record MobilePayResponse(
 ) {
 }
 
+record LoginUrlResponse(String redirectUrl) {
+}
+
+record MobilePayUserInfoResponse(
+        String email,
+        String firstName,
+        String lastName,
+        String phoneNumber
+) {
+}

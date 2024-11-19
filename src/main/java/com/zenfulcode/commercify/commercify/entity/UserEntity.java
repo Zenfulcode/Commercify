@@ -36,6 +36,9 @@ public class UserEntity implements UserDetails {
     @Column(nullable = false)
     private String password;
 
+    @Column(unique = true)
+    private String phoneNumber;
+
     @ToString.Exclude
     @OneToMany(mappedBy = "user", orphanRemoval = true)
     @Builder.Default
