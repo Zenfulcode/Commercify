@@ -3,11 +3,9 @@ package com.zenfulcode.commercify.commercify.dto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
-@Data
 @Builder
-@NoArgsConstructor
+@Data
 @AllArgsConstructor
 public class AddressDTO {
     private Long id;
@@ -16,6 +14,4 @@ public class AddressDTO {
     private String state;
     private String zipCode;
     private String country;
-    private Boolean isBilling;
-    private Boolean isShipping;
 }

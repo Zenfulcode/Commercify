@@ -1,12 +1,12 @@
 package com.zenfulcode.commercify.commercify.service;
 
 
-import com.zenfulcode.commercify.commercify.api.requests.addresses.AddressRequest;
+import com.zenfulcode.commercify.commercify.dto.AddressDTO;
 import com.zenfulcode.commercify.commercify.dto.UserDTO;
+import com.zenfulcode.commercify.commercify.dto.mapper.AddressMapper;
 import com.zenfulcode.commercify.commercify.dto.mapper.UserMapper;
 import com.zenfulcode.commercify.commercify.entity.AddressEntity;
 import com.zenfulcode.commercify.commercify.entity.UserEntity;
-import com.zenfulcode.commercify.commercify.repository.AddressRepository;
 import com.zenfulcode.commercify.commercify.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,7 +21,7 @@ import java.util.ArrayList;
 public class UserManagementService {
     private final UserRepository userRepository;
     private final UserMapper mapper;
-    private final AddressRepository addressRepository;
+    private final AddressMapper addressMapper;
 
     @Transactional(readOnly = true)
     public UserDTO getUserById(Long id) {
@@ -57,64 +57,54 @@ public class UserManagementService {
     }
 
     @Transactional
-    public UserDTO addAddress(Long userId, AddressRequest addressDTO) {
+    public AddressDTO setShippingAddress(Long userId, AddressDTO request) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         AddressEntity address = AddressEntity.builder()
-                .street(addressDTO.street())
-                .city(addressDTO.city())
-                .state(addressDTO.state())
-                .zipCode(addressDTO.zipCode())
-                .country(addressDTO.country())
-                .isBillingAddress(addressDTO.isBilling())
-                .isShippingAddress(addressDTO.isShipping())
-                .user(user)
+                .street(request.getStreet())
+                .city(request.getCity())
+                .state(request.getState())
+                .zipCode(request.getZipCode())
+                .country(request.getCountry())
                 .build();
 
-        addressRepository.save(address);
+        user.setShippingAddress(address);
 
-        user.getAddresses().add(address);
-        UserEntity updatedUser = userRepository.save(user);
-
-        return mapper.apply(updatedUser);
+        return addressMapper.apply(address);
     }
 
     @Transactional
-    public UserDTO updateAddress(Long userId, Long addressId, AddressRequest addressDTO) {
+    public AddressDTO setBillingAddress(Long userId, AddressDTO request) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        AddressEntity address = user.getAddresses().stream()
-                .filter(a -> a.getId().equals(addressId))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Address not found"));
+        AddressEntity address = AddressEntity.builder()
+                .street(request.getStreet())
+                .city(request.getCity())
+                .state(request.getState())
+                .zipCode(request.getZipCode())
+                .country(request.getCountry())
+                .build();
 
-        address.setStreet(addressDTO.street());
-        address.setCity(addressDTO.city());
-        address.setState(addressDTO.state());
-        address.setZipCode(addressDTO.zipCode());
-        address.setCountry(addressDTO.country());
-        address.setIsBillingAddress(addressDTO.isBilling());
-        address.setIsShippingAddress(addressDTO.isShipping());
-
-        UserEntity updatedUser = userRepository.save(user);
-        addressRepository.save(address);
-
-        return mapper.apply(updatedUser);
+        user.setBillingAddress(address);
+        return addressMapper.apply(address);
     }
 
     @Transactional
-    public UserDTO removeAddress(Long userId, Long addressId) {
+    public UserDTO removeShippingAddress(Long userId) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setShippingAddress(null);
+        return mapper.apply(userRepository.save(user));
+    }
 
-        user.getAddresses().removeIf(address -> address.getId().equals(addressId));
-        UserEntity updatedUser = userRepository.save(user);
-
-        addressRepository.deleteById(addressId);
-
-        return mapper.apply(updatedUser);
+    @Transactional
+    public UserDTO removeBillingAddress(Long userId) {
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setBillingAddress(null);
+        return mapper.apply(userRepository.save(user));
     }
 
     @Transactional
