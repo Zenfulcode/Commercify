@@ -16,6 +16,7 @@ public class UserDTO {
     private String firstName;
     private String lastName;
     private Date createdAt;
+    private AddressDTO shippingAddress;
+    private AddressDTO billingAddress;
     private List<String> roles;
-    private List<AddressDTO> addresses;
 }

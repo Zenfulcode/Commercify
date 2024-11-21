@@ -5,9 +5,7 @@ import com.zenfulcode.commercify.commercify.api.requests.LoginUserRequest;
 import com.zenfulcode.commercify.commercify.api.requests.RegisterUserRequest;
 import com.zenfulcode.commercify.commercify.dto.UserDTO;
 import com.zenfulcode.commercify.commercify.dto.mapper.UserMapper;
-import com.zenfulcode.commercify.commercify.entity.AddressEntity;
 import com.zenfulcode.commercify.commercify.entity.UserEntity;
-import com.zenfulcode.commercify.commercify.repository.AddressRepository;
 import com.zenfulcode.commercify.commercify.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,17 +15,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.UUID;
 
 @Service
 @AllArgsConstructor
 @Slf4j
 public class AuthenticationService {
-    private final AddressRepository addressRepository;
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManager;
     private final UserMapper mapper;
@@ -48,26 +43,7 @@ public class AuthenticationService {
                 .email(registerRequest.email())
                 .password(passwordEncoder.encode(registerRequest.password()))
                 .roles(List.of("USER"))
-                .addresses(new HashSet<>())
                 .build();
-
-        if (!registerRequest.addresses().isEmpty()) {
-            Set<AddressEntity> addresses = registerRequest.addresses().stream()
-                    .map(addressDTO -> AddressEntity.builder()
-                            .street(addressDTO.getStreet())
-                            .city(addressDTO.getCity())
-                            .state(addressDTO.getState())
-                            .zipCode(addressDTO.getZipCode())
-                            .country(addressDTO.getCountry())
-                            .isBillingAddress(addressDTO.getIsBilling())
-                            .isShippingAddress(addressDTO.getIsShipping())
-                            .user(user)
-                            .build())
-                    .collect(Collectors.toSet());
-
-            user.setAddresses(addresses);
-            addressRepository.saveAll(addresses);
-        }
 
         UserEntity savedUser = userRepository.save(user);
         return mapper.apply(savedUser);
@@ -81,7 +57,7 @@ public class AuthenticationService {
                 )
         );
 
-        return userRepository.findByEmailWithAddresses(login.email())
+        return userRepository.findByEmail(login.email())
                 .map(mapper)
                 .orElseThrow();
     }
@@ -96,5 +72,20 @@ public class AuthenticationService {
         return userRepository.findByEmail(email)
                 .map(mapper)
                 .orElseThrow();
+    }
+
+    @Transactional
+    public UserDTO authenticateGuest() {
+        String guestEmail = "guest_" + UUID.randomUUID() + "@commercify.app";
+        String randomPassword = UUID.randomUUID().toString();
+
+        RegisterUserRequest guestRequest = new RegisterUserRequest(
+                guestEmail,
+                randomPassword,
+                "Guest",
+                "User"
+        );
+
+        return registerUser(guestRequest);
     }
 }

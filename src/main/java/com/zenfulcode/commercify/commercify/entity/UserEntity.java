@@ -7,10 +7,10 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Table(name = "users")
@@ -36,10 +36,16 @@ public class UserEntity implements UserDetails {
     @Column(nullable = false)
     private String password;
 
-    @ToString.Exclude
-    @OneToMany(mappedBy = "user", orphanRemoval = true)
-    @Builder.Default
-    private Set<AddressEntity> addresses = new LinkedHashSet<>();
+    @Column(name = "phone_number", length = 20)
+    private String phoneNumber;
+
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "shipping_address_id")
+    private AddressEntity shippingAddress;
+
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "billing_address_id")
+    private AddressEntity billingAddress;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "id"))
@@ -54,35 +60,31 @@ public class UserEntity implements UserDetails {
     @UpdateTimestamp
     private Instant updatedAt;
 
-    @Transactional(readOnly = true)
-    public AddressEntity getBillingAddress() {
-        return addresses.stream()
-                .filter(AddressEntity::getIsBillingAddress)
-                .findFirst()
-                .orElse(null);
-    }
-
-    @Transactional(readOnly = true)
-    public AddressEntity getShippingAddress() {
-        return addresses.stream()
-                .filter(AddressEntity::getIsShippingAddress)
-                .findFirst()
-                .orElse(null);
-    }
-
-    @Transactional(readOnly = true)
-    public void addAddress(AddressEntity address) {
-        Set<AddressEntity> addressEntities = new HashSet<>(addresses);
-        addressEntities.add(address);
-
-        addresses = addressEntities;
-    }
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return roles.stream()
                 .map(role -> new SimpleGrantedAuthority("ROLE_" + role.toUpperCase()))
                 .collect(Collectors.toList());
+    }
+
+    public void setShippingAddress(AddressEntity address) {
+        if (this.shippingAddress != null) {
+            this.shippingAddress.setShippingUser(null);
+        }
+        this.shippingAddress = address;
+        if (address != null) {
+            address.setShippingUser(this);
+        }
+    }
+
+    public void setBillingAddress(AddressEntity address) {
+        if (this.billingAddress != null) {
+            this.billingAddress.setBillingUser(null);
+        }
+        this.billingAddress = address;
+        if (address != null) {
+            address.setBillingUser(this);
+        }
     }
 
     @Override

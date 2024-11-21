@@ -33,11 +33,11 @@ public class AddressEntity {
     @Column(nullable = false)
     private String country;
 
-    @Column(name = "is_billing_address", nullable = false)
-    private Boolean isBillingAddress;
+    @OneToOne(mappedBy = "shippingAddress")
+    private UserEntity shippingUser;
 
-    @Column(name = "is_shipping_address", nullable = false)
-    private Boolean isShippingAddress;
+    @OneToOne(mappedBy = "billingAddress")
+    private UserEntity billingUser;
 
     @Column(name = "created_at", nullable = false)
     @CreationTimestamp
@@ -47,7 +47,4 @@ public class AddressEntity {
     @UpdateTimestamp
     private Instant updatedAt;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private UserEntity user;
 }

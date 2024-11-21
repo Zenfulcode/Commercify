@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -17,14 +16,22 @@ public class UserMapper implements Function<UserEntity, UserDTO> {
 
     @Override
     public UserDTO apply(UserEntity user) {
-        return UserDTO.builder()
+        UserDTO.UserDTOBuilder userBuilder = UserDTO.builder()
                 .id(user.getId())
                 .email(user.getEmail())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .roles(user.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList())
-                .createdAt(Date.from(user.getCreatedAt()))
-                .addresses(user.getAddresses().stream().map(addressDTOMapper).collect(Collectors.toList()))
-                .build();
+                .createdAt(Date.from(user.getCreatedAt()));
+
+        if (user.getShippingAddress() != null) {
+            userBuilder.shippingAddress(addressDTOMapper.apply(user.getShippingAddress()));
+        }
+
+        if (user.getBillingAddress() != null) {
+            userBuilder.billingAddress(addressDTOMapper.apply(user.getBillingAddress()));
+        }
+
+        return userBuilder.build();
     }
 }

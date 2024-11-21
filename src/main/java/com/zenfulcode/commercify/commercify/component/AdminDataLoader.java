@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.Collections;
 import java.util.List;
 
 @Configuration
@@ -34,7 +33,6 @@ public class AdminDataLoader {
                         .firstName("Admin")
                         .lastName("User")
                         .roles(List.of("ADMIN", "USER"))
-                        .addresses(Collections.emptySet())
                         .build();
 
                 userRepository.save(adminUser);

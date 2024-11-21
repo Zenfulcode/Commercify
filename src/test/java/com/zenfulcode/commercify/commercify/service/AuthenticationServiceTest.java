@@ -20,7 +20,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -48,6 +47,9 @@ class AuthenticationServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
+    @Mock
+    private UserManagementService userManagementService;
+
     @InjectMocks
     private AuthenticationService authenticationService;
 
@@ -58,22 +60,19 @@ class AuthenticationServiceTest {
 
     @BeforeEach
     void setUp() {
-        AddressDTO addressDTO = AddressDTO.builder()
+        AddressDTO shippingAddress = AddressDTO.builder()
                 .street("123 Test St")
                 .city("Test City")
                 .state("Test State")
                 .zipCode("12345")
                 .country("Test Country")
-                .isBilling(true)
-                .isShipping(false)
                 .build();
 
         registerRequest = new RegisterUserRequest(
                 "test@example.com",
                 "password123",
                 "John",
-                "Doe",
-                List.of(addressDTO)
+                "Doe"
         );
 
         userEntity = UserEntity.builder()
@@ -83,7 +82,6 @@ class AuthenticationServiceTest {
                 .firstName("John")
                 .lastName("Doe")
                 .roles(List.of("USER"))
-                .addresses(new HashSet<>())
                 .build();
 
         userDTO = UserDTO.builder()
@@ -92,7 +90,7 @@ class AuthenticationServiceTest {
                 .firstName("John")
                 .lastName("Doe")
                 .roles(List.of("USER"))
-                .addresses(List.of(addressDTO))
+                .shippingAddress(shippingAddress)
                 .build();
 
         loginRequest = new LoginUserRequest("test@example.com", "password123");
@@ -132,7 +130,7 @@ class AuthenticationServiceTest {
     @Test
     @DisplayName("Should successfully authenticate user")
     void authenticate_Success() {
-        when(userRepository.findByEmailWithAddresses(anyString())).thenReturn(Optional.of(userEntity));
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(userEntity));
         when(userMapper.apply(any(UserEntity.class))).thenReturn(userDTO);
 
         UserDTO result = authenticationService.authenticate(loginRequest);
