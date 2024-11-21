@@ -172,10 +172,6 @@ public class MobilePayService {
             errors.add("Return URL is required");
         }
 
-        if (request.phoneNumber() == null || request.phoneNumber().isEmpty()) {
-            errors.add("Phone number is required");
-        }
-
         if (!errors.isEmpty()) {
             throw new PaymentProcessingException("Invalid payment request: " + String.join(", ", errors), null);
         }
