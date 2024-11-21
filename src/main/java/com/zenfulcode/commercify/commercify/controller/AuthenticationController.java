@@ -41,6 +41,13 @@ public class AuthenticationController {
         }
     }
 
+    @PostMapping("/guest")
+    public ResponseEntity<AuthResponse> loginAsGuest() {
+        UserDTO guestUser = authenticationService.authenticateGuest();
+        String jwtToken = jwtService.generateToken(guestUser);
+        return ResponseEntity.ok(AuthResponse.UserAuthenticated(guestUser, jwtToken, jwtService.getExpirationTime()));
+    }
+
     @GetMapping("/me")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<UserDTO> getAuthenticatedUser(@RequestHeader("Authorization") String authHeader) {

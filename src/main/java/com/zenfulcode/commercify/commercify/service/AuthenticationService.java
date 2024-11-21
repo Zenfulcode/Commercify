@@ -17,10 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -96,5 +93,21 @@ public class AuthenticationService {
         return userRepository.findByEmail(email)
                 .map(mapper)
                 .orElseThrow();
+    }
+
+    @Transactional
+    public UserDTO authenticateGuest() {
+        String guestEmail = "guest_" + UUID.randomUUID() + "@commercify.app";
+        String randomPassword = UUID.randomUUID().toString();
+
+        RegisterUserRequest guestRequest = new RegisterUserRequest(
+                guestEmail,
+                randomPassword,
+                "Guest",
+                "User",
+                Collections.emptyList()
+        );
+
+        return registerUser(guestRequest);
     }
 }
