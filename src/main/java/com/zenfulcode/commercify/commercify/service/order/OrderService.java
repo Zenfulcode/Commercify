@@ -60,7 +60,6 @@ public class OrderService {
         return orderMapper.apply(savedOrder);
     }
 
-
     @Transactional
     public void updateOrderStatus(Long orderId, OrderStatus newStatus) {
         OrderEntity order = findOrderById(orderId);
