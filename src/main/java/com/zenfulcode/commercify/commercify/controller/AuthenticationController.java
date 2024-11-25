@@ -21,12 +21,13 @@ public class AuthenticationController {
     private final AuthenticationService authenticationService;
 
     @PostMapping("/signup")
-    public ResponseEntity<RegisterUserResponse> register(@RequestBody RegisterUserRequest registerRequest) {
+    public ResponseEntity<?> register(@RequestBody RegisterUserRequest registerRequest) {
         try {
             UserDTO user = authenticationService.registerUser(registerRequest);
             return ResponseEntity.ok(RegisterUserResponse.UserRegistered(user));
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(RegisterUserResponse.RegistrationFailed(e.getMessage()));
+            RegisterUserResponse error = RegisterUserResponse.RegistrationFailed(e.getMessage());
+            return ResponseEntity.badRequest().body(error);
         }
     }
 
@@ -34,20 +35,11 @@ public class AuthenticationController {
     public ResponseEntity<AuthResponse> login(@RequestBody LoginUserRequest loginRequest) {
         try {
             UserDTO authenticatedUser = authenticationService.authenticate(loginRequest);
-
-
             String jwtToken = jwtService.generateToken(authenticatedUser);
             return ResponseEntity.ok(AuthResponse.UserAuthenticated(authenticatedUser, jwtToken, jwtService.getExpirationTime()));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(AuthResponse.AuthenticationFailed(e.getMessage()));
         }
-    }
-
-    @PostMapping("/guest")
-    public ResponseEntity<AuthResponse> loginAsGuest() {
-        UserDTO guestUser = authenticationService.authenticateGuest();
-        String jwtToken = jwtService.generateToken(guestUser);
-        return ResponseEntity.ok(AuthResponse.UserAuthenticated(guestUser, jwtToken, jwtService.getExpirationTime()));
     }
 
     @GetMapping("/me")
