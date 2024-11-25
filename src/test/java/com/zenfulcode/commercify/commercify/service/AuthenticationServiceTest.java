@@ -72,7 +72,9 @@ class AuthenticationServiceTest {
                 "test@example.com",
                 "password123",
                 "John",
-                "Doe"
+                "Doe",
+                shippingAddress,
+                null
         );
 
         userEntity = UserEntity.builder()
@@ -119,7 +121,9 @@ class AuthenticationServiceTest {
     @Test
     void registerUser_NoPasswordProvided_ShouldSetDefaultPassword() {
         // Arrange
-        RegisterUserRequest request = new RegisterUserRequest("test@example.com", "", "Test", "User");
+        RegisterUserRequest request = new RegisterUserRequest("test@example.com", "", "Test", "User",
+                null,
+                null);
 
         System.out.println(request);
 
