@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 @AllArgsConstructor
@@ -72,20 +71,5 @@ public class AuthenticationService {
         return userRepository.findByEmail(email)
                 .map(mapper)
                 .orElseThrow();
-    }
-
-    @Transactional
-    public UserDTO authenticateGuest() {
-        String guestEmail = "guest_" + UUID.randomUUID() + "@commercify.app";
-        String randomPassword = UUID.randomUUID().toString();
-
-        RegisterUserRequest guestRequest = new RegisterUserRequest(
-                guestEmail,
-                randomPassword,
-                "Guest",
-                "User"
-        );
-
-        return registerUser(guestRequest);
     }
 }

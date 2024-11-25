@@ -70,6 +70,7 @@ public class UserManagementService {
                 .build();
 
         user.setShippingAddress(address);
+        userRepository.save(user);
 
         return addressMapper.apply(address);
     }
@@ -88,6 +89,8 @@ public class UserManagementService {
                 .build();
 
         user.setBillingAddress(address);
+        userRepository.save(user);
+
         return addressMapper.apply(address);
     }
 

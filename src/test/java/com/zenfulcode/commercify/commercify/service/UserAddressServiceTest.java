@@ -2,6 +2,7 @@ package com.zenfulcode.commercify.commercify.service;
 
 import com.zenfulcode.commercify.commercify.dto.AddressDTO;
 import com.zenfulcode.commercify.commercify.dto.UserDTO;
+import com.zenfulcode.commercify.commercify.dto.mapper.AddressMapper;
 import com.zenfulcode.commercify.commercify.dto.mapper.UserMapper;
 import com.zenfulcode.commercify.commercify.entity.AddressEntity;
 import com.zenfulcode.commercify.commercify.entity.UserEntity;
@@ -35,6 +36,9 @@ class UserAddressServiceTest {
 
     @Mock
     private UserMapper userMapper;
+
+    @Mock
+    private AddressMapper addressMapper;
 
     @InjectMocks
     private UserManagementService userManagementService;
@@ -97,7 +101,6 @@ class UserAddressServiceTest {
         void setShippingAddress_Success() {
             when(userRepository.findById(1L)).thenReturn(Optional.of(user));
             when(userRepository.save(any(UserEntity.class))).thenReturn(user);
-            when(userMapper.apply(any(UserEntity.class))).thenReturn(userDTO);
 
             userManagementService.setShippingAddress(1L, address);
 
@@ -145,7 +148,6 @@ class UserAddressServiceTest {
         void setBillingAddress_Success() {
             when(userRepository.findById(1L)).thenReturn(Optional.of(user));
             when(userRepository.save(any(UserEntity.class))).thenReturn(user);
-            when(userMapper.apply(any(UserEntity.class))).thenReturn(userDTO);
 
             userManagementService.setBillingAddress(1L, address);
 

@@ -117,6 +117,28 @@ class AuthenticationServiceTest {
     }
 
     @Test
+    void registerUser_NoPasswordProvided_ShouldSetDefaultPassword() {
+        // Arrange
+        RegisterUserRequest request = new RegisterUserRequest("test@example.com", "", "Test", "User");
+
+        System.out.println(request);
+
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
+        when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
+        when(userRepository.save(any(UserEntity.class))).thenReturn(userEntity);
+        when(userMapper.apply(any(UserEntity.class))).thenReturn(userDTO);
+
+        // Act
+        UserDTO result = authenticationService.registerUser(request);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals("test@example.com", result.getEmail());
+        verify(passwordEncoder, times(1)).encode(anyString());
+        verify(userRepository, times(1)).save(any(UserEntity.class));
+    }
+
+    @Test
     @DisplayName("Should throw exception when registering with existing email")
     void registerUser_ExistingEmail() {
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(userEntity));
