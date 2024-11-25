@@ -5,6 +5,7 @@ import com.zenfulcode.commercify.commercify.api.requests.LoginUserRequest;
 import com.zenfulcode.commercify.commercify.api.requests.RegisterUserRequest;
 import com.zenfulcode.commercify.commercify.dto.UserDTO;
 import com.zenfulcode.commercify.commercify.dto.mapper.UserMapper;
+import com.zenfulcode.commercify.commercify.entity.AddressEntity;
 import com.zenfulcode.commercify.commercify.entity.UserEntity;
 import com.zenfulcode.commercify.commercify.repository.UserRepository;
 import lombok.AllArgsConstructor;
@@ -36,12 +37,39 @@ public class AuthenticationService {
             throw new RuntimeException("User with email " + registerRequest.email() + " already exists");
         }
 
+        AddressEntity shippingAddress = null;
+        AddressEntity billingAddress;
+
+        if (registerRequest.shippingAddress() != null) {
+            shippingAddress = AddressEntity.builder()
+                    .street(registerRequest.shippingAddress().getStreet())
+                    .city(registerRequest.shippingAddress().getCity())
+                    .state(registerRequest.shippingAddress().getState())
+                    .zipCode(registerRequest.shippingAddress().getZipCode())
+                    .country(registerRequest.shippingAddress().getCountry())
+                    .build();
+        }
+
+        if (registerRequest.billingAddress() != null) {
+            billingAddress = AddressEntity.builder()
+                    .street(registerRequest.billingAddress().getStreet())
+                    .city(registerRequest.billingAddress().getCity())
+                    .state(registerRequest.billingAddress().getState())
+                    .zipCode(registerRequest.billingAddress().getZipCode())
+                    .country(registerRequest.billingAddress().getCountry())
+                    .build();
+        } else {
+            billingAddress = shippingAddress;
+        }
+
         UserEntity user = UserEntity.builder()
                 .firstName(registerRequest.firstName())
                 .lastName(registerRequest.lastName())
                 .email(registerRequest.email())
                 .password(passwordEncoder.encode(registerRequest.password()))
                 .roles(List.of("USER"))
+                .shippingAddress(shippingAddress)
+                .billingAddress(billingAddress)
                 .build();
 
         UserEntity savedUser = userRepository.save(user);

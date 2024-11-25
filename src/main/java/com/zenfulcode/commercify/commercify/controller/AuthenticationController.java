@@ -21,12 +21,13 @@ public class AuthenticationController {
     private final AuthenticationService authenticationService;
 
     @PostMapping("/signup")
-    public ResponseEntity<RegisterUserResponse> register(@RequestBody RegisterUserRequest registerRequest) {
+    public ResponseEntity<?> register(@RequestBody RegisterUserRequest registerRequest) {
         try {
             UserDTO user = authenticationService.registerUser(registerRequest);
             return ResponseEntity.ok(RegisterUserResponse.UserRegistered(user));
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(RegisterUserResponse.RegistrationFailed(e.getMessage()));
+            RegisterUserResponse error = RegisterUserResponse.RegistrationFailed(e.getMessage());
+            return ResponseEntity.badRequest().body(error);
         }
     }
 
