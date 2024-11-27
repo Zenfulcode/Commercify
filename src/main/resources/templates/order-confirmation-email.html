@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <title>Order Confirmation</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <style>
+        .order-details {
+            margin: 20px 0;
+        }
+
+        .order-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .order-table th, .order-table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+
+        .total {
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .status {
+            color: #2c5282;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<h1>Order Confirmation - #<span th:text="${order.id}">123</span></h1>
+
+<p>Dear <span th:text="${order.userName}">Customer</span>,</p>
+
+<p>Thank you for your order. Here are your order details:</p>
+
+<div class="order-details">
+    <p>Order Status: <span class="status" th:text="${order.status}">PENDING</span></p>
+    <p>Order Date: <span th:text="${#temporals.format(order.createdAt, 'dd-MM-yyyy HH:mm')}">01-01-2024</span></p>
+
+    <table class="order-table">
+        <thead>
+        <tr>
+            <th>Product</th>
+            <th>Quantity</th>
+            <th>Price</th>
+            <th>Total</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="item : ${order.items}">
+            <td>
+                <span th:text="${item.name}">Product Name</span>
+                <div th:if="${item.variant}" th:text="${item.variant}">Variant Details</div>
+            </td>
+            <td th:text="${item.quantity}">1</td>
+            <td th:text="${#numbers.formatDecimal(item.unitPrice, 1, 2) + ' ' + order.currency}">$99.99</td>
+            <td th:text="${#numbers.formatDecimal(item.total, 1, 2) + ' ' + order.currency}">$99.99</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <p class="total">Total Amount: <span
+            th:text="${#numbers.formatDecimal(order.totalAmount, 1, 2) + ' ' + order.currency}">$99.99</span></p>
+</div>
+
+<p th:if="${order.status == 'PENDING'}">
+    Your order has been received and is being processed. We'll notify you when there are any updates.
+</p>
+
+<p th:if="${order.status == 'CONFIRMED'}">
+    Your order has been confirmed and is being prepared for shipping.
+</p>
+
+<p th:if="${order.status == 'SHIPPED'}">
+    Your order has been shipped! You can track your order using the following link:
+    <a th:href="${trackingUrl}" th:text="${trackingUrl}">Tracking Link</a>
+</p>
+
+<p>If you have any questions about your order, please contact our customer service.</p>
+
+<p>Best regards,<br/>Commercify Team</p>
+</body>
+</html>

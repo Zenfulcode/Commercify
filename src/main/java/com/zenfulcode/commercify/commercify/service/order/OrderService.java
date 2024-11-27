@@ -19,7 +19,9 @@ import com.zenfulcode.commercify.commercify.repository.OrderRepository;
 import com.zenfulcode.commercify.commercify.repository.ProductRepository;
 import com.zenfulcode.commercify.commercify.repository.ProductVariantRepository;
 import com.zenfulcode.commercify.commercify.service.StockManagementService;
+import com.zenfulcode.commercify.commercify.service.email.EmailService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -31,6 +33,7 @@ import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class OrderService {
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
@@ -54,8 +57,6 @@ public class OrderService {
         // Create order entity
         OrderEntity order = buildOrderEntity(userId, request, products, variants);
         OrderEntity savedOrder = orderRepository.save(order);
-        // Update stock levels
-//        stockService.updateStockLevels(order.getOrderLines());
 
         return orderMapper.apply(savedOrder);
     }
@@ -63,9 +64,11 @@ public class OrderService {
     @Transactional
     public void updateOrderStatus(Long orderId, OrderStatus newStatus) {
         OrderEntity order = findOrderById(orderId);
-        validationService.validateStatusTransition(order.getStatus(), newStatus);
+        OrderStatus oldStatus = order.getStatus();
 
+        validationService.validateStatusTransition(oldStatus, newStatus);
         order.setStatus(newStatus);
+
         orderRepository.save(order);
     }
 
@@ -125,7 +128,6 @@ public class OrderService {
 
                 // TODO - Validate stock levels
 
-                // Also validate that the variant belongs to the specified product
                 if (!variant.getProduct().getId().equals(line.productId())) {
                     throw new IllegalArgumentException(
                             String.format("Variant %d does not belong to product %d",
@@ -185,7 +187,6 @@ public class OrderService {
 
         Map<Long, ProductEntity> products = productRepository.findAllById(productIds).stream().collect(Collectors.toMap(ProductEntity::getId, Function.identity()));
 
-        // Validate all products exist and are active
         orderLines.forEach(line -> {
             ProductEntity product = products.get(line.productId());
             if (product == null) {

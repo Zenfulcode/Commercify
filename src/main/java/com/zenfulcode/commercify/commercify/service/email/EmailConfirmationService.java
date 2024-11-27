@@ -4,7 +4,6 @@ import com.zenfulcode.commercify.commercify.entity.ConfirmationTokenEntity;
 import com.zenfulcode.commercify.commercify.entity.UserEntity;
 import com.zenfulcode.commercify.commercify.repository.ConfirmationTokenRepository;
 import com.zenfulcode.commercify.commercify.repository.UserRepository;
-import com.zenfulcode.commercify.commercify.service.EmailService;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

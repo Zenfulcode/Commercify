@@ -79,7 +79,6 @@ public class AuthenticationService {
 
         emailConfirmationService.createConfirmationToken(savedUser);
 
-
         return mapper.apply(savedUser);
     }
 

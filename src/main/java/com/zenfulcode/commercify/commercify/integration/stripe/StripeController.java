@@ -23,7 +23,6 @@ public class StripeController {
         }
     }
 
-
     @PostMapping("/webhook")
     public ResponseEntity<Void> handleWebhook(
             @RequestBody String payload,
