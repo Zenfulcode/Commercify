@@ -9,6 +9,7 @@ import com.zenfulcode.commercify.commercify.dto.mapper.UserMapper;
 import com.zenfulcode.commercify.commercify.entity.UserEntity;
 import com.zenfulcode.commercify.commercify.repository.AddressRepository;
 import com.zenfulcode.commercify.commercify.repository.UserRepository;
+import com.zenfulcode.commercify.commercify.service.email.EmailConfirmationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -50,6 +51,9 @@ class AuthenticationServiceTest {
     @Mock
     private UserManagementService userManagementService;
 
+    @Mock
+    private EmailConfirmationService emailConfirmationService;
+
     @InjectMocks
     private AuthenticationService authenticationService;
 
@@ -84,6 +88,7 @@ class AuthenticationServiceTest {
                 .firstName("John")
                 .lastName("Doe")
                 .roles(List.of("USER"))
+                .emailConfirmed(true)
                 .build();
 
         userDTO = UserDTO.builder()

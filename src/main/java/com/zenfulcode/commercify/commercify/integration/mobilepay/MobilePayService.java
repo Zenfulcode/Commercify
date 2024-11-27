@@ -10,6 +10,7 @@ import com.zenfulcode.commercify.commercify.exception.OrderNotFoundException;
 import com.zenfulcode.commercify.commercify.exception.PaymentProcessingException;
 import com.zenfulcode.commercify.commercify.repository.OrderRepository;
 import com.zenfulcode.commercify.commercify.repository.PaymentRepository;
+import com.zenfulcode.commercify.commercify.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,10 +27,13 @@ import java.util.*;
 @RequiredArgsConstructor
 @Slf4j
 public class MobilePayService {
+    private final PaymentService paymentService;
+    private final MobilePayTokenService tokenService;
+
     private final OrderRepository orderRepository;
     private final PaymentRepository paymentRepository;
+
     private final RestTemplate restTemplate;
-    private final MobilePayTokenService tokenService;
 
     @Value("${mobilepay.subscription-key}")
     private String subscriptionKey;
@@ -77,6 +81,17 @@ public class MobilePayService {
             log.error("Error creating MobilePay payment", e);
             throw new PaymentProcessingException("Failed to create MobilePay payment", e);
         }
+    }
+
+    @Transactional
+    public void handlePaymentCallback(String paymentReference, String status) {
+        PaymentEntity payment = paymentRepository.findByMobilePayReference(paymentReference)
+                .orElseThrow(() -> new PaymentProcessingException("Payment not found", null));
+
+        PaymentStatus newStatus = mapMobilePayStatus(status);
+
+        // Update payment status and trigger confirmation email if needed
+        paymentService.handlePaymentStatusUpdate(payment.getOrderId(), newStatus);
     }
 
     private HttpHeaders mobilePayRequestHeaders() {
