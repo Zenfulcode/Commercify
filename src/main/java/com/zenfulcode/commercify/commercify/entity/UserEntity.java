@@ -10,7 +10,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.Instant;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Table(name = "users")
@@ -51,6 +53,13 @@ public class UserEntity implements UserDetails {
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "id"))
     @Column(name = "role")
     private List<String> roles;
+
+    @Column(nullable = false, name = "email_confirmed")
+    private Boolean emailConfirmed = false;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    private Set<ConfirmationTokenEntity> confirmationTokens = new HashSet<>();
 
     @Column(name = "created_at", nullable = false)
     @CreationTimestamp
@@ -109,6 +118,6 @@ public class UserEntity implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return emailConfirmed;
     }
 }

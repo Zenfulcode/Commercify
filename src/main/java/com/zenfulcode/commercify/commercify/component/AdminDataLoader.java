@@ -33,6 +33,9 @@ public class AdminDataLoader {
                         .firstName("Admin")
                         .lastName("User")
                         .roles(List.of("ADMIN", "USER"))
+                        .shippingAddress(null)
+                        .billingAddress(null)
+                        .emailConfirmed(true)
                         .build();
 
                 userRepository.save(adminUser);
