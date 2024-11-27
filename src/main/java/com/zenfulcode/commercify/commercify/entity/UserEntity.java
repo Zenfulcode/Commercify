@@ -54,8 +54,8 @@ public class UserEntity implements UserDetails {
     @Column(name = "role")
     private List<String> roles;
 
-    @Column(nullable = false)
-    private boolean emailConfirmed = false;
+    @Column(nullable = false, name = "email_confirmed")
+    private Boolean emailConfirmed = false;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude

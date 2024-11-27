@@ -68,7 +68,7 @@ public class EmailConfirmationService {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (user.isEmailConfirmed()) {
+        if (user.isEnabled()) {
             throw new RuntimeException("Email already confirmed");
         }
 

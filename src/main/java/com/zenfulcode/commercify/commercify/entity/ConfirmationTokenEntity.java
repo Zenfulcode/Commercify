@@ -22,7 +22,7 @@ public class ConfirmationTokenEntity {
     @Column(nullable = false, unique = true)
     private String token;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "expiry_date")
     private Instant expiryDate;
 
     @Column(nullable = false)
@@ -33,7 +33,7 @@ public class ConfirmationTokenEntity {
     private UserEntity user;
 
     @CreationTimestamp
-    @Column(nullable = false)
+    @Column(nullable = false, name = "created_at")
     private Instant createdAt;
 
     @PrePersist
