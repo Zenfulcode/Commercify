@@ -161,7 +161,7 @@ public class MobilePayService {
         // Other fields
         String reference = systemName + "-order-" + order.getId().toString() + "-" + value;
         paymentRequest.put("reference", reference);
-        paymentRequest.put("returnUrl", request.returnUrl() + "?success=true&orderId=" + order.getId());
+        paymentRequest.put("returnUrl", request.returnUrl() + "?orderId=" + order.getId());
         paymentRequest.put("userFlow", "WEB_REDIRECT");
         paymentRequest.put("paymentDescription", "Order #" + order.getId());
 

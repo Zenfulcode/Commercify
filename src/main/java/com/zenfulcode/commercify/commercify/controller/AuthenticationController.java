@@ -4,15 +4,16 @@ package com.zenfulcode.commercify.commercify.controller;
 import com.zenfulcode.commercify.commercify.api.requests.LoginUserRequest;
 import com.zenfulcode.commercify.commercify.api.requests.RegisterUserRequest;
 import com.zenfulcode.commercify.commercify.api.responses.AuthResponse;
-import com.zenfulcode.commercify.commercify.api.responses.RegisterUserResponse;
 import com.zenfulcode.commercify.commercify.dto.UserDTO;
 import com.zenfulcode.commercify.commercify.service.AuthenticationService;
 import com.zenfulcode.commercify.commercify.service.JwtService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
@@ -21,13 +22,19 @@ public class AuthenticationController {
     private final AuthenticationService authenticationService;
 
     @PostMapping("/signup")
-    public ResponseEntity<?> register(@RequestBody RegisterUserRequest registerRequest) {
+    public ResponseEntity<AuthResponse> register(@RequestBody RegisterUserRequest registerRequest) {
         try {
             UserDTO user = authenticationService.registerUser(registerRequest);
-            return ResponseEntity.ok(RegisterUserResponse.UserRegistered(user));
+
+            if (registerRequest.isGuest()) {
+                UserDTO authenticated = authenticationService.authenticate(new LoginUserRequest(registerRequest.email(), registerRequest.password()));
+                String jwt = jwtService.generateToken(authenticated);
+                return ResponseEntity.ok(AuthResponse.UserAuthenticated(authenticated, jwt, jwtService.getExpirationTime()));
+            }
+
+            return ResponseEntity.ok(AuthResponse.UserAuthenticated(user, "", 0));
         } catch (RuntimeException e) {
-            RegisterUserResponse error = RegisterUserResponse.RegistrationFailed(e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            return ResponseEntity.badRequest().body(AuthResponse.AuthenticationFailed(e.getMessage()));
         }
     }
 

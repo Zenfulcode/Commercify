@@ -77,6 +77,7 @@ class AuthenticationServiceTest {
                 "password123",
                 "John",
                 "Doe",
+                false,
                 shippingAddress,
                 null
         );
@@ -127,6 +128,7 @@ class AuthenticationServiceTest {
     void registerUser_NoPasswordProvided_ShouldSetDefaultPassword() {
         // Arrange
         RegisterUserRequest request = new RegisterUserRequest("test@example.com", "", "Test", "User",
+                false,
                 null,
                 null);
 
