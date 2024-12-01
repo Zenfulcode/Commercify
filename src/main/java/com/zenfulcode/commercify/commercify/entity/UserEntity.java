@@ -118,6 +118,6 @@ public class UserEntity implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return emailConfirmed;
+        return true;
     }
 }
