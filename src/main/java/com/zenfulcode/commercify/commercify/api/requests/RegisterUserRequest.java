@@ -9,12 +9,17 @@ public record RegisterUserRequest(
         String password,
         String firstName,
         String lastName,
+        Boolean isGuest,
         AddressDTO shippingAddress,
         AddressDTO billingAddress) {
     // Set a secure default password
     public RegisterUserRequest {
         if (password == null || password.isBlank()) {
             password = UUID.randomUUID().toString();
+        }
+
+        if (isGuest == null) {
+            isGuest = false;
         }
     }
 }

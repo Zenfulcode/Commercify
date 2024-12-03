@@ -8,6 +8,7 @@ import com.zenfulcode.commercify.commercify.dto.mapper.UserMapper;
 import com.zenfulcode.commercify.commercify.entity.AddressEntity;
 import com.zenfulcode.commercify.commercify.entity.UserEntity;
 import com.zenfulcode.commercify.commercify.repository.UserRepository;
+import com.zenfulcode.commercify.commercify.service.email.EmailConfirmationService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -28,6 +29,7 @@ public class AuthenticationService {
     private final UserMapper mapper;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
+    private final EmailConfirmationService emailConfirmationService;
 
     @Transactional
     public UserDTO registerUser(RegisterUserRequest registerRequest) {
@@ -70,9 +72,13 @@ public class AuthenticationService {
                 .roles(List.of("USER"))
                 .shippingAddress(shippingAddress)
                 .billingAddress(billingAddress)
+                .emailConfirmed(false)
                 .build();
 
         UserEntity savedUser = userRepository.save(user);
+
+        emailConfirmationService.createConfirmationToken(savedUser);
+
         return mapper.apply(savedUser);
     }
 

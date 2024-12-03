@@ -12,8 +12,7 @@ endif
 
 update:
 	docker compose -f deploy/docker-compose.yml down
-	docker compose -f deploy/docker-compose.yml build --no-cache
-	docker compose -f deploy/docker-compose.yml up --force-recreate
+	docker compose -f deploy/docker-compose.yml up --build
 
 build:
 	docker build -t ghcr.io/zenfulcode/commercify:$(tag) .

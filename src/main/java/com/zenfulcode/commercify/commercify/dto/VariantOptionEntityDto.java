@@ -1,17 +1,17 @@
 package com.zenfulcode.commercify.commercify.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Value;
-
-import java.io.Serializable;
+import lombok.Data;
 
 /**
  * DTO for {@link com.zenfulcode.commercify.commercify.entity.VariantOptionEntity}
  */
-@Value
 @Builder
-public class VariantOptionEntityDto implements Serializable {
-    Long id;
-    String name;
-    String value;
+@Data
+@AllArgsConstructor
+public class VariantOptionEntityDto {
+    private Long id;
+    private String name;
+    private String value;
 }
