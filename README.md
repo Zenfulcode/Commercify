@@ -130,10 +130,6 @@ mvn test
 4. Push to the branch
 5. Create a new Pull Request
 
-## License
-
-[Your License Here]
-
 ## Support
 
 For support, email commercify@zenfulcode.com
