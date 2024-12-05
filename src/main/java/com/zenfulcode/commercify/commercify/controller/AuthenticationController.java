@@ -34,6 +34,7 @@ public class AuthenticationController {
 
             return ResponseEntity.ok(AuthResponse.UserAuthenticated(user, "", 0));
         } catch (RuntimeException e) {
+            log.error("Error registering user: {}", e.getMessage());
             return ResponseEntity.badRequest().body(AuthResponse.AuthenticationFailed(e.getMessage()));
         }
     }
