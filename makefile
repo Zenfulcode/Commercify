@@ -1,5 +1,5 @@
 up:
-	docker compose -f deploy/docker-compose.yml up
+	docker compose -f deploy/docker-compose.yml up --build
 
 volume ?= false
 .PHONY: down
