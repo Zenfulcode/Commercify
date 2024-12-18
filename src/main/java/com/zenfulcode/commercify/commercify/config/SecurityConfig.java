@@ -36,7 +36,6 @@ public class SecurityConfig {
                                 "/api/v1/auth/**",
                                 "/api/v1/products/active",
                                 "/api/v1/products/{id}").permitAll()
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(smc -> smc.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

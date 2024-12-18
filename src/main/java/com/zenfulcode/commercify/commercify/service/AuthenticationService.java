@@ -88,9 +88,12 @@ public class AuthenticationService {
                 )
         );
 
-        return userRepository.findByEmail(login.email())
-                .map(mapper)
-                .orElseThrow();
+        UserEntity user = userRepository.findByEmail(login.email()).orElseThrow();
+
+        if (passwordEncoder.matches(login.password(), user.getPassword()))
+            return null;
+
+        return mapper.apply(user);
     }
 
     @Transactional(readOnly = true)
