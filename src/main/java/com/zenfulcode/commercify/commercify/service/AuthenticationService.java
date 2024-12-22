@@ -90,7 +90,7 @@ public class AuthenticationService {
 
         UserEntity user = userRepository.findByEmail(login.email()).orElseThrow();
 
-        if (passwordEncoder.matches(login.password(), user.getPassword()))
+        if (!passwordEncoder.matches(login.password(), user.getPassword()))
             return null;
 
         return mapper.apply(user);
