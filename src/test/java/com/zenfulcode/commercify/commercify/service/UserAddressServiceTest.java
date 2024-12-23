@@ -45,7 +45,6 @@ class UserAddressServiceTest {
 
     private UserEntity user;
     private AddressEntity shippingAddress;
-    private AddressEntity billingAddress;
     private AddressDTO address;
     private UserDTO userDTO;
 
@@ -65,15 +64,6 @@ class UserAddressServiceTest {
                 .state("Ship State")
                 .zipCode("12345")
                 .country("Ship Country")
-                .build();
-
-        billingAddress = AddressEntity.builder()
-                .id(2L)
-                .street("456 Bill St")
-                .city("Bill City")
-                .state("Bill State")
-                .zipCode("67890")
-                .country("Bill Country")
                 .build();
 
         address = AddressDTO.builder()
@@ -102,12 +92,12 @@ class UserAddressServiceTest {
             when(userRepository.findById(1L)).thenReturn(Optional.of(user));
             when(userRepository.save(any(UserEntity.class))).thenReturn(user);
 
-            userManagementService.setShippingAddress(1L, address);
+            userManagementService.setDefaultAddress(1L, address);
 
             ArgumentCaptor<UserEntity> userCaptor = ArgumentCaptor.forClass(UserEntity.class);
             verify(userRepository).save(userCaptor.capture());
 
-            AddressEntity savedAddress = userCaptor.getValue().getShippingAddress();
+            AddressEntity savedAddress = userCaptor.getValue().getDefaultAddress();
             assertEquals(address.getStreet(), savedAddress.getStreet());
             assertEquals(address.getCity(), savedAddress.getCity());
             assertEquals(address.getState(), savedAddress.getState());
@@ -118,15 +108,15 @@ class UserAddressServiceTest {
         @Test
         @DisplayName("Should remove shipping address successfully")
         void removeShippingAddress_Success() {
-            user.setShippingAddress(shippingAddress);
+            user.setDefaultAddress(shippingAddress);
             when(userRepository.findById(1L)).thenReturn(Optional.of(user));
             when(userRepository.save(any(UserEntity.class))).thenReturn(user);
             when(userMapper.apply(any(UserEntity.class))).thenReturn(userDTO);
 
-            userManagementService.removeShippingAddress(1L);
+            userManagementService.removeDefaultAddress(1L);
 
             verify(userRepository).save(user);
-            assertNull(user.getShippingAddress());
+            assertNull(user.getDefaultAddress());
         }
 
         @Test
@@ -135,100 +125,7 @@ class UserAddressServiceTest {
             when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
             assertThrows(RuntimeException.class,
-                    () -> userManagementService.setShippingAddress(1L, address));
-        }
-    }
-
-    @Nested
-    @DisplayName("Billing Address Tests")
-    class BillingAddressTests {
-
-        @Test
-        @DisplayName("Should set billing address successfully")
-        void setBillingAddress_Success() {
-            when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-            when(userRepository.save(any(UserEntity.class))).thenReturn(user);
-
-            userManagementService.setBillingAddress(1L, address);
-
-            ArgumentCaptor<UserEntity> userCaptor = ArgumentCaptor.forClass(UserEntity.class);
-            verify(userRepository).save(userCaptor.capture());
-
-            AddressEntity savedAddress = userCaptor.getValue().getBillingAddress();
-            assertEquals(address.getStreet(), savedAddress.getStreet());
-            assertEquals(address.getCity(), savedAddress.getCity());
-            assertEquals(address.getState(), savedAddress.getState());
-            assertEquals(address.getZipCode(), savedAddress.getZipCode());
-            assertEquals(address.getCountry(), savedAddress.getCountry());
-        }
-
-        @Test
-        @DisplayName("Should remove billing address successfully")
-        void removeBillingAddress_Success() {
-            user.setBillingAddress(billingAddress);
-            when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-            when(userRepository.save(any(UserEntity.class))).thenReturn(user);
-            when(userMapper.apply(any(UserEntity.class))).thenReturn(userDTO);
-
-            userManagementService.removeBillingAddress(1L);
-
-            verify(userRepository).save(user);
-            assertNull(user.getBillingAddress());
-        }
-
-        @Test
-        @DisplayName("Should throw exception when user not found - billing")
-        void setBillingAddress_UserNotFound() {
-            when(userRepository.findById(1L)).thenReturn(Optional.empty());
-
-            assertThrows(RuntimeException.class,
-                    () -> userManagementService.setBillingAddress(1L, address));
-        }
-    }
-
-    @Nested
-    @DisplayName("Entity Relationship Tests")
-    class EntityRelationshipTests {
-
-        @Test
-        @DisplayName("Should maintain bidirectional relationship - shipping")
-        void testBidirectionalRelationship_Shipping() {
-            user.setShippingAddress(shippingAddress);
-            assertEquals(user, shippingAddress.getShippingUser());
-
-            user.setShippingAddress(null);
-            assertNull(shippingAddress.getShippingUser());
-        }
-
-        @Test
-        @DisplayName("Should maintain bidirectional relationship - billing")
-        void testBidirectionalRelationship_Billing() {
-            user.setBillingAddress(billingAddress);
-            assertEquals(user, billingAddress.getBillingUser());
-
-            user.setBillingAddress(null);
-            assertNull(billingAddress.getBillingUser());
-        }
-
-        @Test
-        @DisplayName("Should handle shared address between shipping and billing")
-        void testSharedAddress() {
-            AddressEntity sharedAddress = AddressEntity.builder()
-                    .id(3L)
-                    .street("789 Shared St")
-                    .city("Shared City")
-                    .state("Shared State")
-                    .zipCode("13579")
-                    .country("Shared Country")
-                    .build();
-
-            user.setShippingAddress(sharedAddress);
-            user.setBillingAddress(sharedAddress);
-
-            assertEquals(sharedAddress, user.getShippingAddress());
-            assertEquals(sharedAddress, user.getBillingAddress());
-            assertEquals(user, sharedAddress.getShippingUser());
-            assertEquals(user, sharedAddress.getBillingUser());
+                    () -> userManagementService.setDefaultAddress(1L, address));
         }
     }
 }

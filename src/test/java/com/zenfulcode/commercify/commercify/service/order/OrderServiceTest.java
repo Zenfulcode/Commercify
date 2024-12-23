@@ -3,6 +3,7 @@ package com.zenfulcode.commercify.commercify.service.order;
 import com.zenfulcode.commercify.commercify.OrderStatus;
 import com.zenfulcode.commercify.commercify.api.requests.orders.CreateOrderLineRequest;
 import com.zenfulcode.commercify.commercify.api.requests.orders.CreateOrderRequest;
+import com.zenfulcode.commercify.commercify.dto.AddressDTO;
 import com.zenfulcode.commercify.commercify.dto.OrderDTO;
 import com.zenfulcode.commercify.commercify.dto.ProductDTO;
 import com.zenfulcode.commercify.commercify.dto.mapper.OrderMapper;
@@ -60,6 +61,7 @@ class OrderServiceTest {
     private CreateOrderRequest createOrderRequest;
     private ProductEntity productEntity;
     private ProductDTO productDTO;
+    private AddressDTO addressDTO;
 
     @BeforeEach
     void setUp() {
@@ -98,8 +100,16 @@ class OrderServiceTest {
                 .totalAmount(199.98)
                 .build();
 
+        addressDTO = AddressDTO.builder()
+                .street("Test Street")
+                .city("Test City")
+                .state("Test State")
+                .zipCode("12345")
+                .country("Test Country")
+                .build();
+
         CreateOrderLineRequest orderLineRequest = new CreateOrderLineRequest(1L, null, 2);
-        createOrderRequest = new CreateOrderRequest("USD", List.of(orderLineRequest));
+        createOrderRequest = new CreateOrderRequest("USD", List.of(orderLineRequest), addressDTO, null);
     }
 
     @Nested

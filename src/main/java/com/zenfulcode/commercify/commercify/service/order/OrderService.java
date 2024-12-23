@@ -3,23 +3,21 @@ package com.zenfulcode.commercify.commercify.service.order;
 import com.zenfulcode.commercify.commercify.OrderStatus;
 import com.zenfulcode.commercify.commercify.api.requests.orders.CreateOrderLineRequest;
 import com.zenfulcode.commercify.commercify.api.requests.orders.CreateOrderRequest;
+import com.zenfulcode.commercify.commercify.dto.AddressDTO;
 import com.zenfulcode.commercify.commercify.dto.OrderDTO;
 import com.zenfulcode.commercify.commercify.dto.OrderDetailsDTO;
 import com.zenfulcode.commercify.commercify.dto.OrderLineDTO;
 import com.zenfulcode.commercify.commercify.dto.mapper.OrderMapper;
 import com.zenfulcode.commercify.commercify.dto.mapper.ProductMapper;
 import com.zenfulcode.commercify.commercify.dto.mapper.ProductVariantMapper;
-import com.zenfulcode.commercify.commercify.entity.OrderEntity;
-import com.zenfulcode.commercify.commercify.entity.OrderLineEntity;
-import com.zenfulcode.commercify.commercify.entity.ProductEntity;
-import com.zenfulcode.commercify.commercify.entity.ProductVariantEntity;
+import com.zenfulcode.commercify.commercify.entity.*;
 import com.zenfulcode.commercify.commercify.exception.OrderNotFoundException;
 import com.zenfulcode.commercify.commercify.exception.ProductNotFoundException;
 import com.zenfulcode.commercify.commercify.repository.OrderRepository;
+import com.zenfulcode.commercify.commercify.repository.OrderShippingInfoRepository;
 import com.zenfulcode.commercify.commercify.repository.ProductRepository;
 import com.zenfulcode.commercify.commercify.repository.ProductVariantRepository;
 import com.zenfulcode.commercify.commercify.service.StockManagementService;
-import com.zenfulcode.commercify.commercify.service.email.EmailService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -44,6 +42,7 @@ public class OrderService {
     private final StockManagementService stockService;
     private final ProductVariantRepository variantRepository;
     private final ProductVariantMapper productVariantMapper;
+    private final OrderShippingInfoRepository orderShippingInfoRepository;
 
     @Transactional
     public OrderDTO createOrder(Long userId, CreateOrderRequest request) {
@@ -54,11 +53,37 @@ public class OrderService {
         Map<Long, ProductEntity> products = getAndValidateProducts(request.orderLines());
         Map<Long, ProductVariantEntity> variants = getAndValidateVariants(request.orderLines());
 
+        // Get shipping information
+        OrderShippingInfo shippingInfo = getShippingInformation(request);
+        orderShippingInfoRepository.save(shippingInfo);
+
         // Create order entity
-        OrderEntity order = buildOrderEntity(userId, request, products, variants);
+        OrderEntity order = buildOrderEntity(userId, request, products, variants, shippingInfo);
         OrderEntity savedOrder = orderRepository.save(order);
 
         return orderMapper.apply(savedOrder);
+    }
+
+    private OrderShippingInfo getShippingInformation(CreateOrderRequest request) {
+        AddressDTO shippingAddress = request.shippingAddress();
+
+        OrderShippingInfo.OrderShippingInfoBuilder shippingInfo = OrderShippingInfo.builder()
+                .shippingStreet(shippingAddress.getStreet())
+                .shippingCity(shippingAddress.getCity())
+                .shippingState(shippingAddress.getState())
+                .shippingZip(shippingAddress.getZipCode())
+                .shippingCountry(shippingAddress.getCountry());
+
+        AddressDTO billingAddress = request.billingAddress();
+        if (billingAddress != null) {
+            shippingInfo.billingStreet(billingAddress.getStreet())
+                    .billingCity(billingAddress.getCity())
+                    .billingState(billingAddress.getState())
+                    .billingZip(billingAddress.getZipCode())
+                    .billingCountry(billingAddress.getCountry());
+        }
+
+        return shippingInfo.build();
     }
 
     @Transactional
@@ -143,7 +168,8 @@ public class OrderService {
     private OrderEntity buildOrderEntity(Long userId,
                                          CreateOrderRequest request,
                                          Map<Long, ProductEntity> products,
-                                         Map<Long, ProductVariantEntity> variants) {
+                                         Map<Long, ProductVariantEntity> variants,
+                                         OrderShippingInfo shippingInfo) {
         // Create order lines first
         Set<OrderLineEntity> orderLines = request.orderLines().stream()
                 .map(line -> createOrderLine(line.quantity(), products.get(line.productId()),
@@ -158,6 +184,7 @@ public class OrderService {
                 .status(OrderStatus.PENDING)
                 .currency(request.currency())
                 .totalAmount(totalAmount)
+                .orderShippingInfo(shippingInfo)
                 .build();
 
         // Set up bidirectional relationship

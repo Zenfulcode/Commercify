@@ -10,8 +10,7 @@ public record RegisterUserRequest(
         String firstName,
         String lastName,
         Boolean isGuest,
-        AddressDTO shippingAddress,
-        AddressDTO billingAddress) {
+        AddressDTO defaultAddress) {
     // Set a secure default password
     public RegisterUserRequest {
         if (password == null || password.isBlank()) {

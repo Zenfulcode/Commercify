@@ -38,28 +38,15 @@ public class AuthenticationService {
         }
 
         AddressEntity shippingAddress = null;
-        AddressEntity billingAddress;
 
-        if (registerRequest.shippingAddress() != null) {
+        if (registerRequest.defaultAddress() != null) {
             shippingAddress = AddressEntity.builder()
-                    .street(registerRequest.shippingAddress().getStreet())
-                    .city(registerRequest.shippingAddress().getCity())
-                    .state(registerRequest.shippingAddress().getState())
-                    .zipCode(registerRequest.shippingAddress().getZipCode())
-                    .country(registerRequest.shippingAddress().getCountry())
+                    .street(registerRequest.defaultAddress().getStreet())
+                    .city(registerRequest.defaultAddress().getCity())
+                    .state(registerRequest.defaultAddress().getState())
+                    .zipCode(registerRequest.defaultAddress().getZipCode())
+                    .country(registerRequest.defaultAddress().getCountry())
                     .build();
-        }
-
-        if (registerRequest.billingAddress() != null) {
-            billingAddress = AddressEntity.builder()
-                    .street(registerRequest.billingAddress().getStreet())
-                    .city(registerRequest.billingAddress().getCity())
-                    .state(registerRequest.billingAddress().getState())
-                    .zipCode(registerRequest.billingAddress().getZipCode())
-                    .country(registerRequest.billingAddress().getCountry())
-                    .build();
-        } else {
-            billingAddress = shippingAddress;
         }
 
         UserEntity user = UserEntity.builder()
@@ -68,8 +55,7 @@ public class AuthenticationService {
                 .email(registerRequest.email())
                 .password(passwordEncoder.encode(registerRequest.password()))
                 .roles(List.of("USER"))
-                .shippingAddress(shippingAddress)
-                .billingAddress(billingAddress)
+                .defaultAddress(shippingAddress)
                 .emailConfirmed(false)
                 .build();
 

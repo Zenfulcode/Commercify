@@ -33,12 +33,6 @@ public class AddressEntity {
     @Column(nullable = false)
     private String country;
 
-    @OneToOne(mappedBy = "shippingAddress")
-    private UserEntity shippingUser;
-
-    @OneToOne(mappedBy = "billingAddress")
-    private UserEntity billingUser;
-
     @Column(name = "created_at", nullable = false)
     @CreationTimestamp
     private Instant createdAt;
