@@ -78,8 +78,7 @@ class AuthenticationServiceTest {
                 "John",
                 "Doe",
                 false,
-                shippingAddress,
-                null
+                shippingAddress
         );
 
         userEntity = UserEntity.builder()
@@ -98,7 +97,7 @@ class AuthenticationServiceTest {
                 .firstName("John")
                 .lastName("Doe")
                 .roles(List.of("USER"))
-                .shippingAddress(shippingAddress)
+                .defaultAddress(shippingAddress)
                 .build();
 
         loginRequest = new LoginUserRequest("test@example.com", "password123");
@@ -127,12 +126,10 @@ class AuthenticationServiceTest {
     @Test
     void registerUser_NoPasswordProvided_ShouldSetDefaultPassword() {
         // Arrange
-        RegisterUserRequest request = new RegisterUserRequest("test@example.com", "", "Test", "User",
+        RegisterUserRequest request = new RegisterUserRequest(
+                "test@example.com", "", "Test", "User",
                 false,
-                null,
                 null);
-
-        System.out.println(request);
 
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
@@ -165,6 +162,7 @@ class AuthenticationServiceTest {
     void authenticate_Success() {
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(userEntity));
         when(userMapper.apply(any(UserEntity.class))).thenReturn(userDTO);
+        when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
 
         UserDTO result = authenticationService.authenticate(loginRequest);
 

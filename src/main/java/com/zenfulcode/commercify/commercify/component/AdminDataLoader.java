@@ -1,5 +1,6 @@
 package com.zenfulcode.commercify.commercify.component;
 
+import com.zenfulcode.commercify.commercify.entity.AddressEntity;
 import com.zenfulcode.commercify.commercify.entity.UserEntity;
 import com.zenfulcode.commercify.commercify.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,14 +28,21 @@ public class AdminDataLoader {
     public CommandLineRunner loadData() {
         return args -> {
             if (userRepository.findByEmail(email).isEmpty()) {
+                AddressEntity defaultAddress = AddressEntity.builder()
+                        .street("123 Main St")
+                        .city("Springfield")
+                        .state("IL")
+                        .zipCode("62701")
+                        .country("US")
+                        .build();
+
                 UserEntity adminUser = UserEntity.builder()
                         .email(email)
                         .password(passwordEncoder.encode(password))
                         .firstName("Admin")
                         .lastName("User")
                         .roles(List.of("ADMIN", "USER"))
-                        .shippingAddress(null)
-                        .billingAddress(null)
+                        .defaultAddress(defaultAddress)
                         .emailConfirmed(true)
                         .build();
 

@@ -57,28 +57,16 @@ public class UserManagementController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/{id}/shipping-address")
+    @PostMapping("/{id}/address")
     @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
-    public ResponseEntity<AddressDTO> setShippingAddress(@PathVariable Long id, @RequestBody AddressDTO request) {
-        return ResponseEntity.ok(userManagementService.setShippingAddress(id, request));
+    public ResponseEntity<AddressDTO> setAddress(@PathVariable Long id, @RequestBody AddressDTO request) {
+        return ResponseEntity.ok(userManagementService.setDefaultAddress(id, request));
     }
 
-    @PostMapping("/{id}/billing-address")
+    @DeleteMapping("/{id}/address")
     @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
-    public ResponseEntity<AddressDTO> setBillingAddress(@PathVariable Long id, @RequestBody AddressDTO request) {
-        return ResponseEntity.ok(userManagementService.setBillingAddress(id, request));
-    }
-
-    @DeleteMapping("/{id}/shipping-address")
-    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
-    public ResponseEntity<UserDTO> removeShippingAddress(@PathVariable Long id) {
-        return ResponseEntity.ok(userManagementService.removeShippingAddress(id));
-    }
-
-    @DeleteMapping("/{id}/billing-address")
-    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
-    public ResponseEntity<UserDTO> removeBillingAddress(@PathVariable Long id) {
-        return ResponseEntity.ok(userManagementService.removeBillingAddress(id));
+    public ResponseEntity<UserDTO> removeAddress(@PathVariable Long id) {
+        return ResponseEntity.ok(userManagementService.removeDefaultAddress(id));
     }
 
     @PostMapping("/{id}/roles")

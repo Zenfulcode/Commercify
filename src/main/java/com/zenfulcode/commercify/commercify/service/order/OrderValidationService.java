@@ -34,6 +34,26 @@ public class OrderValidationService {
             errors.add("Currency is required");
         }
 
+        if (request.shippingAddress() == null) {
+            errors.add("Shipping address is required");
+        }
+
+        if (request.billingAddress() != null) {
+            if (request.billingAddress().getStreet() == null || request.billingAddress().getStreet().isBlank()) {
+                errors.add("Billing address street is required");
+            }
+            if (request.billingAddress().getCity() == null || request.billingAddress().getCity().isBlank()) {
+                errors.add("Billing address city is required");
+            }
+
+            if (request.billingAddress().getZipCode() == null || request.billingAddress().getZipCode().isBlank()) {
+                errors.add("Billing address zip code is required");
+            }
+            if (request.billingAddress().getCountry() == null || request.billingAddress().getCountry().isBlank()) {
+                errors.add("Billing address country is required");
+            }
+        }
+
         if (!errors.isEmpty()) {
             throw new OrderValidationException("Order validation failed: " + String.join(", ", errors));
         }

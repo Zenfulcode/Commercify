@@ -40,13 +40,10 @@ public class UserEntity implements UserDetails {
     @Column(name = "phone_number", length = 20)
     private String phoneNumber;
 
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "shipping_address_id")
-    private AddressEntity shippingAddress;
-
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "billing_address_id")
-    private AddressEntity billingAddress;
+    @ToString.Exclude
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "default_address_id")
+    private AddressEntity defaultAddress;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "id"))
@@ -73,26 +70,6 @@ public class UserEntity implements UserDetails {
         return roles.stream()
                 .map(role -> new SimpleGrantedAuthority("ROLE_" + role.toUpperCase()))
                 .collect(Collectors.toList());
-    }
-
-    public void setShippingAddress(AddressEntity address) {
-        if (this.shippingAddress != null) {
-            this.shippingAddress.setShippingUser(null);
-        }
-        this.shippingAddress = address;
-        if (address != null) {
-            address.setShippingUser(this);
-        }
-    }
-
-    public void setBillingAddress(AddressEntity address) {
-        if (this.billingAddress != null) {
-            this.billingAddress.setBillingUser(null);
-        }
-        this.billingAddress = address;
-        if (address != null) {
-            address.setBillingUser(this);
-        }
     }
 
     @Override

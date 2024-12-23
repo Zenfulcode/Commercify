@@ -24,12 +24,8 @@ public class UserMapper implements Function<UserEntity, UserDTO> {
                 .roles(user.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList())
                 .createdAt(Date.from(user.getCreatedAt()));
 
-        if (user.getShippingAddress() != null) {
-            userBuilder.shippingAddress(addressDTOMapper.apply(user.getShippingAddress()));
-        }
-
-        if (user.getBillingAddress() != null) {
-            userBuilder.billingAddress(addressDTOMapper.apply(user.getBillingAddress()));
+        if (user.getDefaultAddress() != null) {
+            userBuilder.defaultAddress(addressDTOMapper.apply(user.getDefaultAddress()));
         }
 
         return userBuilder.build();

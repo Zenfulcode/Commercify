@@ -46,6 +46,11 @@ public class OrderEntity {
     @Column(name = "total_amount")
     private Double totalAmount;
 
+    @ToString.Exclude
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "order_shipping_info_id")
+    private OrderShippingInfo orderShippingInfo;
+
     @Column(name = "created_at", nullable = false)
     @CreationTimestamp
     private Instant createdAt;

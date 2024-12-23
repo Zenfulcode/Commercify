@@ -57,7 +57,7 @@ public class UserManagementService {
     }
 
     @Transactional
-    public AddressDTO setShippingAddress(Long userId, AddressDTO request) {
+    public AddressDTO setDefaultAddress(Long userId, AddressDTO request) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -69,44 +69,17 @@ public class UserManagementService {
                 .country(request.getCountry())
                 .build();
 
-        user.setShippingAddress(address);
+        user.setDefaultAddress(address);
         userRepository.save(user);
 
         return addressMapper.apply(address);
     }
 
     @Transactional
-    public AddressDTO setBillingAddress(Long userId, AddressDTO request) {
+    public UserDTO removeDefaultAddress(Long userId) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-
-        AddressEntity address = AddressEntity.builder()
-                .street(request.getStreet())
-                .city(request.getCity())
-                .state(request.getState())
-                .zipCode(request.getZipCode())
-                .country(request.getCountry())
-                .build();
-
-        user.setBillingAddress(address);
-        userRepository.save(user);
-
-        return addressMapper.apply(address);
-    }
-
-    @Transactional
-    public UserDTO removeShippingAddress(Long userId) {
-        UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        user.setShippingAddress(null);
-        return mapper.apply(userRepository.save(user));
-    }
-
-    @Transactional
-    public UserDTO removeBillingAddress(Long userId) {
-        UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        user.setBillingAddress(null);
+        user.setDefaultAddress(null);
         return mapper.apply(userRepository.save(user));
     }
 

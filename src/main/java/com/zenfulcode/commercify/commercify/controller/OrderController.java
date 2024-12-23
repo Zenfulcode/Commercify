@@ -10,7 +10,6 @@ import com.zenfulcode.commercify.commercify.dto.OrderDTO;
 import com.zenfulcode.commercify.commercify.dto.OrderDetailsDTO;
 import com.zenfulcode.commercify.commercify.exception.*;
 import com.zenfulcode.commercify.commercify.service.order.OrderService;
-import com.zenfulcode.commercify.commercify.service.order.OrderValidationService;
 import com.zenfulcode.commercify.commercify.viewmodel.OrderViewModel;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +31,6 @@ import java.util.Set;
 public class OrderController {
 
     private final OrderService orderService;
-    private final OrderValidationService orderValidationService;
     private final PagedResourcesAssembler<OrderViewModel> pagedResourcesAssembler;
 
     private static final Set<String> VALID_SORT_FIELDS = Set.of(
@@ -43,7 +41,6 @@ public class OrderController {
     @PostMapping("/{userId}")
     public ResponseEntity<?> createOrder(@PathVariable Long userId, @Validated @RequestBody CreateOrderRequest orderRequest) {
         try {
-            orderValidationService.validateCreateOrderRequest(orderRequest);
             OrderDTO orderDTO = orderService.createOrder(userId, orderRequest);
             return ResponseEntity.ok(CreateOrderResponse.from(OrderViewModel.fromDTO(orderDTO)));
         } catch (IllegalArgumentException e) {
