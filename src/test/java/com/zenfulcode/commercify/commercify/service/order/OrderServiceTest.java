@@ -153,8 +153,8 @@ class OrderServiceTest {
             when(orderRepository.save(any())).thenReturn(orderEntity);
 
             assertDoesNotThrow(() ->
-                    orderService.updateOrderStatus(1L, OrderStatus.CONFIRMED));
-            assertEquals(OrderStatus.CONFIRMED, orderEntity.getStatus());
+                    orderService.updateOrderStatus(1L, OrderStatus.PAID));
+            assertEquals(OrderStatus.PAID, orderEntity.getStatus());
         }
 
         @Test
@@ -163,7 +163,7 @@ class OrderServiceTest {
             when(orderRepository.findById(1L)).thenReturn(Optional.empty());
 
             assertThrows(OrderNotFoundException.class,
-                    () -> orderService.updateOrderStatus(1L, OrderStatus.CONFIRMED));
+                    () -> orderService.updateOrderStatus(1L, OrderStatus.PAID));
         }
     }
 

@@ -8,9 +8,12 @@ import com.zenfulcode.commercify.commercify.entity.OrderEntity;
 import com.zenfulcode.commercify.commercify.entity.PaymentEntity;
 import com.zenfulcode.commercify.commercify.exception.OrderNotFoundException;
 import com.zenfulcode.commercify.commercify.exception.PaymentProcessingException;
+import com.zenfulcode.commercify.commercify.integration.IPaymentProvider;
+import com.zenfulcode.commercify.commercify.integration.WebhookResponse;
 import com.zenfulcode.commercify.commercify.repository.OrderRepository;
 import com.zenfulcode.commercify.commercify.repository.PaymentRepository;
 import com.zenfulcode.commercify.commercify.service.PaymentService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,12 +24,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class MobilePayService {
+public class MobilePayService implements IPaymentProvider {
     private final PaymentService paymentService;
     private final MobilePayTokenService tokenService;
 
@@ -47,6 +58,7 @@ public class MobilePayService {
     @Value("${mobilepay.api-url}")
     private String apiUrl;
 
+    private String webhookSecret;
 
     @Transactional
     public PaymentResponse initiatePayment(PaymentRequest request) {
@@ -58,7 +70,7 @@ public class MobilePayService {
             Map<String, Object> paymentRequest = createMobilePayRequest(order, request);
 
             // Call MobilePay API
-            MobilePayResponse mobilePayResponse = createMobilePayPayment(paymentRequest);
+            MobilePayCheckoutResponse mobilePayCheckoutResponse = createMobilePayPayment(paymentRequest);
 
             // Create and save payment entity
             PaymentEntity payment = PaymentEntity.builder()
@@ -67,7 +79,7 @@ public class MobilePayService {
                     .paymentProvider(PaymentProvider.MOBILEPAY)
                     .status(PaymentStatus.PENDING)
                     .paymentMethod(request.paymentMethod()) // 'WALLET' or 'CARD'
-                    .mobilePayReference(mobilePayResponse.reference())
+                    .mobilePayReference(mobilePayCheckoutResponse.reference())
                     .build();
 
             PaymentEntity savedPayment = paymentRepository.save(payment);
@@ -75,7 +87,7 @@ public class MobilePayService {
             return new PaymentResponse(
                     savedPayment.getId(),
                     savedPayment.getStatus(),
-                    mobilePayResponse.redirectUrl()
+                    mobilePayCheckoutResponse.redirectUrl()
             );
         } catch (Exception e) {
             log.error("Error creating MobilePay payment", e);
@@ -113,16 +125,16 @@ public class MobilePayService {
             notRecoverable = {PaymentProcessingException.class},
             backoff = @Backoff(delay = 1000)
     )
-    private MobilePayResponse createMobilePayPayment(Map<String, Object> request) {
+    private MobilePayCheckoutResponse createMobilePayPayment(Map<String, Object> request) {
         HttpHeaders headers = mobilePayRequestHeaders();
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(request, headers);
 
         try {
-            ResponseEntity<MobilePayResponse> response = restTemplate.exchange(
+            ResponseEntity<MobilePayCheckoutResponse> response = restTemplate.exchange(
                     apiUrl + "/epayment/v1/payments",
                     HttpMethod.POST,
                     entity,
-                    MobilePayResponse.class
+                    MobilePayCheckoutResponse.class
             );
 
             if (response.getBody() == null) {
@@ -159,11 +171,11 @@ public class MobilePayService {
         paymentRequest.put("customer", customer);
 
         // Other fields
-        String reference = systemName + "-order-" + order.getId().toString() + "-" + value;
+        String reference = String.join("-", merchantId, systemName, order.getId().toString(), value);
         paymentRequest.put("reference", reference);
         paymentRequest.put("returnUrl", request.returnUrl() + "?orderId=" + order.getId());
         paymentRequest.put("userFlow", "WEB_REDIRECT");
-        paymentRequest.put("paymentDescription", "Order #" + order.getId());
+        paymentRequest.put("paymentDescription", "Order Number #" + order.getId());
 
         return paymentRequest;
     }
@@ -202,11 +214,79 @@ public class MobilePayService {
             default -> throw new PaymentProcessingException("Unknown MobilePay status: " + status, null);
         };
     }
+
+    public WebhookResponse registerWebhooks(String callbackUrl) {
+        HttpHeaders headers = mobilePayRequestHeaders();
+
+        Map<String, Object> request = new HashMap<>();
+        request.put("url", callbackUrl);
+        request.put("events", new String[]{
+                "epayments.payment.aborted.v1",
+                "epayments.payment.expired.v1",
+                "epayments.payment.cancelled.v1"
+        });
+
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(request, headers);
+
+        try {
+            ResponseEntity<WebhookResponse> response = restTemplate.exchange(
+                    apiUrl + "/webhooks/v1/webhooks",
+                    HttpMethod.POST,
+                    entity,
+                    WebhookResponse.class
+            );
+
+            if (response.getBody() == null) {
+                throw new PaymentProcessingException("No response from MobilePay API", null);
+            }
+
+            webhookSecret = response.getBody().secret();
+
+            return response.getBody();
+        } catch (Exception e) {
+            log.error("Error registering MobilePay webhooks: {}", e.getMessage());
+            throw new PaymentProcessingException("Failed to create MobilePay payment", e);
+        }
+    }
+
+    public void authenticateRequest(String date, String contentSha256, String authorization, String body, HttpServletRequest request) {
+        try {
+//            Verify content
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(body.getBytes(StandardCharsets.UTF_8));
+            String encodedHash = Base64.getEncoder().encodeToString(hash);
+
+            if (!encodedHash.equals(contentSha256)) {
+                throw new SecurityException("Hash mismatch");
+            }
+
+            URI uri = new URI(request.getRequestURL().toString());
+            String path = uri.getPath() + (uri.getQuery() != null ? "?" + uri.getQuery() : "");
+
+//            Verify signature
+            String expectedSignedString = String.format("POST\n%s\n%s;%s;%s", path, date, uri.getHost(), encodedHash);
+
+            Mac hmacSha256 = Mac.getInstance("HmacSHA256");
+            SecretKeySpec secretKey = new SecretKeySpec(webhookSecret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+            hmacSha256.init(secretKey);
+
+            byte[] hmacSha256Bytes = hmacSha256.doFinal(expectedSignedString.getBytes(StandardCharsets.UTF_8));
+            String expectedSignature = Base64.getEncoder().encodeToString(hmacSha256Bytes);
+            String expectedAuthorization = "HMAC-SHA256 SignedHeaders=x-ms-date;host;x-ms-content-sha256&Signature=" + expectedSignature;
+
+            if (!authorization.equals(expectedAuthorization)) {
+                throw new SecurityException("Signature mismatch");
+            }
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("SHA-256 algorithm not found", e);
+        } catch (InvalidKeyException | URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
 
-record MobilePayResponse(
+record MobilePayCheckoutResponse(
         String redirectUrl,
         String reference
 ) {
 }
-

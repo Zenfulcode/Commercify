@@ -2,9 +2,13 @@ package com.zenfulcode.commercify.commercify.integration.mobilepay;
 
 import com.zenfulcode.commercify.commercify.api.requests.PaymentRequest;
 import com.zenfulcode.commercify.commercify.api.responses.PaymentResponse;
+import com.zenfulcode.commercify.commercify.integration.WebhookResponse;
+import com.zenfulcode.commercify.commercify.integration.WebhookSubscribeRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -25,11 +29,21 @@ public class MobilePayController {
     }
 
     @PostMapping("/callback")
-    public ResponseEntity<String> handleCallback(
-            @RequestParam String paymentReference,
-            @RequestParam String status) {
+    public ResponseEntity<String> handleCallback(@RequestHeader("x-ms-date") String date,
+                                                 @RequestHeader("x-ms-content-sha256") String contentSha256,
+                                                 @RequestHeader("Authorization") String authorization,
+                                                 HttpServletRequest request,
+                                                 @RequestBody String body) {
         try {
-            mobilePayService.handlePaymentCallback(paymentReference, status);
+            System.out.println(request.getRequestURI());
+            System.out.println(request.getHeader("x-ms-date"));
+            System.out.println(request.getHeader("x-ms-content-sha256"));
+            System.out.println(request.getHeader("Authorization"));
+            System.out.println(body);
+
+            mobilePayService.authenticateRequest(date, contentSha256, authorization, body, request);
+
+//            mobilePayService.handlePaymentCallback(paymentReference, status);
             return ResponseEntity.ok("Callback processed successfully");
         } catch (Exception e) {
             log.error("Error processing MobilePay callback", e);
@@ -37,16 +51,15 @@ public class MobilePayController {
         }
     }
 
-    @PostMapping("/webhook")
-    public ResponseEntity<String> handleWebhook(
-            @RequestParam String paymentReference,
-            @RequestParam String status) {
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/webhooks")
+    public ResponseEntity<?> registerWebhooks(@RequestBody WebhookSubscribeRequest request) {
         try {
-            mobilePayService.handlePaymentCallback(paymentReference, status);
-            return ResponseEntity.ok("Callback processed successfully");
+            WebhookResponse response = mobilePayService.registerWebhooks(request.callbackUrl());
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
-            log.error("Error processing MobilePay callback", e);
-            return ResponseEntity.badRequest().body("Error processing callback");
+            return ResponseEntity.badRequest().body("Error registering webhooks");
         }
     }
 }
+
