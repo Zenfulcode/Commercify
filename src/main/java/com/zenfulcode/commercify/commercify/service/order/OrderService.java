@@ -4,7 +4,6 @@ import com.zenfulcode.commercify.commercify.OrderStatus;
 import com.zenfulcode.commercify.commercify.api.requests.orders.CreateOrderLineRequest;
 import com.zenfulcode.commercify.commercify.api.requests.orders.CreateOrderRequest;
 import com.zenfulcode.commercify.commercify.dto.*;
-import com.zenfulcode.commercify.commercify.dto.mapper.AddressMapper;
 import com.zenfulcode.commercify.commercify.dto.mapper.OrderMapper;
 import com.zenfulcode.commercify.commercify.dto.mapper.ProductMapper;
 import com.zenfulcode.commercify.commercify.dto.mapper.ProductVariantMapper;
@@ -41,6 +40,11 @@ public class OrderService {
     private final ProductVariantRepository variantRepository;
     private final ProductVariantMapper productVariantMapper;
     private final OrderShippingInfoRepository orderShippingInfoRepository;
+
+    @Transactional
+    public OrderDTO createOrder(CreateOrderRequest request) {
+        return createOrder(null, request);
+    }
 
     @Transactional
     public OrderDTO createOrder(Long userId, CreateOrderRequest request) {
@@ -80,6 +84,11 @@ public class OrderService {
                     .billingZip(billingAddress.getZipCode())
                     .billingCountry(billingAddress.getCountry());
         }
+
+        shippingInfo.customerEmail(request.customerDetails().getEmail())
+                .customerFirstName(request.customerDetails().getFirstName())
+                .customerLastName(request.customerDetails().getLastName())
+                .customerPhone(request.customerDetails().getPhone());
 
         return shippingInfo.build();
     }
