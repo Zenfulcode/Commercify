@@ -12,4 +12,7 @@ import java.util.List;
 public class OrderDetailsDTO {
     private OrderDTO order;
     private List<OrderLineDTO> orderLines;
+    private CustomerDetailsDTO customerDetails;
+    private AddressDTO shippingAddress;
+    private AddressDTO billingAddress;
 }
