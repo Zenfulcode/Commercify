@@ -41,7 +41,6 @@ public class OrderService {
     private final ProductVariantRepository variantRepository;
     private final ProductVariantMapper productVariantMapper;
     private final OrderShippingInfoRepository orderShippingInfoRepository;
-    private final AddressMapper addressMapper;
 
     @Transactional
     public OrderDTO createOrder(Long userId, CreateOrderRequest request) {
