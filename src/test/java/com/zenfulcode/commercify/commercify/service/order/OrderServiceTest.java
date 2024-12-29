@@ -4,6 +4,7 @@ import com.zenfulcode.commercify.commercify.OrderStatus;
 import com.zenfulcode.commercify.commercify.api.requests.orders.CreateOrderLineRequest;
 import com.zenfulcode.commercify.commercify.api.requests.orders.CreateOrderRequest;
 import com.zenfulcode.commercify.commercify.dto.AddressDTO;
+import com.zenfulcode.commercify.commercify.dto.CustomerDetailsDTO;
 import com.zenfulcode.commercify.commercify.dto.OrderDTO;
 import com.zenfulcode.commercify.commercify.dto.ProductDTO;
 import com.zenfulcode.commercify.commercify.dto.mapper.OrderMapper;
@@ -13,6 +14,7 @@ import com.zenfulcode.commercify.commercify.entity.ProductEntity;
 import com.zenfulcode.commercify.commercify.exception.OrderNotFoundException;
 import com.zenfulcode.commercify.commercify.exception.ProductNotFoundException;
 import com.zenfulcode.commercify.commercify.repository.OrderRepository;
+import com.zenfulcode.commercify.commercify.repository.OrderShippingInfoRepository;
 import com.zenfulcode.commercify.commercify.repository.ProductRepository;
 import com.zenfulcode.commercify.commercify.service.StockManagementService;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,6 +54,8 @@ class OrderServiceTest {
     private OrderCalculationService calculationService;
     @Mock
     private StockManagementService stockService;
+    @Mock
+    private OrderShippingInfoRepository orderShippingInfoRepository;
 
     @InjectMocks
     private OrderService orderService;
@@ -62,6 +66,8 @@ class OrderServiceTest {
     private ProductEntity productEntity;
     private ProductDTO productDTO;
     private AddressDTO addressDTO;
+
+    private CustomerDetailsDTO customerDetailsDTO;
 
     @BeforeEach
     void setUp() {
@@ -80,6 +86,13 @@ class OrderServiceTest {
                 .quantity(2)
                 .unitPrice(99.99)
                 .currency("USD")
+                .build();
+
+        customerDetailsDTO = CustomerDetailsDTO.builder()
+                .firstName("Test")
+                .lastName("User")
+                .email("test@email.com")
+                .phone("1234567890")
                 .build();
 
         orderEntity = OrderEntity.builder()
@@ -109,7 +122,7 @@ class OrderServiceTest {
                 .build();
 
         CreateOrderLineRequest orderLineRequest = new CreateOrderLineRequest(1L, null, 2);
-        createOrderRequest = new CreateOrderRequest("USD", List.of(orderLineRequest), addressDTO, null);
+        createOrderRequest = new CreateOrderRequest("USD", customerDetailsDTO, List.of(orderLineRequest), addressDTO, null);
     }
 
     @Nested

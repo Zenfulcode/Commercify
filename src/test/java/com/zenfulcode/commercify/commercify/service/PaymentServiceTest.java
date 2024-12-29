@@ -61,7 +61,7 @@ class PaymentServiceTest {
                 .totalAmount(199.99)
                 .build();
 
-        orderDetails = new OrderDetailsDTO(null, null); // Simplified for testing
+        orderDetails = new OrderDetailsDTO(null, null, null, null, null); // Simplified for testing
     }
 
     @Test
