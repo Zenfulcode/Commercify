@@ -30,7 +30,7 @@ public class OrderEntity {
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column(name = "user_id", nullable = false)
+    @Column(name = "user_id")
     private Long userId;
 
     @ToString.Exclude

@@ -37,11 +37,34 @@ public class OrderController {
             "id", "userId", "status", "currency", "totalAmount", "createdAt", "updatedAt"
     );
 
-    @PreAuthorize("hasRole('USER') and #userId == authentication.principal.id")
     @PostMapping("/{userId}")
-    public ResponseEntity<?> createOrder(@PathVariable Long userId, @Validated @RequestBody CreateOrderRequest orderRequest) {
+    public ResponseEntity<?> createOrder(@PathVariable Long userId, @RequestBody CreateOrderRequest orderRequest) {
         try {
             OrderDTO orderDTO = orderService.createOrder(userId, orderRequest);
+            return ResponseEntity.ok(CreateOrderResponse.from(OrderViewModel.fromDTO(orderDTO)));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(CreateOrderResponse.from("Invalid request: " + e.getMessage()));
+        } catch (ProductNotFoundException e) {
+            return ResponseEntity.badRequest()
+                    .body(CreateOrderResponse.from("Product not found: " + e.getMessage()));
+        } catch (InsufficientStockException e) {
+            return ResponseEntity.badRequest()
+                    .body(CreateOrderResponse.from("Insufficient stock: " + e.getMessage()));
+        } catch (OrderValidationException e) {
+            return ResponseEntity.badRequest()
+                    .body(CreateOrderResponse.from(e.getMessage()));
+        } catch (Exception e) {
+            log.error("Error creating order", e);
+            return ResponseEntity.internalServerError()
+                    .body(CreateOrderResponse.from("Error creating order: " + e.getMessage()));
+        }
+    }
+
+    @PostMapping
+    public ResponseEntity<?> createOrder(@RequestBody CreateOrderRequest orderRequest) {
+        try {
+            OrderDTO orderDTO = orderService.createOrder(orderRequest);
             return ResponseEntity.ok(CreateOrderResponse.from(OrderViewModel.fromDTO(orderDTO)));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest()

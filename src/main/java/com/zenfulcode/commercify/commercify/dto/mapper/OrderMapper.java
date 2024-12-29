@@ -23,5 +23,4 @@ public class OrderMapper implements Function<OrderEntity, OrderDTO> {
                 .totalAmount(order.getTotalAmount())
                 .build();
     }
-
 }
