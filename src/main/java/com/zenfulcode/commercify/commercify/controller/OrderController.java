@@ -61,7 +61,7 @@ public class OrderController {
         }
     }
 
-    @PostMapping("/")
+    @PostMapping
     public ResponseEntity<?> createOrder(@RequestBody CreateOrderRequest orderRequest) {
         try {
             OrderDTO orderDTO = orderService.createOrder(orderRequest);

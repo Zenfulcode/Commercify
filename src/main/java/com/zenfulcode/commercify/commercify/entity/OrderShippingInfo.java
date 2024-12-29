@@ -17,13 +17,13 @@ public class OrderShippingInfo {
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column(name = "customer_first_name", nullable = false)
+    @Column(name = "customer_first_name")
     private String customerFirstName;
-    @Column(name = "customer_last_name", nullable = false)
+    @Column(name = "customer_last_name")
     private String customerLastName;
-    @Column(name = "customer_email", nullable = false)
+    @Column(name = "customer_email")
     private String customerEmail;
-    @Column(name = "customer_phone", nullable = false)
+    @Column(name = "customer_phone")
     private String customerPhone;
 
     @Column(name = "shipping_street", nullable = false)
