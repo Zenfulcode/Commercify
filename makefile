@@ -18,5 +18,5 @@ build:
 	docker build -t ghcr.io/zenfulcode/commercify:$(tag) .
 
 push:
-	docker build -t ghcr.io/zenfulcode/commercify:dev .
-	docker push ghcr.io/zenfulcode/commercify:dev
+	docker build -t ghcr.io/zenfulcode/commercify:$(tag) .
+	docker push ghcr.io/zenfulcode/commercify:$(tag)
