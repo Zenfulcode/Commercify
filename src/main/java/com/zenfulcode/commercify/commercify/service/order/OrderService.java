@@ -3,10 +3,7 @@ package com.zenfulcode.commercify.commercify.service.order;
 import com.zenfulcode.commercify.commercify.OrderStatus;
 import com.zenfulcode.commercify.commercify.api.requests.orders.CreateOrderLineRequest;
 import com.zenfulcode.commercify.commercify.api.requests.orders.CreateOrderRequest;
-import com.zenfulcode.commercify.commercify.dto.AddressDTO;
-import com.zenfulcode.commercify.commercify.dto.OrderDTO;
-import com.zenfulcode.commercify.commercify.dto.OrderDetailsDTO;
-import com.zenfulcode.commercify.commercify.dto.OrderLineDTO;
+import com.zenfulcode.commercify.commercify.dto.*;
 import com.zenfulcode.commercify.commercify.dto.mapper.OrderMapper;
 import com.zenfulcode.commercify.commercify.dto.mapper.ProductMapper;
 import com.zenfulcode.commercify.commercify.dto.mapper.ProductVariantMapper;
@@ -43,6 +40,11 @@ public class OrderService {
     private final ProductVariantRepository variantRepository;
     private final ProductVariantMapper productVariantMapper;
     private final OrderShippingInfoRepository orderShippingInfoRepository;
+
+    @Transactional
+    public OrderDTO createOrder(CreateOrderRequest request) {
+        return createOrder(null, request);
+    }
 
     @Transactional
     public OrderDTO createOrder(Long userId, CreateOrderRequest request) {
@@ -82,6 +84,11 @@ public class OrderService {
                     .billingZip(billingAddress.getZipCode())
                     .billingCountry(billingAddress.getCountry());
         }
+
+        shippingInfo.customerEmail(request.customerDetails().getEmail())
+                .customerFirstName(request.customerDetails().getFirstName())
+                .customerLastName(request.customerDetails().getLastName())
+                .customerPhone(request.customerDetails().getPhone());
 
         return shippingInfo.build();
     }
@@ -250,6 +257,34 @@ public class OrderService {
                 })
                 .collect(Collectors.toList());
 
-        return new OrderDetailsDTO(orderMapper.apply(order), orderLines);
+        OrderDTO orderDTO = orderMapper.apply(order);
+
+        OrderShippingInfo shippingInfo = order.getOrderShippingInfo();
+
+        System.out.println("shippingInfo = " + shippingInfo);
+
+        CustomerDetailsDTO customerDetails = CustomerDetailsDTO.builder()
+                .email(shippingInfo.getCustomerEmail())
+                .firstName(shippingInfo.getCustomerFirstName())
+                .lastName(shippingInfo.getCustomerLastName())
+                .build();
+
+        AddressDTO shippingAddress = AddressDTO.builder()
+                .city(shippingInfo.getShippingCity())
+                .country(shippingInfo.getShippingCountry())
+                .state(shippingInfo.getShippingState())
+                .street(shippingInfo.getShippingStreet())
+                .zipCode(shippingInfo.getShippingZip())
+                .build();
+
+        AddressDTO billingAddress = AddressDTO.builder()
+                .city(shippingInfo.getBillingCity())
+                .country(shippingInfo.getBillingCountry())
+                .state(shippingInfo.getBillingState())
+                .street(shippingInfo.getBillingStreet())
+                .zipCode(shippingInfo.getBillingZip())
+                .build();
+
+        return new OrderDetailsDTO(orderDTO, orderLines, customerDetails, shippingAddress, billingAddress);
     }
 }

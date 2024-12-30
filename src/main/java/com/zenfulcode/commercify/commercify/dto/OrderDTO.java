@@ -13,9 +13,9 @@ import java.time.Instant;
 public class OrderDTO {
     private Long id;
     private Long userId;
-    private OrderStatus orderStatus;
     private String currency;
     private Double totalAmount;
+    private OrderStatus orderStatus;
     private Instant createdAt;
     private Instant updatedAt;
 }

@@ -4,7 +4,6 @@ import com.zenfulcode.commercify.commercify.api.requests.PaymentRequest;
 import com.zenfulcode.commercify.commercify.api.responses.PaymentResponse;
 import com.zenfulcode.commercify.commercify.integration.WebhookResponse;
 import com.zenfulcode.commercify.commercify.integration.WebhookSubscribeRequest;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -62,4 +61,3 @@ public class MobilePayController {
         }
     }
 }
-

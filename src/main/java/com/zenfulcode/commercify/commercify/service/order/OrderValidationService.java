@@ -54,6 +54,22 @@ public class OrderValidationService {
             }
         }
 
+        if (request.customerDetails() == null) {
+            errors.add("Customer details are required");
+        }
+
+        if (request.customerDetails() != null) {
+            if (request.customerDetails().getFirstName() == null || request.customerDetails().getFirstName().isBlank()) {
+                errors.add("Customer first name is required");
+            }
+            if (request.customerDetails().getLastName() == null || request.customerDetails().getLastName().isBlank()) {
+                errors.add("Customer last name is required");
+            }
+            if (request.customerDetails().getEmail() == null || request.customerDetails().getEmail().isBlank()) {
+                errors.add("Customer email is required");
+            }
+        }
+
         if (!errors.isEmpty()) {
             throw new OrderValidationException("Order validation failed: " + String.join(", ", errors));
         }
