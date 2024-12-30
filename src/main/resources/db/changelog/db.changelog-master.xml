@@ -12,5 +12,4 @@
     <include file="db/changelog/migrations/241127144629-changelog.xml"/>
     <include file="db/changelog/migrations/241201215506-changelog.xml"/>
     <include file="db/changelog/migrations/241223151914-changelog.xml"/>
-    <include file="db/changelog/migrations/241230170619-changelog.xml"/>
 </databaseChangeLog>
