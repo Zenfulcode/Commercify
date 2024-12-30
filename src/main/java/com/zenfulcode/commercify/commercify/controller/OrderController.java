@@ -37,6 +37,7 @@ public class OrderController {
             "id", "userId", "status", "currency", "totalAmount", "createdAt", "updatedAt"
     );
 
+    @PreAuthorize("hasRole('USER') and #userId == authentication.principal.id")
     @PostMapping("/{userId}")
     public ResponseEntity<?> createOrder(@PathVariable Long userId, @RequestBody CreateOrderRequest orderRequest) {
         try {
