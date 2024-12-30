@@ -20,7 +20,7 @@ import java.util.Set;
 public class ProductVariantEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     @Column(nullable = false, unique = true)
     private String sku;

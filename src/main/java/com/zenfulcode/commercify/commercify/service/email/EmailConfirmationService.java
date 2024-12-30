@@ -63,7 +63,7 @@ public class EmailConfirmationService {
     }
 
     @Transactional
-    public void resendConfirmationEmail(Long userId) {
+    public void resendConfirmationEmail(Integer userId) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 

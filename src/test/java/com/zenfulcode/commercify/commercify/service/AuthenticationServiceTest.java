@@ -82,7 +82,7 @@ class AuthenticationServiceTest {
         );
 
         userEntity = UserEntity.builder()
-                .id(1L)
+                .id(1)
                 .email("test@example.com")
                 .password("encoded_password")
                 .firstName("John")
@@ -92,7 +92,7 @@ class AuthenticationServiceTest {
                 .build();
 
         userDTO = UserDTO.builder()
-                .id(1L)
+                .id(1)
                 .email("test@example.com")
                 .firstName("John")
                 .lastName("Doe")

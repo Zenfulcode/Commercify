@@ -47,13 +47,13 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderDTO createOrder(Long userId, CreateOrderRequest request) {
+    public OrderDTO createOrder(Integer userId, CreateOrderRequest request) {
         // Validate request and check stock
         validationService.validateCreateOrderRequest(request);
 
         // Get and validate all products and variants upfront
-        Map<Long, ProductEntity> products = getAndValidateProducts(request.orderLines());
-        Map<Long, ProductVariantEntity> variants = getAndValidateVariants(request.orderLines());
+        Map<Integer, ProductEntity> products = getAndValidateProducts(request.orderLines());
+        Map<Integer, ProductVariantEntity> variants = getAndValidateVariants(request.orderLines());
 
         // Get shipping information
         OrderShippingInfo shippingInfo = getShippingInformation(request);
@@ -94,7 +94,7 @@ public class OrderService {
     }
 
     @Transactional
-    public void updateOrderStatus(Long orderId, OrderStatus newStatus) {
+    public void updateOrderStatus(Integer orderId, OrderStatus newStatus) {
         OrderEntity order = findOrderById(orderId);
         OrderStatus oldStatus = order.getStatus();
 
@@ -105,7 +105,7 @@ public class OrderService {
     }
 
     @Transactional
-    public void cancelOrder(Long orderId) {
+    public void cancelOrder(Integer orderId) {
         OrderEntity order = findOrderById(orderId);
         validationService.validateOrderCancellation(order);
 
@@ -117,7 +117,7 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public Page<OrderDTO> getOrdersByUserId(Long userId, Pageable pageable) {
+    public Page<OrderDTO> getOrdersByUserId(Integer userId, Pageable pageable) {
         return orderRepository.findByUserId(userId, pageable).map(orderMapper);
     }
 
@@ -127,18 +127,18 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public OrderDetailsDTO getOrderById(Long orderId) {
+    public OrderDetailsDTO getOrderById(Integer orderId) {
         OrderEntity order = findOrderById(orderId);
         return buildOrderDetailsDTO(order);
     }
 
     @Transactional(readOnly = true)
-    public boolean isOrderOwnedByUser(Long orderId, Long userId) {
+    public boolean isOrderOwnedByUser(Integer orderId, Integer userId) {
         return orderRepository.existsByIdAndUserId(orderId, userId);
     }
 
-    private Map<Long, ProductVariantEntity> getAndValidateVariants(List<CreateOrderLineRequest> orderLines) {
-        Set<Long> variantIds = orderLines.stream()
+    private Map<Integer, ProductVariantEntity> getAndValidateVariants(List<CreateOrderLineRequest> orderLines) {
+        Set<Integer> variantIds = orderLines.stream()
                 .map(CreateOrderLineRequest::variantId)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
@@ -147,7 +147,7 @@ public class OrderService {
             return Collections.emptyMap();
         }
 
-        Map<Long, ProductVariantEntity> variants = variantRepository
+        Map<Integer, ProductVariantEntity> variants = variantRepository
                 .findAllById(variantIds).stream().collect(Collectors.toMap(ProductVariantEntity::getId, Function.identity()));
 
         // Validate all requested variants exist and have sufficient stock
@@ -172,10 +172,10 @@ public class OrderService {
         return variants;
     }
 
-    private OrderEntity buildOrderEntity(Long userId,
+    private OrderEntity buildOrderEntity(Integer userId,
                                          CreateOrderRequest request,
-                                         Map<Long, ProductEntity> products,
-                                         Map<Long, ProductVariantEntity> variants,
+                                         Map<Integer, ProductEntity> products,
+                                         Map<Integer, ProductVariantEntity> variants,
                                          OrderShippingInfo shippingInfo) {
         // Create order lines first
         Set<OrderLineEntity> orderLines = request.orderLines().stream()
@@ -216,10 +216,10 @@ public class OrderService {
                 .build();
     }
 
-    private Map<Long, ProductEntity> getAndValidateProducts(List<CreateOrderLineRequest> orderLines) {
-        Set<Long> productIds = orderLines.stream().map(CreateOrderLineRequest::productId).collect(Collectors.toSet());
+    private Map<Integer, ProductEntity> getAndValidateProducts(List<CreateOrderLineRequest> orderLines) {
+        Set<Integer> productIds = orderLines.stream().map(CreateOrderLineRequest::productId).collect(Collectors.toSet());
 
-        Map<Long, ProductEntity> products = productRepository.findAllById(productIds).stream().collect(Collectors.toMap(ProductEntity::getId, Function.identity()));
+        Map<Integer, ProductEntity> products = productRepository.findAllById(productIds).stream().collect(Collectors.toMap(ProductEntity::getId, Function.identity()));
 
         orderLines.forEach(line -> {
             ProductEntity product = products.get(line.productId());
@@ -234,7 +234,7 @@ public class OrderService {
         return products;
     }
 
-    private OrderEntity findOrderById(Long orderId) {
+    private OrderEntity findOrderById(Integer orderId) {
         return orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
     }
 

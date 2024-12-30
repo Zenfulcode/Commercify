@@ -14,7 +14,7 @@ class ProductEntityTest {
     @BeforeEach
     void setUp() {
         product = ProductEntity.builder()
-                .id(1L)
+                .id(1)
                 .name("Test Product")
                 .description("Test Description")
                 .stock(10)

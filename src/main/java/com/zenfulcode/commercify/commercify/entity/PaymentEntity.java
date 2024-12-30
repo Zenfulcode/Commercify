@@ -22,13 +22,13 @@ import java.util.Objects;
 public class PaymentEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     @Column(name = "payment_reference", unique = true)
     private String mobilePayReference;
 
     @Column(name = "order_id", nullable = false)
-    private Long orderId;
+    private Integer orderId;
     @Column(name = "total_amount")
     private Double totalAmount;
     @Column(name = "payment_method")

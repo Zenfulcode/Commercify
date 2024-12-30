@@ -12,7 +12,7 @@ import java.util.Set;
 @Builder
 @Data
 public class ProductVariantEntityDto implements Serializable {
-    Long id;
+    Integer id;
     String sku;
     Integer stock;
     String imageUrl;

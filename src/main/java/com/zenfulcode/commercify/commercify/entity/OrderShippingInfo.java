@@ -15,7 +15,7 @@ public class OrderShippingInfo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
-    private Long id;
+    private Integer id;
 
     @Column(name = "customer_first_name")
     private String customerFirstName;

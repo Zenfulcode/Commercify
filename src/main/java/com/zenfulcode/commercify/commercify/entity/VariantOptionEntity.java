@@ -17,7 +17,7 @@ import java.time.Instant;
 public class VariantOptionEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     @Column(nullable = false)
     private String name;  // e.g., "Size", "Color"

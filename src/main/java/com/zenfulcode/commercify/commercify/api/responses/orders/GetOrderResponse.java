@@ -10,8 +10,8 @@ import java.time.Instant;
 import java.util.List;
 
 public record GetOrderResponse(
-        Long id,
-        Long userId,
+        Integer id,
+        Integer userId,
         OrderStatus orderStatus,
         String currency,
         Double totalAmount,

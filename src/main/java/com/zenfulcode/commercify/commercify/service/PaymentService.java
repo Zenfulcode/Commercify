@@ -23,7 +23,7 @@ public class PaymentService {
     private final OrderService orderService;
 
     @Transactional
-    public void handlePaymentStatusUpdate(Long orderId, PaymentStatus newStatus) {
+    public void handlePaymentStatusUpdate(Integer orderId, PaymentStatus newStatus) {
         PaymentEntity payment = paymentRepository.findByOrderId(orderId)
                 .orElseThrow(() -> new RuntimeException("Payment not found for order: " + orderId));
 
@@ -50,7 +50,7 @@ public class PaymentService {
         }
     }
 
-    public PaymentStatus getPaymentStatus(Long orderId) {
+    public PaymentStatus getPaymentStatus(Integer orderId) {
         return paymentRepository.findByOrderId(orderId)
                 .map(PaymentEntity::getStatus)
                 .orElse(PaymentStatus.NOT_FOUND);

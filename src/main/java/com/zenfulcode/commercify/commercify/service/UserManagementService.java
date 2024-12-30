@@ -24,7 +24,7 @@ public class UserManagementService {
     private final AddressMapper addressMapper;
 
     @Transactional(readOnly = true)
-    public UserDTO getUserById(Long id) {
+    public UserDTO getUserById(Integer id) {
         UserEntity user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         return mapper.apply(user);
@@ -36,7 +36,7 @@ public class UserManagementService {
     }
 
     @Transactional
-    public UserDTO updateUser(Long id, UserDTO userDTO) {
+    public UserDTO updateUser(Integer id, UserDTO userDTO) {
         UserEntity user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -49,7 +49,7 @@ public class UserManagementService {
     }
 
     @Transactional
-    public void deleteUser(Long id) {
+    public void deleteUser(Integer id) {
         if (!userRepository.existsById(id)) {
             throw new RuntimeException("User not found");
         }
@@ -57,7 +57,7 @@ public class UserManagementService {
     }
 
     @Transactional
-    public AddressDTO setDefaultAddress(Long userId, AddressDTO request) {
+    public AddressDTO setDefaultAddress(Integer userId, AddressDTO request) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -76,7 +76,7 @@ public class UserManagementService {
     }
 
     @Transactional
-    public UserDTO removeDefaultAddress(Long userId) {
+    public UserDTO removeDefaultAddress(Integer userId) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         user.setDefaultAddress(null);
@@ -84,7 +84,7 @@ public class UserManagementService {
     }
 
     @Transactional
-    public UserDTO addRoleToUser(Long userId, String role) {
+    public UserDTO addRoleToUser(Integer userId, String role) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -101,7 +101,7 @@ public class UserManagementService {
     }
 
     @Transactional
-    public UserDTO removeRoleFromUser(Long userId, String role) {
+    public UserDTO removeRoleFromUser(Integer userId, String role) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 

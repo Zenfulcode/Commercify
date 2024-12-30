@@ -11,8 +11,8 @@ import java.time.Instant;
 @Builder
 @AllArgsConstructor
 public class OrderDTO {
-    private Long id;
-    private Long userId;
+    private Integer id;
+    private Integer userId;
     private String currency;
     private Double totalAmount;
     private OrderStatus orderStatus;

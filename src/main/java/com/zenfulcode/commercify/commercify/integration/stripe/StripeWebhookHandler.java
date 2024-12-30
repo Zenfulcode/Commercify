@@ -47,8 +47,8 @@ public class StripeWebhookHandler {
             return;
         }
 
-        OrderEntity order = orderRepository.findById(Long.parseLong(orderId))
-                .orElseThrow(() -> new OrderNotFoundException(Long.parseLong(orderId)));
+        OrderEntity order = orderRepository.findById(Integer.parseInt(orderId))
+                .orElseThrow(() -> new OrderNotFoundException(Integer.parseInt(orderId)));
 
         // Update order status
         order.setStatus(OrderStatus.CONFIRMED);

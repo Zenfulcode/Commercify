@@ -45,8 +45,8 @@ class MobilePayServiceTest {
     @BeforeEach
     void setUp() {
         payment = PaymentEntity.builder()
-                .id(1L)
-                .orderId(1L)
+                .id(1)
+                .orderId(1)
                 .mobilePayReference(PAYMENT_REFERENCE)
                 .status(PaymentStatus.PENDING)
                 .build();
@@ -60,7 +60,7 @@ class MobilePayServiceTest {
 
         mobilePayService.handlePaymentCallback(PAYMENT_REFERENCE, "AUTHORIZED");
 
-        verify(paymentService).handlePaymentStatusUpdate(eq(1L), eq(PaymentStatus.PAID));
+        verify(paymentService).handlePaymentStatusUpdate(eq(1), eq(PaymentStatus.PAID));
     }
 
     @Test
@@ -81,7 +81,7 @@ class MobilePayServiceTest {
 
         mobilePayService.handlePaymentCallback(PAYMENT_REFERENCE, "ABORTED");
 
-        verify(paymentService).handlePaymentStatusUpdate(eq(1L), eq(PaymentStatus.CANCELLED));
+        verify(paymentService).handlePaymentStatusUpdate(eq(1), eq(PaymentStatus.CANCELLED));
     }
 
     @Test
@@ -92,6 +92,6 @@ class MobilePayServiceTest {
 
         mobilePayService.handlePaymentCallback(PAYMENT_REFERENCE, "EXPIRED");
 
-        verify(paymentService).handlePaymentStatusUpdate(eq(1L), eq(PaymentStatus.EXPIRED));
+        verify(paymentService).handlePaymentStatusUpdate(eq(1), eq(PaymentStatus.EXPIRED));
     }
 }

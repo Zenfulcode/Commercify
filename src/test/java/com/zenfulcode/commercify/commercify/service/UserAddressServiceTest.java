@@ -51,14 +51,14 @@ class UserAddressServiceTest {
     @BeforeEach
     void setUp() {
         user = UserEntity.builder()
-                .id(1L)
+                .id(1)
                 .email("test@example.com")
                 .firstName("John")
                 .lastName("Doe")
                 .build();
 
         shippingAddress = AddressEntity.builder()
-                .id(1L)
+                .id(1)
                 .street("123 Ship St")
                 .city("Ship City")
                 .state("Ship State")
@@ -75,7 +75,7 @@ class UserAddressServiceTest {
                 .build();
 
         userDTO = UserDTO.builder()
-                .id(1L)
+                .id(1)
                 .email("test@example.com")
                 .firstName("John")
                 .lastName("Doe")
@@ -89,10 +89,10 @@ class UserAddressServiceTest {
         @Test
         @DisplayName("Should set shipping address successfully")
         void setShippingAddress_Success() {
-            when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+            when(userRepository.findById(1)).thenReturn(Optional.of(user));
             when(userRepository.save(any(UserEntity.class))).thenReturn(user);
 
-            userManagementService.setDefaultAddress(1L, address);
+            userManagementService.setDefaultAddress(1, address);
 
             ArgumentCaptor<UserEntity> userCaptor = ArgumentCaptor.forClass(UserEntity.class);
             verify(userRepository).save(userCaptor.capture());
@@ -109,11 +109,11 @@ class UserAddressServiceTest {
         @DisplayName("Should remove shipping address successfully")
         void removeShippingAddress_Success() {
             user.setDefaultAddress(shippingAddress);
-            when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+            when(userRepository.findById(1)).thenReturn(Optional.of(user));
             when(userRepository.save(any(UserEntity.class))).thenReturn(user);
             when(userMapper.apply(any(UserEntity.class))).thenReturn(userDTO);
 
-            userManagementService.removeDefaultAddress(1L);
+            userManagementService.removeDefaultAddress(1);
 
             verify(userRepository).save(user);
             assertNull(user.getDefaultAddress());
@@ -122,10 +122,10 @@ class UserAddressServiceTest {
         @Test
         @DisplayName("Should throw exception when user not found - shipping")
         void setShippingAddress_UserNotFound() {
-            when(userRepository.findById(1L)).thenReturn(Optional.empty());
+            when(userRepository.findById(1)).thenReturn(Optional.empty());
 
             assertThrows(RuntimeException.class,
-                    () -> userManagementService.setDefaultAddress(1L, address));
+                    () -> userManagementService.setDefaultAddress(1, address));
         }
     }
 }
