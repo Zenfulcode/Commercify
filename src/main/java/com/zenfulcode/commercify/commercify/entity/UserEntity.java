@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 public class UserEntity implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     @Column(name = "first_name", length = 50, nullable = false)
     private String firstName;
@@ -41,7 +41,7 @@ public class UserEntity implements UserDetails {
     private String phoneNumber;
 
     @ToString.Exclude
-    @ManyToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "default_address_id")
     private AddressEntity defaultAddress;
 

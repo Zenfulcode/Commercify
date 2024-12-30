@@ -24,7 +24,7 @@ public class UserManagementController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
-    public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
+    public ResponseEntity<UserDTO> getUserById(@PathVariable Integer id) {
         return ResponseEntity.ok(userManagementService.getUserById(id));
     }
 
@@ -46,38 +46,38 @@ public class UserManagementController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
-    public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @RequestBody UserDTO userDTO) {
+    public ResponseEntity<UserDTO> updateUser(@PathVariable Integer id, @RequestBody UserDTO userDTO) {
         return ResponseEntity.ok(userManagementService.updateUser(id, userDTO));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteUser(@PathVariable Integer id) {
         userManagementService.deleteUser(id);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/{id}/address")
     @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
-    public ResponseEntity<AddressDTO> setAddress(@PathVariable Long id, @RequestBody AddressDTO request) {
+    public ResponseEntity<AddressDTO> setAddress(@PathVariable Integer id, @RequestBody AddressDTO request) {
         return ResponseEntity.ok(userManagementService.setDefaultAddress(id, request));
     }
 
     @DeleteMapping("/{id}/address")
     @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
-    public ResponseEntity<UserDTO> removeAddress(@PathVariable Long id) {
+    public ResponseEntity<UserDTO> removeAddress(@PathVariable Integer id) {
         return ResponseEntity.ok(userManagementService.removeDefaultAddress(id));
     }
 
     @PostMapping("/{id}/roles")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserDTO> addRoleToUser(@PathVariable Long id, @RequestBody String role) {
+    public ResponseEntity<UserDTO> addRoleToUser(@PathVariable Integer id, @RequestBody String role) {
         return ResponseEntity.ok(userManagementService.addRoleToUser(id, role));
     }
 
     @DeleteMapping("/{id}/roles")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserDTO> removeRoleFromUser(@PathVariable Long id, @RequestBody String role) {
+    public ResponseEntity<UserDTO> removeRoleFromUser(@PathVariable Integer id, @RequestBody String role) {
         return ResponseEntity.ok(userManagementService.removeRoleFromUser(id, role));
     }
 }

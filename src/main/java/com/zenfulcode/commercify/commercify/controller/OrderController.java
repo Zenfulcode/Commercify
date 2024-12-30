@@ -39,7 +39,7 @@ public class OrderController {
 
     @PreAuthorize("hasRole('USER') and #userId == authentication.principal.id")
     @PostMapping("/{userId}")
-    public ResponseEntity<?> createOrder(@PathVariable Long userId, @RequestBody CreateOrderRequest orderRequest) {
+    public ResponseEntity<?> createOrder(@PathVariable Integer userId, @RequestBody CreateOrderRequest orderRequest) {
         try {
             OrderDTO orderDTO = orderService.createOrder(userId, orderRequest);
             return ResponseEntity.ok(CreateOrderResponse.from(OrderViewModel.fromDTO(orderDTO)));
@@ -89,7 +89,7 @@ public class OrderController {
     @PreAuthorize("hasRole('USER') and #userId == authentication.principal.id or hasRole('ADMIN')")
     @GetMapping("/user/{userId}")
     public ResponseEntity<?> getOrdersByUserId(
-            @PathVariable Long userId,
+            @PathVariable Integer userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
@@ -145,7 +145,7 @@ public class OrderController {
 
     @PreAuthorize("hasRole('USER') and @orderService.isOrderOwnedByUser(#orderId, authentication.principal.id) or hasRole('ADMIN')")
     @GetMapping("/{orderId}")
-    public ResponseEntity<GetOrderResponse> getOrderById(@PathVariable Long orderId) {
+    public ResponseEntity<GetOrderResponse> getOrderById(@PathVariable Integer orderId) {
         try {
             OrderDetailsDTO orderDetails = orderService.getOrderById(orderId);
             return ResponseEntity.ok(GetOrderResponse.from(orderDetails));
@@ -160,7 +160,7 @@ public class OrderController {
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{orderId}/status")
     public ResponseEntity<?> updateOrderStatus(
-            @PathVariable Long orderId,
+            @PathVariable Integer orderId,
             @Validated @RequestBody OrderStatusUpdateRequest request
     ) {
         try {
@@ -184,7 +184,7 @@ public class OrderController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{orderId}")
-    public ResponseEntity<?> cancelOrder(@PathVariable Long orderId) {
+    public ResponseEntity<?> cancelOrder(@PathVariable Integer orderId) {
         try {
             orderService.cancelOrder(orderId);
             return ResponseEntity.ok().build();

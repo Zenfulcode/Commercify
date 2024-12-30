@@ -8,7 +8,7 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class AddressDTO {
-    private Long id;
+    private Integer id;
     private String street;
     private String city;
     private String state;

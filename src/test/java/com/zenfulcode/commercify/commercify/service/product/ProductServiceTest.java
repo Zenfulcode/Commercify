@@ -52,7 +52,7 @@ class ProductServiceTest {
     @BeforeEach
     void setUp() {
         productEntity = ProductEntity.builder()
-                .id(1L)
+                .id(1)
                 .name("Test Product")
                 .description("Test Description")
                 .stock(10)
@@ -63,7 +63,7 @@ class ProductServiceTest {
                 .build();
 
         productDTO = ProductDTO.builder()
-                .id(1L)
+                .id(1)
                 .name("Test Product")
                 .description("Test Description")
                 .stock(10)
@@ -112,22 +112,22 @@ class ProductServiceTest {
         @Test
         @DisplayName("Should get product by ID")
         void getProductById_Success() {
-            when(productRepository.findById(1L)).thenReturn(Optional.of(productEntity));
+            when(productRepository.findById(1)).thenReturn(Optional.of(productEntity));
             when(productMapper.apply(productEntity)).thenReturn(productDTO);
 
-            ProductDTO result = productService.getProductById(1L);
+            ProductDTO result = productService.getProductById(1);
 
             assertNotNull(result);
-            assertEquals(1L, result.getId());
+            assertEquals(1, result.getId());
             assertEquals("Test Product", result.getName());
         }
 
         @Test
         @DisplayName("Should throw exception when product not found")
         void getProductById_NotFound() {
-            when(productRepository.findById(1L)).thenReturn(Optional.empty());
+            when(productRepository.findById(1)).thenReturn(Optional.empty());
 
-            assertThrows(ProductNotFoundException.class, () -> productService.getProductById(1L));
+            assertThrows(ProductNotFoundException.class, () -> productService.getProductById(1));
         }
 
         @Test
@@ -155,11 +155,11 @@ class ProductServiceTest {
         @Test
         @DisplayName("Should update product successfully")
         void updateProduct_Success() {
-            when(productRepository.findById(1L)).thenReturn(Optional.of(productEntity));
+            when(productRepository.findById(1)).thenReturn(Optional.of(productEntity));
             when(productRepository.save(any())).thenReturn(productEntity);
             when(productMapper.apply(any())).thenReturn(productDTO);
 
-            var result = productService.updateProduct(1L, productRequest);
+            var result = productService.updateProduct(1, productRequest);
 
             assertNotNull(result);
             assertEquals(productDTO, result.getProduct());
@@ -169,10 +169,10 @@ class ProductServiceTest {
         @Test
         @DisplayName("Should throw exception when updating non-existent product")
         void updateProduct_NotFound() {
-            when(productRepository.findById(1L)).thenReturn(Optional.empty());
+            when(productRepository.findById(1)).thenReturn(Optional.empty());
 
             assertThrows(ProductNotFoundException.class,
-                    () -> productService.updateProduct(1L, productRequest));
+                    () -> productService.updateProduct(1, productRequest));
         }
     }
 
@@ -197,19 +197,19 @@ class ProductServiceTest {
         @Test
         @DisplayName("Should delete product successfully")
         void deleteProduct_Success() {
-            when(productRepository.findById(1L)).thenReturn(Optional.of(productEntity));
+            when(productRepository.findById(1)).thenReturn(Optional.of(productEntity));
             doNothing().when(productDeletionService).validateAndDelete(productEntity);
 
-            assertDoesNotThrow(() -> productService.deleteProduct(1L));
+            assertDoesNotThrow(() -> productService.deleteProduct(1));
             verify(productDeletionService).validateAndDelete(productEntity);
         }
 
         @Test
         @DisplayName("Should throw exception when deleting non-existent product")
         void deleteProduct_NotFound() {
-            when(productRepository.findById(1L)).thenReturn(Optional.empty());
+            when(productRepository.findById(1)).thenReturn(Optional.empty());
 
-            assertThrows(ProductNotFoundException.class, () -> productService.deleteProduct(1L));
+            assertThrows(ProductNotFoundException.class, () -> productService.deleteProduct(1));
             verify(productDeletionService, never()).validateAndDelete(any());
         }
     }
@@ -221,9 +221,9 @@ class ProductServiceTest {
         @Test
         @DisplayName("Should activate product")
         void activateProduct_Success() {
-            when(productRepository.findById(1L)).thenReturn(Optional.of(productEntity));
+            when(productRepository.findById(1)).thenReturn(Optional.of(productEntity));
 
-            assertDoesNotThrow(() -> productService.reactivateProduct(1L));
+            assertDoesNotThrow(() -> productService.reactivateProduct(1));
             assertTrue(productEntity.getActive());
             verify(productRepository).save(productEntity);
         }
@@ -231,9 +231,9 @@ class ProductServiceTest {
         @Test
         @DisplayName("Should deactivate product")
         void deactivateProduct_Success() {
-            when(productRepository.findById(1L)).thenReturn(Optional.of(productEntity));
+            when(productRepository.findById(1)).thenReturn(Optional.of(productEntity));
 
-            assertDoesNotThrow(() -> productService.deactivateProduct(1L));
+            assertDoesNotThrow(() -> productService.deactivateProduct(1));
             assertFalse(productEntity.getActive());
             verify(productRepository).save(productEntity);
         }

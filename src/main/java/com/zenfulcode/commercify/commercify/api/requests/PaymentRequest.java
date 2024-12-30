@@ -1,6 +1,6 @@
 package com.zenfulcode.commercify.commercify.api.requests;
 
-public record PaymentRequest(Long orderId,
+public record PaymentRequest(Integer orderId,
                              String currency,
                              String paymentMethod,
                              String returnUrl,

@@ -29,7 +29,7 @@ public class ProductVariantService {
     private final ProductValidationService validationService;
 
     @Transactional
-    public ProductVariantEntityDto addVariant(Long productId, ProductVariantRequest request) {
+    public ProductVariantEntityDto addVariant(Integer productId, ProductVariantRequest request) {
         validationService.validateVariantRequest(request);
         ProductEntity product = getProduct(productId);
 
@@ -41,7 +41,7 @@ public class ProductVariantService {
     }
 
     @Transactional
-    public ProductVariantEntityDto updateVariant(Long productId, Long variantId, ProductVariantRequest request) {
+    public ProductVariantEntityDto updateVariant(Integer productId, Integer variantId, ProductVariantRequest request) {
         validationService.validateVariantRequest(request);
 
         ProductVariantEntity variant = getVariant(productId, variantId);
@@ -52,21 +52,21 @@ public class ProductVariantService {
     }
 
     @Transactional
-    public void deleteVariant(Long productId, Long variantId) {
+    public void deleteVariant(Integer productId, Integer variantId) {
         ProductVariantEntity variant = getVariant(productId, variantId);
         validationService.validateVariantDeletion(variant);
         variantRepository.delete(variant);
     }
 
     @Transactional(readOnly = true)
-    public Page<ProductVariantEntityDto> getProductVariants(Long productId, PageRequest pageRequest) {
+    public Page<ProductVariantEntityDto> getProductVariants(Integer productId, PageRequest pageRequest) {
         // Verify product exists
         getProduct(productId);
         return variantRepository.findByProductId(productId, pageRequest)
                 .map(variantMapper);
     }
 
-    public ProductVariantEntityDto getVariantDto(Long productId, Long variantId) {
+    public ProductVariantEntityDto getVariantDto(Integer productId, Integer variantId) {
         ProductVariantEntity variant = getVariant(productId, variantId);
         ProductEntity product = variant.getProduct();
 
@@ -87,12 +87,12 @@ public class ProductVariantService {
                 .collect(Collectors.toSet());
     }
 
-    private ProductEntity getProduct(Long productId) {
+    private ProductEntity getProduct(Integer productId) {
         return productRepository.findById(productId)
                 .orElseThrow(() -> new ProductNotFoundException(productId));
     }
 
-    private ProductVariantEntity getVariant(Long productId, Long variantId) {
+    private ProductVariantEntity getVariant(Integer productId, Integer variantId) {
         ProductEntity product = getProduct(productId);
         return product.getVariants().stream()
                 .filter(variant -> variant.getId().equals(variantId))

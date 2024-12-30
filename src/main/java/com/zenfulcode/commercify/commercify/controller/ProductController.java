@@ -82,7 +82,7 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProductViewModel> getProductById(@PathVariable Long id) {
+    public ResponseEntity<ProductViewModel> getProductById(@PathVariable Integer id) {
         try {
             ProductDTO product = productService.getProductById(id);
             return ResponseEntity.ok(ProductViewModel.fromDTO(product));
@@ -111,7 +111,7 @@ public class ProductController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateProduct(@PathVariable Long id, @Validated @RequestBody ProductRequest request) {
+    public ResponseEntity<?> updateProduct(@PathVariable Integer id, @Validated @RequestBody ProductRequest request) {
         try {
             ProductUpdateResult result = productService.updateProduct(id, request);
             if (!result.getWarnings().isEmpty()) {
@@ -137,7 +137,7 @@ public class ProductController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{id}/reactivate")
-    public ResponseEntity<?> reactivateProduct(@PathVariable Long id) {
+    public ResponseEntity<?> reactivateProduct(@PathVariable Integer id) {
         try {
             productService.reactivateProduct(id);
             return ResponseEntity.ok("Product reactivated");
@@ -152,7 +152,7 @@ public class ProductController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{id}/deactivate")
-    public ResponseEntity<?> deactivateProduct(@PathVariable Long id) {
+    public ResponseEntity<?> deactivateProduct(@PathVariable Integer id) {
         try {
             productService.deactivateProduct(id);
             return ResponseEntity.ok("Product deactivated");
@@ -167,7 +167,7 @@ public class ProductController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteProduct(@PathVariable Long id) {
+    public ResponseEntity<?> deleteProduct(@PathVariable Integer id) {
         try {
             productService.deleteProduct(id);
             return ResponseEntity.ok().build();
@@ -191,7 +191,7 @@ public class ProductController {
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{productId}/variants")
     public ResponseEntity<?> addVariant(
-            @PathVariable Long productId,
+            @PathVariable Integer productId,
             @Validated @RequestBody ProductVariantRequest request
     ) {
         try {
@@ -213,8 +213,8 @@ public class ProductController {
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{productId}/variants/{variantId}")
     public ResponseEntity<?> updateVariant(
-            @PathVariable Long productId,
-            @PathVariable Long variantId,
+            @PathVariable Integer productId,
+            @PathVariable Integer variantId,
             @Validated @RequestBody ProductVariantRequest request
     ) {
         try {
@@ -235,7 +235,7 @@ public class ProductController {
     //    TODO: the variant doesnt seem to get deleted
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{productId}/variants/{variantId}")
-    public ResponseEntity<?> deleteVariant(@PathVariable Long productId, @PathVariable Long variantId) {
+    public ResponseEntity<?> deleteVariant(@PathVariable Integer productId, @PathVariable Integer variantId) {
         try {
             variantService.deleteVariant(productId, variantId);
             return ResponseEntity.ok("Deleted");
@@ -257,7 +257,7 @@ public class ProductController {
 
     @GetMapping("/{productId}/variants")
     public ResponseEntity<PagedModel<EntityModel<ProductVariantViewModel>>> getProductVariants(
-            @PathVariable Long productId,
+            @PathVariable Integer productId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
@@ -277,8 +277,8 @@ public class ProductController {
 
     @GetMapping("/{productId}/variants/{variantId}")
     public ResponseEntity<ProductVariantViewModel> getVariant(
-            @PathVariable Long productId,
-            @PathVariable Long variantId
+            @PathVariable Integer productId,
+            @PathVariable Integer variantId
     ) {
         try {
             ProductVariantEntityDto variant = variantService.getVariantDto(productId, variantId);

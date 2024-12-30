@@ -17,10 +17,10 @@ public class OrderLineEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
-    private Long id;
+    private Integer id;
 
     @Column(name = "product_id", nullable = false, updatable = false)
-    private Long productId;
+    private Integer productId;
 
     @Column(nullable = false, updatable = false)
     private Integer quantity;

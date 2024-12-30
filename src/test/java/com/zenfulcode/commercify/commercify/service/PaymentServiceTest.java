@@ -49,15 +49,15 @@ class PaymentServiceTest {
     @BeforeEach
     void setUp() {
         payment = PaymentEntity.builder()
-                .id(1L)
-                .orderId(1L)
+                .id(1)
+                .orderId(1)
                 .status(PaymentStatus.PENDING)
                 .totalAmount(199.99)
                 .build();
 
         order = OrderEntity.builder()
-                .id(1L)
-                .userId(1L)
+                .id(1)
+                .userId(1)
                 .totalAmount(199.99)
                 .build();
 
@@ -67,11 +67,11 @@ class PaymentServiceTest {
     @Test
     @DisplayName("Should update payment status successfully")
     void handlePaymentStatusUpdate_Success() {
-        when(paymentRepository.findByOrderId(1L)).thenReturn(Optional.of(payment));
+        when(paymentRepository.findByOrderId(1)).thenReturn(Optional.of(payment));
         when(paymentRepository.save(any(PaymentEntity.class))).thenReturn(payment);
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+        when(orderRepository.findById(1)).thenReturn(Optional.of(order));
 
-        paymentService.handlePaymentStatusUpdate(1L, PaymentStatus.PAID);
+        paymentService.handlePaymentStatusUpdate(1, PaymentStatus.PAID);
 
         verify(paymentRepository).save(payment);
         assertThat(payment.getStatus()).isEqualTo(PaymentStatus.PAID);
@@ -80,11 +80,11 @@ class PaymentServiceTest {
     @Test
     @DisplayName("Should send confirmation email when payment is successful")
     void handlePaymentStatusUpdate_SendsEmail() throws MessagingException {
-        when(paymentRepository.findByOrderId(1L)).thenReturn(Optional.of(payment));
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
-        when(orderService.getOrderById(1L)).thenReturn(orderDetails);
+        when(paymentRepository.findByOrderId(1)).thenReturn(Optional.of(payment));
+        when(orderRepository.findById(1)).thenReturn(Optional.of(order));
+        when(orderService.getOrderById(1)).thenReturn(orderDetails);
 
-        paymentService.handlePaymentStatusUpdate(1L, PaymentStatus.PAID);
+        paymentService.handlePaymentStatusUpdate(1, PaymentStatus.PAID);
 
         verify(emailService).sendOrderConfirmation(orderDetails);
     }
@@ -92,9 +92,9 @@ class PaymentServiceTest {
     @Test
     @DisplayName("Should not send email for non-successful payment status")
     void handlePaymentStatusUpdate_NoEmailForNonSuccess() throws MessagingException {
-        when(paymentRepository.findByOrderId(1L)).thenReturn(Optional.of(payment));
+        when(paymentRepository.findByOrderId(1)).thenReturn(Optional.of(payment));
 
-        paymentService.handlePaymentStatusUpdate(1L, PaymentStatus.FAILED);
+        paymentService.handlePaymentStatusUpdate(1, PaymentStatus.FAILED);
 
         verify(emailService, never()).sendOrderConfirmation(any());
     }
@@ -102,22 +102,22 @@ class PaymentServiceTest {
     @Test
     @DisplayName("Should handle payment not found")
     void handlePaymentStatusUpdate_PaymentNotFound() {
-        when(paymentRepository.findByOrderId(1L)).thenReturn(Optional.empty());
+        when(paymentRepository.findByOrderId(1)).thenReturn(Optional.empty());
 
         assertThrows(RuntimeException.class, () ->
-                paymentService.handlePaymentStatusUpdate(1L, PaymentStatus.PAID));
+                paymentService.handlePaymentStatusUpdate(1, PaymentStatus.PAID));
     }
 
     @Test
     @DisplayName("Should handle email sending failure gracefully")
     void handlePaymentStatusUpdate_EmailFailure() throws MessagingException {
-        when(paymentRepository.findByOrderId(1L)).thenReturn(Optional.of(payment));
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
-        when(orderService.getOrderById(1L)).thenReturn(orderDetails);
+        when(paymentRepository.findByOrderId(1)).thenReturn(Optional.of(payment));
+        when(orderRepository.findById(1)).thenReturn(Optional.of(order));
+        when(orderService.getOrderById(1)).thenReturn(orderDetails);
         doThrow(new MessagingException("Failed to send email"))
                 .when(emailService).sendOrderConfirmation(any());
 
-        paymentService.handlePaymentStatusUpdate(1L, PaymentStatus.PAID);
+        paymentService.handlePaymentStatusUpdate(1, PaymentStatus.PAID);
 
         verify(paymentRepository).save(payment);
         assertThat(payment.getStatus()).isEqualTo(PaymentStatus.PAID);
@@ -126,9 +126,9 @@ class PaymentServiceTest {
     @Test
     @DisplayName("Should get payment status successfully")
     void getPaymentStatus_Success() {
-        when(paymentRepository.findByOrderId(1L)).thenReturn(Optional.of(payment));
+        when(paymentRepository.findByOrderId(1)).thenReturn(Optional.of(payment));
 
-        PaymentStatus status = paymentService.getPaymentStatus(1L);
+        PaymentStatus status = paymentService.getPaymentStatus(1);
 
         assertThat(status).isEqualTo(PaymentStatus.PENDING);
     }
@@ -136,9 +136,9 @@ class PaymentServiceTest {
     @Test
     @DisplayName("Should return NOT_FOUND for non-existent payment")
     void getPaymentStatus_NotFound() {
-        when(paymentRepository.findByOrderId(1L)).thenReturn(Optional.empty());
+        when(paymentRepository.findByOrderId(1)).thenReturn(Optional.empty());
 
-        PaymentStatus status = paymentService.getPaymentStatus(1L);
+        PaymentStatus status = paymentService.getPaymentStatus(1);
 
         assertThat(status).isEqualTo(PaymentStatus.NOT_FOUND);
     }

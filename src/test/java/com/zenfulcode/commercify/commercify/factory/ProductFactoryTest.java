@@ -53,7 +53,7 @@ class ProductFactoryTest {
         );
 
         existingProduct = ProductEntity.builder()
-                .id(1L)
+                .id(1)
                 .name("Existing Product")
                 .description("Existing Description")
                 .stock(5)

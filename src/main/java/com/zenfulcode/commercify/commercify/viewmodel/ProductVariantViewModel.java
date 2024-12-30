@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record ProductVariantViewModel(
-        Long id,
+        Integer id,
         String sku,
         List<VariantOptionViewModel> options
 ) {

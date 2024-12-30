@@ -22,15 +22,15 @@ class OrderEntityTest {
     void setUp() {
         Set<OrderLineEntity> orderLines = new HashSet<>();
         OrderLineEntity orderLine = new OrderLineEntity();
-        orderLine.setProductId(1L);
+        orderLine.setProductId(1);
         orderLine.setQuantity(2);
         orderLine.setUnitPrice(99.99);
         orderLine.setCurrency("USD");
         orderLines.add(orderLine);
 
         order = OrderEntity.builder()
-                .id(1L)
-                .userId(1L)
+                .id(1)
+                .userId(1)
                 .orderLines(orderLines)
                 .status(OrderStatus.PENDING)
                 .currency("USD")
@@ -45,8 +45,8 @@ class OrderEntityTest {
     @DisplayName("Should create order with builder pattern")
     void testOrderBuilder() {
         assertNotNull(order);
-        assertEquals(1L, order.getId());
-        assertEquals(1L, order.getUserId());
+        assertEquals(1, order.getId());
+        assertEquals(1, order.getUserId());
         assertEquals(OrderStatus.PENDING, order.getStatus());
         assertEquals("USD", order.getCurrency());
         assertEquals(199.98, order.getTotalAmount());

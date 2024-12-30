@@ -19,7 +19,7 @@ public class PaymentController {
     @PostMapping("/{orderId}/status")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> updatePaymentStatus(
-            @PathVariable Long orderId,
+            @PathVariable Integer orderId,
             @RequestParam PaymentStatus status) {
         try {
             paymentService.handlePaymentStatusUpdate(orderId, status);
@@ -31,7 +31,7 @@ public class PaymentController {
     }
 
     @GetMapping("/{orderId}/status")
-    public ResponseEntity<PaymentStatus> getPaymentStatus(@PathVariable Long orderId) {
+    public ResponseEntity<PaymentStatus> getPaymentStatus(@PathVariable Integer orderId) {
         PaymentStatus status = paymentService.getPaymentStatus(orderId);
         return ResponseEntity.ok(status);
     }

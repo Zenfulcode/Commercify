@@ -45,7 +45,7 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductUpdateResult updateProduct(Long id, ProductRequest request) {
+    public ProductUpdateResult updateProduct(Integer id, ProductRequest request) {
         ProductEntity product = productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException(id));
 
@@ -59,7 +59,7 @@ public class ProductService {
     }
 
     @Transactional
-    public void deleteProduct(Long id) {
+    public void deleteProduct(Integer id) {
         ProductEntity product = productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException(id));
 
@@ -67,12 +67,12 @@ public class ProductService {
     }
 
     @Transactional
-    public void reactivateProduct(Long id) {
+    public void reactivateProduct(Integer id) {
         toggleProductStatus(id, true);
     }
 
     @Transactional
-    public void deactivateProduct(Long id) {
+    public void deactivateProduct(Integer id) {
         toggleProductStatus(id, false);
     }
 
@@ -82,7 +82,7 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public ProductDTO getProductById(Long id) {
+    public ProductDTO getProductById(Integer id) {
         return productRepository.findById(id)
                 .map(productMapper)
                 .orElseThrow(() -> new ProductNotFoundException(id));
@@ -93,7 +93,7 @@ public class ProductService {
         return productRepository.queryAllByActiveTrue(pageRequest).map(productMapper);
     }
 
-    private void toggleProductStatus(Long id, boolean active) {
+    private void toggleProductStatus(Integer id, boolean active) {
         ProductEntity product = productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException(id));
 

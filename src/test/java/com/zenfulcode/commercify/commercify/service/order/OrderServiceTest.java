@@ -72,7 +72,7 @@ class OrderServiceTest {
     @BeforeEach
     void setUp() {
         productEntity = ProductEntity.builder()
-                .id(1L)
+                .id(1)
                 .name("Test Product")
                 .active(true)
                 .stock(10)
@@ -81,8 +81,8 @@ class OrderServiceTest {
                 .build();
 
         OrderLineEntity orderLine = OrderLineEntity.builder()
-                .id(1L)
-                .productId(1L)
+                .id(1)
+                .productId(1)
                 .quantity(2)
                 .unitPrice(99.99)
                 .currency("USD")
@@ -96,8 +96,8 @@ class OrderServiceTest {
                 .build();
 
         orderEntity = OrderEntity.builder()
-                .id(1L)
-                .userId(1L)
+                .id(1)
+                .userId(1)
                 .status(OrderStatus.PENDING)
                 .currency("USD")
                 .totalAmount(199.98)
@@ -106,8 +106,8 @@ class OrderServiceTest {
                 .build();
 
         orderDTO = OrderDTO.builder()
-                .id(1L)
-                .userId(1L)
+                .id(1)
+                .userId(1)
                 .orderStatus(OrderStatus.PENDING)
                 .currency("USD")
                 .totalAmount(199.98)
@@ -121,7 +121,7 @@ class OrderServiceTest {
                 .country("Test Country")
                 .build();
 
-        CreateOrderLineRequest orderLineRequest = new CreateOrderLineRequest(1L, null, 2);
+        CreateOrderLineRequest orderLineRequest = new CreateOrderLineRequest(1, null, 2);
         createOrderRequest = new CreateOrderRequest("USD", customerDetailsDTO, List.of(orderLineRequest), addressDTO, null);
     }
 
@@ -137,7 +137,7 @@ class OrderServiceTest {
             when(orderRepository.save(any())).thenReturn(orderEntity);
             when(orderMapper.apply(any())).thenReturn(orderDTO);
 
-            OrderDTO result = orderService.createOrder(1L, createOrderRequest);
+            OrderDTO result = orderService.createOrder(1, createOrderRequest);
 
             assertNotNull(result);
             assertEquals(orderDTO.getId(), result.getId());
@@ -151,7 +151,7 @@ class OrderServiceTest {
             when(productRepository.findAllById(any())).thenReturn(Collections.emptyList());
 
             assertThrows(ProductNotFoundException.class,
-                    () -> orderService.createOrder(1L, createOrderRequest));
+                    () -> orderService.createOrder(1, createOrderRequest));
         }
     }
 
@@ -162,21 +162,21 @@ class OrderServiceTest {
         @Test
         @DisplayName("Should update order status successfully")
         void updateOrderStatus_Success() {
-            when(orderRepository.findById(1L)).thenReturn(Optional.of(orderEntity));
+            when(orderRepository.findById(1)).thenReturn(Optional.of(orderEntity));
             when(orderRepository.save(any())).thenReturn(orderEntity);
 
             assertDoesNotThrow(() ->
-                    orderService.updateOrderStatus(1L, OrderStatus.CONFIRMED));
+                    orderService.updateOrderStatus(1, OrderStatus.CONFIRMED));
             assertEquals(OrderStatus.CONFIRMED, orderEntity.getStatus());
         }
 
         @Test
         @DisplayName("Should throw exception when order not found")
         void updateOrderStatus_OrderNotFound() {
-            when(orderRepository.findById(1L)).thenReturn(Optional.empty());
+            when(orderRepository.findById(1)).thenReturn(Optional.empty());
 
             assertThrows(OrderNotFoundException.class,
-                    () -> orderService.updateOrderStatus(1L, OrderStatus.CONFIRMED));
+                    () -> orderService.updateOrderStatus(1, OrderStatus.CONFIRMED));
         }
     }
 
@@ -190,14 +190,14 @@ class OrderServiceTest {
             PageRequest pageRequest = PageRequest.of(0, 10);
             Page<OrderEntity> orderPage = new PageImpl<>(List.of(orderEntity));
 
-            when(orderRepository.findByUserId(1L, pageRequest)).thenReturn(orderPage);
+            when(orderRepository.findByUserId(1, pageRequest)).thenReturn(orderPage);
             when(orderMapper.apply(any())).thenReturn(orderDTO);
 
-            Page<OrderDTO> result = orderService.getOrdersByUserId(1L, pageRequest);
+            Page<OrderDTO> result = orderService.getOrdersByUserId(1, pageRequest);
 
             assertNotNull(result);
             assertEquals(1, result.getContent().size());
-            verify(orderRepository).findByUserId(1L, pageRequest);
+            verify(orderRepository).findByUserId(1, pageRequest);
         }
 
         @Test
@@ -223,11 +223,11 @@ class OrderServiceTest {
         @Test
         @DisplayName("Should cancel order successfully")
         void cancelOrder_Success() {
-            when(orderRepository.findById(1L)).thenReturn(Optional.of(orderEntity));
+            when(orderRepository.findById(1)).thenReturn(Optional.of(orderEntity));
             doNothing().when(validationService).validateOrderCancellation(orderEntity);
             when(orderRepository.save(any())).thenReturn(orderEntity);
 
-            assertDoesNotThrow(() -> orderService.cancelOrder(1L));
+            assertDoesNotThrow(() -> orderService.cancelOrder(1));
             assertEquals(OrderStatus.CANCELLED, orderEntity.getStatus());
             verify(stockService).restoreStockLevels(orderEntity.getOrderLines());
         }
@@ -235,10 +235,10 @@ class OrderServiceTest {
         @Test
         @DisplayName("Should throw exception when cancelling non-existent order")
         void cancelOrder_OrderNotFound() {
-            when(orderRepository.findById(1L)).thenReturn(Optional.empty());
+            when(orderRepository.findById(1)).thenReturn(Optional.empty());
 
             assertThrows(OrderNotFoundException.class,
-                    () -> orderService.cancelOrder(1L));
+                    () -> orderService.cancelOrder(1));
             verify(stockService, never()).restoreStockLevels(any());
         }
     }
@@ -250,17 +250,17 @@ class OrderServiceTest {
         @Test
         @DisplayName("Should verify order ownership")
         void isOrderOwnedByUser_Success() {
-            when(orderRepository.existsByIdAndUserId(1L, 1L)).thenReturn(true);
+            when(orderRepository.existsByIdAndUserId(1, 1)).thenReturn(true);
 
-            assertTrue(orderService.isOrderOwnedByUser(1L, 1L));
+            assertTrue(orderService.isOrderOwnedByUser(1, 1));
         }
 
         @Test
         @DisplayName("Should verify order not owned by user")
         void isOrderOwnedByUser_NotOwned() {
-            when(orderRepository.existsByIdAndUserId(1L, 2L)).thenReturn(false);
+            when(orderRepository.existsByIdAndUserId(1, 2)).thenReturn(false);
 
-            assertFalse(orderService.isOrderOwnedByUser(1L, 2L));
+            assertFalse(orderService.isOrderOwnedByUser(1, 2));
         }
     }
 }
