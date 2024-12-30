@@ -6,9 +6,10 @@ import com.zenfulcode.commercify.commercify.dto.OrderDTO;
 import java.time.Instant;
 
 public record OrderViewModel(
-        Long id,
+        long id,
         Long userId,
-        Double totalPrice,
+        int orderLinesAmount,
+        double totalPrice,
         String currency,
         OrderStatus orderStatus,
         Instant createdAt
@@ -17,6 +18,7 @@ public record OrderViewModel(
         return new OrderViewModel(
                 orderDTO.getId(),
                 orderDTO.getUserId(),
+                orderDTO.getOrderLinesAmount(),
                 orderDTO.getTotalAmount(),
                 orderDTO.getCurrency(),
                 orderDTO.getOrderStatus(),
