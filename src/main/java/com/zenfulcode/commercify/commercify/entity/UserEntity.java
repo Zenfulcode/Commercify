@@ -41,8 +41,8 @@ public class UserEntity implements UserDetails {
     private String phoneNumber;
 
     @ToString.Exclude
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "default_address_id")
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "default_address_id", unique = true)
     private AddressEntity defaultAddress;
 
     @ElementCollection(fetch = FetchType.EAGER)
