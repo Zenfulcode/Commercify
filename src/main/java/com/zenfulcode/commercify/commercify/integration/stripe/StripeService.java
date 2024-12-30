@@ -14,8 +14,6 @@ import com.zenfulcode.commercify.commercify.entity.PaymentEntity;
 import com.zenfulcode.commercify.commercify.entity.VariantOptionEntity;
 import com.zenfulcode.commercify.commercify.exception.OrderNotFoundException;
 import com.zenfulcode.commercify.commercify.exception.PaymentProcessingException;
-import com.zenfulcode.commercify.commercify.integration.IPaymentProvider;
-import com.zenfulcode.commercify.commercify.integration.WebhookResponse;
 import com.zenfulcode.commercify.commercify.repository.OrderRepository;
 import com.zenfulcode.commercify.commercify.repository.PaymentRepository;
 import com.zenfulcode.commercify.commercify.service.product.ProductService;
@@ -30,7 +28,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class StripeService implements IPaymentProvider {
+public class StripeService {
     private final OrderRepository orderRepository;
     private final PaymentRepository paymentRepository;
     private final ProductService productService;
@@ -62,16 +60,6 @@ public class StripeService implements IPaymentProvider {
             log.error("Error creating Stripe checkout session", e);
             throw new PaymentProcessingException("Failed to create Stripe checkout session", e);
         }
-    }
-
-    @Override
-    public void handlePaymentCallback(String paymentReference, String status) throws UnsupportedOperationException {
-        throw new UnsupportedOperationException("Not implemented");
-    }
-
-    @Override
-    public WebhookResponse registerWebhooks(String callbackUrl) {
-        return null;
     }
 
     private Session createCheckoutSession(OrderEntity order, PaymentRequest request) throws StripeException {

@@ -5,7 +5,6 @@ import com.zenfulcode.commercify.commercify.api.requests.orders.CreateOrderLineR
 import com.zenfulcode.commercify.commercify.api.requests.orders.CreateOrderRequest;
 import com.zenfulcode.commercify.commercify.dto.AddressDTO;
 import com.zenfulcode.commercify.commercify.dto.OrderDTO;
-import com.zenfulcode.commercify.commercify.dto.ProductDTO;
 import com.zenfulcode.commercify.commercify.dto.mapper.OrderMapper;
 import com.zenfulcode.commercify.commercify.entity.OrderEntity;
 import com.zenfulcode.commercify.commercify.entity.OrderLineEntity;
@@ -13,6 +12,7 @@ import com.zenfulcode.commercify.commercify.entity.ProductEntity;
 import com.zenfulcode.commercify.commercify.exception.OrderNotFoundException;
 import com.zenfulcode.commercify.commercify.exception.ProductNotFoundException;
 import com.zenfulcode.commercify.commercify.repository.OrderRepository;
+import com.zenfulcode.commercify.commercify.repository.OrderShippingInfoRepository;
 import com.zenfulcode.commercify.commercify.repository.ProductRepository;
 import com.zenfulcode.commercify.commercify.service.StockManagementService;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,6 +52,8 @@ class OrderServiceTest {
     private OrderCalculationService calculationService;
     @Mock
     private StockManagementService stockService;
+    @Mock
+    private OrderShippingInfoRepository shippingInfoRepository;
 
     @InjectMocks
     private OrderService orderService;
@@ -60,8 +62,6 @@ class OrderServiceTest {
     private OrderDTO orderDTO;
     private CreateOrderRequest createOrderRequest;
     private ProductEntity productEntity;
-    private ProductDTO productDTO;
-    private AddressDTO addressDTO;
 
     @BeforeEach
     void setUp() {
@@ -100,7 +100,7 @@ class OrderServiceTest {
                 .totalAmount(199.98)
                 .build();
 
-        addressDTO = AddressDTO.builder()
+        AddressDTO addressDTO = AddressDTO.builder()
                 .street("Test Street")
                 .city("Test City")
                 .state("Test State")
@@ -120,6 +120,7 @@ class OrderServiceTest {
         @DisplayName("Should create order successfully")
         void createOrder_Success() {
             when(productRepository.findAllById(any())).thenReturn(List.of(productEntity));
+            when(shippingInfoRepository.save(any())).thenReturn(null);
             when(calculationService.calculateTotalAmount(any())).thenReturn(199.98);
             when(orderRepository.save(any())).thenReturn(orderEntity);
             when(orderMapper.apply(any())).thenReturn(orderDTO);

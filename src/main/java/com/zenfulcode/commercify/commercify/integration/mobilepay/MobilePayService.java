@@ -8,7 +8,6 @@ import com.zenfulcode.commercify.commercify.entity.OrderEntity;
 import com.zenfulcode.commercify.commercify.entity.PaymentEntity;
 import com.zenfulcode.commercify.commercify.exception.OrderNotFoundException;
 import com.zenfulcode.commercify.commercify.exception.PaymentProcessingException;
-import com.zenfulcode.commercify.commercify.integration.IPaymentProvider;
 import com.zenfulcode.commercify.commercify.integration.WebhookResponse;
 import com.zenfulcode.commercify.commercify.repository.OrderRepository;
 import com.zenfulcode.commercify.commercify.repository.PaymentRepository;
@@ -37,7 +36,7 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class MobilePayService implements IPaymentProvider {
+public class MobilePayService {
     private final PaymentService paymentService;
     private final MobilePayTokenService tokenService;
 
