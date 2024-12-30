@@ -5,6 +5,7 @@ import com.zenfulcode.commercify.commercify.api.responses.PaymentResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -37,6 +38,7 @@ public class MobilePayController {
         }
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/webhook")
     public ResponseEntity<String> handleWebhook(
             @RequestParam String paymentReference,
