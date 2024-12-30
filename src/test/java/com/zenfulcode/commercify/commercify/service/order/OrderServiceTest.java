@@ -4,15 +4,17 @@ import com.zenfulcode.commercify.commercify.OrderStatus;
 import com.zenfulcode.commercify.commercify.api.requests.orders.CreateOrderLineRequest;
 import com.zenfulcode.commercify.commercify.api.requests.orders.CreateOrderRequest;
 import com.zenfulcode.commercify.commercify.dto.AddressDTO;
+import com.zenfulcode.commercify.commercify.dto.CustomerDetailsDTO;
 import com.zenfulcode.commercify.commercify.dto.OrderDTO;
-import com.zenfulcode.commercify.commercify.dto.ProductDTO;
 import com.zenfulcode.commercify.commercify.dto.mapper.OrderMapper;
 import com.zenfulcode.commercify.commercify.entity.OrderEntity;
 import com.zenfulcode.commercify.commercify.entity.OrderLineEntity;
+import com.zenfulcode.commercify.commercify.entity.OrderShippingInfo;
 import com.zenfulcode.commercify.commercify.entity.ProductEntity;
 import com.zenfulcode.commercify.commercify.exception.OrderNotFoundException;
 import com.zenfulcode.commercify.commercify.exception.ProductNotFoundException;
 import com.zenfulcode.commercify.commercify.repository.OrderRepository;
+import com.zenfulcode.commercify.commercify.repository.OrderShippingInfoRepository;
 import com.zenfulcode.commercify.commercify.repository.ProductRepository;
 import com.zenfulcode.commercify.commercify.service.StockManagementService;
 import org.junit.jupiter.api.BeforeEach;
@@ -62,10 +64,8 @@ class OrderServiceTest {
     private OrderDTO orderDTO;
     private CreateOrderRequest createOrderRequest;
     private ProductEntity productEntity;
-    private ProductDTO productDTO;
-    private AddressDTO addressDTO;
 
-    private CustomerDetailsDTO customerDetailsDTO;
+    private OrderShippingInfo orderShippingInfoEntity;
 
     @BeforeEach
     void setUp() {
@@ -86,12 +86,6 @@ class OrderServiceTest {
                 .currency("USD")
                 .build();
 
-        customerDetailsDTO = CustomerDetailsDTO.builder()
-                .firstName("Test")
-                .lastName("User")
-                .email("test@email.com")
-                .phone("1234567890")
-                .build();
 
         orderEntity = OrderEntity.builder()
                 .id(1L)
@@ -111,12 +105,32 @@ class OrderServiceTest {
                 .totalAmount(199.98)
                 .build();
 
-        addressDTO = AddressDTO.builder()
+        AddressDTO addressDTO = AddressDTO.builder()
                 .street("Test Street")
                 .city("Test City")
                 .state("Test State")
                 .zipCode("12345")
                 .country("Test Country")
+                .build();
+
+        orderShippingInfoEntity = OrderShippingInfo.builder()
+                .id(1L)
+                .customerEmail("test@email.com")
+                .customerFirstName("Test")
+                .customerLastName("User")
+                .customerPhone("1234567890")
+                .shippingStreet(addressDTO.getStreet())
+                .shippingCity(addressDTO.getCity())
+                .shippingState(addressDTO.getState())
+                .shippingZip(addressDTO.getZipCode())
+                .shippingCountry(addressDTO.getCountry())
+                .build();
+
+        CustomerDetailsDTO customerDetailsDTO = CustomerDetailsDTO.builder()
+                .firstName("Test")
+                .lastName("User")
+                .email("test@email.com")
+                .phone("1234567890")
                 .build();
 
         CreateOrderLineRequest orderLineRequest = new CreateOrderLineRequest(1L, null, 2);
@@ -130,6 +144,7 @@ class OrderServiceTest {
         @Test
         @DisplayName("Should create order successfully")
         void createOrder_Success() {
+            when(orderShippingInfoRepository.save(any())).thenReturn(orderShippingInfoEntity);
             when(productRepository.findAllById(any())).thenReturn(List.of(productEntity));
             when(calculationService.calculateTotalAmount(any())).thenReturn(199.98);
             when(orderRepository.save(any())).thenReturn(orderEntity);
