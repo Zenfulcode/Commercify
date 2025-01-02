@@ -2,6 +2,7 @@ package com.zenfulcode.commercify.commercify.api.responses.orders;
 
 
 import com.zenfulcode.commercify.commercify.OrderStatus;
+import com.zenfulcode.commercify.commercify.dto.AddressDTO;
 import com.zenfulcode.commercify.commercify.dto.OrderDTO;
 import com.zenfulcode.commercify.commercify.dto.OrderDetailsDTO;
 import com.zenfulcode.commercify.commercify.viewmodel.OrderLineViewModel;
@@ -12,6 +13,9 @@ import java.util.List;
 public record GetOrderResponse(
         Long id,
         Long userId,
+        String customerName,
+        String customerEmail,
+        AddressDTO shippingAddress,
         OrderStatus orderStatus,
         String currency,
         Double totalAmount,
@@ -24,6 +28,9 @@ public record GetOrderResponse(
         return new GetOrderResponse(
                 order.getId(),
                 order.getUserId(),
+                orderDetails.getCustomerDetails().getFirstName() + " " + orderDetails.getCustomerDetails().getLastName(),
+                orderDetails.getCustomerDetails().getEmail(),
+                orderDetails.getShippingAddress(),
                 order.getOrderStatus(),
                 order.getCurrency(),
                 order.getTotalAmount(),

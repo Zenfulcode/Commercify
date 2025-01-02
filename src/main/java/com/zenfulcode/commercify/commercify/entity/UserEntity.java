@@ -9,10 +9,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.Instant;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Table(name = "users")
@@ -48,7 +45,7 @@ public class UserEntity implements UserDetails {
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "id"))
     @Column(name = "role")
-    private List<String> roles;
+    private List<String> roles = new ArrayList<>();
 
     @Column(nullable = false, name = "email_confirmed")
     private Boolean emailConfirmed = false;
@@ -70,6 +67,24 @@ public class UserEntity implements UserDetails {
         return roles.stream()
                 .map(role -> new SimpleGrantedAuthority("ROLE_" + role.toUpperCase()))
                 .collect(Collectors.toList());
+    }
+
+    public void addRole(String role) {
+        if (roles == null) {
+            roles = new ArrayList<>();
+        }
+
+        if (!roles.contains(role.toUpperCase())) {
+            roles.add(role.toUpperCase());
+        }
+    }
+
+    public void removeRole(String role) {
+        if (roles == null) {
+            return;
+        }
+
+        roles.remove(role.toUpperCase());
     }
 
     @Override

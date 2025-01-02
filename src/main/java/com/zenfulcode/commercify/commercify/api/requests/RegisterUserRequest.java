@@ -1,24 +1,15 @@
 package com.zenfulcode.commercify.commercify.api.requests;
 
 import com.zenfulcode.commercify.commercify.dto.AddressDTO;
-
-import java.util.UUID;
+import com.zenfulcode.commercify.commercify.dto.UserDTO;
 
 public record RegisterUserRequest(
         String email,
         String password,
         String firstName,
         String lastName,
-        Boolean isGuest,
         AddressDTO defaultAddress) {
-    // Set a secure default password
-    public RegisterUserRequest {
-        if (password == null || password.isBlank()) {
-            password = UUID.randomUUID().toString();
-        }
-
-        if (isGuest == null) {
-            isGuest = false;
-        }
+    public UserDTO toUserDTO() {
+        return new UserDTO(null, email, firstName, lastName, null, defaultAddress, null);
     }
 }

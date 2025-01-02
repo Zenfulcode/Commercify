@@ -1,6 +1,7 @@
 package com.zenfulcode.commercify.commercify.controller;
 
 
+import com.zenfulcode.commercify.commercify.api.requests.RegisterUserRequest;
 import com.zenfulcode.commercify.commercify.dto.AddressDTO;
 import com.zenfulcode.commercify.commercify.dto.UserDTO;
 import com.zenfulcode.commercify.commercify.service.UserManagementService;
@@ -48,6 +49,20 @@ public class UserManagementController {
     @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
     public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @RequestBody UserDTO userDTO) {
         return ResponseEntity.ok(userManagementService.updateUser(id, userDTO));
+    }
+
+    @PutMapping("/{id}/register")
+    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
+    public ResponseEntity<UserDTO> registerGuest(@PathVariable Long id, @RequestBody RegisterUserRequest request) {
+        System.out.println("Registering guest");
+        System.out.println(request);
+
+        try {
+            return ResponseEntity.ok(userManagementService.updateGuest(id, request));
+        } catch (Exception e) {
+            System.out.println("error: " + e.getMessage());
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @DeleteMapping("/{id}")
