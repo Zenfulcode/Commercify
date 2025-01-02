@@ -30,6 +30,7 @@ public class AuthenticationService {
     private final UserMapper mapper;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
+    private final UserManagementService usersService;
 
     @Transactional
     public UserDTO registerUser(RegisterUserRequest registerRequest) {
@@ -66,6 +67,20 @@ public class AuthenticationService {
         // TODO: Send user confirmation email
 
         return mapper.apply(savedUser);
+    }
+
+    @Transactional
+    public void convertGuestToUser(Long id, RegisterUserRequest request) {
+        usersService.updateUser(id, request.toUserDTO());
+
+        UserEntity user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setPassword(passwordEncoder.encode(request.password()));
+        user.removeRole("GUEST");
+        user.addRole("USER");
+
+        userRepository.save(user);
     }
 
     public UserDTO registerGuest() {
