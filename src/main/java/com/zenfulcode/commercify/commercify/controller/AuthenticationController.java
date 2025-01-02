@@ -10,6 +10,7 @@ import com.zenfulcode.commercify.commercify.service.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -38,6 +39,21 @@ public class AuthenticationController {
             String jwtToken = jwtService.generateToken(authenticatedUser);
             return ResponseEntity.ok(AuthResponse.UserAuthenticated(authenticatedUser, jwtToken, jwtService.getExpirationTime()));
         } catch (Exception e) {
+            return ResponseEntity.badRequest().body(AuthResponse.AuthenticationFailed(e.getMessage()));
+        }
+    }
+
+    @PutMapping("/{id}/register")
+    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
+    public ResponseEntity<AuthResponse> registerGuest(@PathVariable Long id, @RequestBody RegisterUserRequest request) {
+        try {
+            authenticationService.convertGuestToUser(id, request);
+
+            UserDTO authenticatedUser = authenticationService.authenticate(new LoginUserRequest(request.email(), request.password()));
+            String jwtToken = jwtService.generateToken(authenticatedUser);
+            return ResponseEntity.ok(AuthResponse.UserAuthenticated(authenticatedUser, jwtToken, jwtService.getExpirationTime()));
+        } catch (Exception e) {
+            log.error("Error converting guest to a user: {}", e.getMessage());
             return ResponseEntity.badRequest().body(AuthResponse.AuthenticationFailed(e.getMessage()));
         }
     }

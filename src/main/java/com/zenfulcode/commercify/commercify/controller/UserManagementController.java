@@ -1,11 +1,11 @@
 package com.zenfulcode.commercify.commercify.controller;
 
 
-import com.zenfulcode.commercify.commercify.api.requests.RegisterUserRequest;
 import com.zenfulcode.commercify.commercify.dto.AddressDTO;
 import com.zenfulcode.commercify.commercify.dto.UserDTO;
 import com.zenfulcode.commercify.commercify.service.UserManagementService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
@@ -49,20 +50,6 @@ public class UserManagementController {
     @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
     public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @RequestBody UserDTO userDTO) {
         return ResponseEntity.ok(userManagementService.updateUser(id, userDTO));
-    }
-
-    @PutMapping("/{id}/register")
-    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
-    public ResponseEntity<UserDTO> registerGuest(@PathVariable Long id, @RequestBody RegisterUserRequest request) {
-        System.out.println("Registering guest");
-        System.out.println(request);
-
-        try {
-            return ResponseEntity.ok(userManagementService.updateGuest(id, request));
-        } catch (Exception e) {
-            System.out.println("error: " + e.getMessage());
-            return ResponseEntity.badRequest().build();
-        }
     }
 
     @DeleteMapping("/{id}")

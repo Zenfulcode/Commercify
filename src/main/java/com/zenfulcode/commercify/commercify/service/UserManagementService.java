@@ -1,7 +1,6 @@
 package com.zenfulcode.commercify.commercify.service;
 
 
-import com.zenfulcode.commercify.commercify.api.requests.RegisterUserRequest;
 import com.zenfulcode.commercify.commercify.dto.AddressDTO;
 import com.zenfulcode.commercify.commercify.dto.UserDTO;
 import com.zenfulcode.commercify.commercify.dto.mapper.AddressMapper;
@@ -13,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,7 +25,6 @@ public class UserManagementService {
     private final UserRepository userRepository;
     private final UserMapper mapper;
     private final AddressMapper addressMapper;
-    private final BCryptPasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
     public UserDTO getUserById(Long id) {
@@ -57,27 +54,6 @@ public class UserManagementService {
         user.setEmail(userDTO.getEmail());
 
         return mapper.apply(userRepository.save(user));
-    }
-
-    @Transactional
-    public UserDTO updateGuest(Long id, RegisterUserRequest request) {
-        try {
-            updateUser(id, request.toUserDTO());
-
-            UserEntity user = userRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-
-            user.setPassword(passwordEncoder.encode(request.password()));
-            user.removeRole("GUEST");
-            user.addRole("USER");
-
-            UserEntity updatedUser = userRepository.save(user);
-            return mapper.apply(updatedUser);
-        } catch (RuntimeException e) {
-            // Log the error
-            log.error("Failed to update guest user: {}", e.getMessage(), e);
-            throw e;  // Re-throw the exception instead of swallowing it
-        }
     }
 
     @Transactional
