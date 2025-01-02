@@ -4,7 +4,6 @@ import com.zenfulcode.commercify.product.domain.event.LargeStockIncreaseEvent;
 import com.zenfulcode.commercify.product.domain.event.LowStockEvent;
 import com.zenfulcode.commercify.product.domain.event.StockCorrectionEvent;
 import com.zenfulcode.commercify.product.domain.model.Product;
-import com.zenfulcode.commercify.product.domain.policies.ProductInventoryPolicy;
 import com.zenfulcode.commercify.product.domain.valueobject.InventoryAdjustment;
 import com.zenfulcode.commercify.shared.domain.event.DomainEventPublisher;
 import lombok.RequiredArgsConstructor;

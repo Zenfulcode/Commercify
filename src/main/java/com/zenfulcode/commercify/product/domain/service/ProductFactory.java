@@ -38,8 +38,10 @@ public class ProductFactory {
         return product;
     }
 
-    private void createVariants(Product product, List<VariantSpecification> specs) {
+    public void createVariants(Product product, List<VariantSpecification> specs) {
         for (VariantSpecification spec : specs) {
+            validateVariantSpecification(spec);
+
             String sku = skuGenerator.generateSku(product, spec);
             Money variantPrice = pricingPolicy.calculateVariantPrice(product, spec);
 
@@ -59,6 +61,21 @@ public class ProductFactory {
         }
     }
 
+    private void validateVariantSpecification(VariantSpecification spec) {
+        List<String> violations = new ArrayList<>();
+
+        if (spec.options() == null || spec.options().isEmpty()) {
+            violations.add("Variant must have at least one option");
+        }
+        if (spec.stock() != null && spec.stock() < 0) {
+            violations.add("Variant stock cannot be negative");
+        }
+
+        if (!violations.isEmpty()) {
+            throw new ProductValidationException(violations);
+        }
+    }
+
     private void validateSpecification(ProductSpecification spec) {
         List<String> violations = new ArrayList<>();
 
@@ -75,30 +92,5 @@ public class ProductFactory {
         if (!violations.isEmpty()) {
             throw new ProductValidationException(violations);
         }
-    }
-
-    public ProductVariant createVariantFromTemplate(
-            Product product,
-            ProductVariant template,
-            VariantSpecification spec) {
-
-        String sku = skuGenerator.generateSku(product, spec);
-        Money variantPrice = template.getPrice();
-        if (spec.price() != null) {
-            variantPrice = pricingPolicy.calculateVariantPrice(product, spec);
-        }
-
-        ProductVariant variant = ProductVariant.builder()
-                .sku(sku)
-                .stock(spec.stock())
-                .price(variantPrice)
-                .imageUrl(spec.imageUrl() != null ? spec.imageUrl() : template.getImageUrl())
-                .build();
-
-        spec.options().forEach(option ->
-                variant.addOption(option.name(), option.value())
-        );
-
-        return variant;
     }
 }

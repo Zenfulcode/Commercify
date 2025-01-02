@@ -1,5 +1,6 @@
 package com.zenfulcode.commercify.product.domain.model;
 
+import com.zenfulcode.commercify.product.domain.valueobject.ProductId;
 import com.zenfulcode.commercify.shared.domain.model.Money;
 import jakarta.persistence.*;
 import lombok.*;
@@ -16,9 +17,8 @@ import java.util.Set;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 public class ProductVariant {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @EmbeddedId
+    private ProductId id;
 
     @Column(nullable = false, unique = true)
     private String sku;
@@ -45,6 +45,7 @@ public class ProductVariant {
     // Factory method
     public static ProductVariant create(String sku, Integer stock, Money price) {
         ProductVariant variant = new ProductVariant();
+        variant.id = ProductId.generate();
         variant.sku = Objects.requireNonNull(sku, "SKU is required");
         variant.stock = stock;
         variant.price = price;
@@ -64,16 +65,28 @@ public class ProductVariant {
     }
 
     public boolean hasActiveOrders() {
-        // This would typically check a repository or domain service
+        // TODO: This would typically check a repository or domain service
         return false;
     }
 
-    public Money getEffectivePrice() {
-        return price != null ? price : product.getPrice();
+    public boolean belongsTo(Product product) {
+        return this.product.getId().equals(product.getId());
+    }
+
+    public boolean hasEnoughStock(int requestedQuantity) {
+        if (stock == null) {
+            // If variant doesn't manage its own stock, delegate to product
+            return product.hasEnoughStock(requestedQuantity);
+        }
+        return stock >= requestedQuantity;
     }
 
     public int getEffectiveStock() {
         return stock != null ? stock : product.getStock();
+    }
+
+    public Money getEffectivePrice() {
+        return price != null ? price : product.getPrice();
     }
 
     @Override

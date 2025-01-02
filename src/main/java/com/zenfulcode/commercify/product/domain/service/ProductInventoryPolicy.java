@@ -1,4 +1,4 @@
-package com.zenfulcode.commercify.product.domain.policies;
+package com.zenfulcode.commercify.product.domain.service;
 
 import com.zenfulcode.commercify.product.domain.model.Product;
 import com.zenfulcode.commercify.product.domain.valueobject.InventoryAdjustment;

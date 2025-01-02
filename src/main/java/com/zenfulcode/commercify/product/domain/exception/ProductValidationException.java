@@ -5,7 +5,11 @@ import com.zenfulcode.commercify.shared.domain.exception.DomainValidationExcepti
 import java.util.List;
 
 public class ProductValidationException extends DomainValidationException {
+    public ProductValidationException(String message) {
+        super(message, List.of(message));
+    }
+
     public ProductValidationException(List<String> violations) {
-        super("Product validation failed", violations);
+        super("Product validation failed: " + String.join(", ", violations), violations);
     }
 }

@@ -1,8 +1,8 @@
 package com.zenfulcode.commercify.product.domain.service;
 
+import com.zenfulcode.commercify.product.domain.exception.InvalidPriceException;
 import com.zenfulcode.commercify.product.domain.model.Product;
 import com.zenfulcode.commercify.product.domain.model.ProductVariant;
-import com.zenfulcode.commercify.product.domain.policies.ProductPricingPolicy;
 import com.zenfulcode.commercify.product.domain.valueobject.VariantSpecification;
 import com.zenfulcode.commercify.shared.domain.model.Money;
 import lombok.RequiredArgsConstructor;
@@ -20,8 +20,7 @@ public class DefaultProductPricingPolicy implements ProductPricingPolicy {
     @Override
     public void applyDefaultPricing(Product product) {
         // Apply minimum margin check
-        if (product.getPrice().getAmount()
-                .compareTo(calculateMinimumPrice(product)) < 0) {
+        if (product.getPrice().isLessThan(calculateMinimumPrice(product))) {
             throw new InvalidPriceException("Price does not meet minimum margin requirements");
         }
     }
@@ -41,18 +40,20 @@ public class DefaultProductPricingPolicy implements ProductPricingPolicy {
         return spec.price();
     }
 
+
+    // TODO: Rework this method
     @Override
     public Money validateAndAdjustPrice(Product product, ProductVariant variant, Money newPrice) {
         // Ensure variant price meets minimum margin
-        if (newPrice.getAmount().compareTo(calculateMinimumPrice(product)) < 0) {
+        if (newPrice.isLessThan(calculateMinimumPrice(product))) {
             throw new InvalidPriceException("Variant price does not meet minimum margin requirements");
         }
 
         return newPrice;
     }
 
+    //    TODO: Rework this method
     private Money calculateMinimumPrice(Product product) {
-        // Implementation of minimum price calculation based on costs and margin
-        return Money.of(BigDecimal.TEN, product.getPrice().getCurrency()); // Simplified example
+        return product.getPrice().multiply(MINIMUM_MARGIN_PERCENTAGE);
     }
 }
