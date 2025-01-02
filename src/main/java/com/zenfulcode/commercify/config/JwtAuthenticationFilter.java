@@ -2,8 +2,6 @@ package com.zenfulcode.commercify.config;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.zenfulcode.commercify.web.dto.response.auth.JwtErrorResponse;
-import com.zenfulcode.commercify.service.authentication.JwtService;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
