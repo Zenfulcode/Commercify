@@ -37,7 +37,7 @@ public class OrderController {
             "id", "userId", "status", "currency", "totalAmount", "createdAt", "updatedAt"
     );
 
-    @PreAuthorize("hasRole('USER') and #userId == authentication.principal.id")
+    @PreAuthorize("#userId == authentication.principal.id")
     @PostMapping("/{userId}")
     public ResponseEntity<?> createOrder(@PathVariable Long userId, @RequestBody CreateOrderRequest orderRequest) {
         try {
@@ -86,7 +86,7 @@ public class OrderController {
         }
     }
 
-    @PreAuthorize("hasRole('USER') and #userId == authentication.principal.id or hasRole('ADMIN')")
+    @PreAuthorize("#userId == authentication.principal.id or hasRole('ADMIN')")
     @GetMapping("/user/{userId}")
     public ResponseEntity<?> getOrdersByUserId(
             @PathVariable Long userId,
@@ -143,7 +143,7 @@ public class OrderController {
         }
     }
 
-    @PreAuthorize("hasRole('USER') and @orderService.isOrderOwnedByUser(#orderId, authentication.principal.id) or hasRole('ADMIN')")
+    @PreAuthorize("@orderService.isOrderOwnedByUser(#orderId, authentication.principal.id) or hasRole('ADMIN')")
     @GetMapping("/{orderId}")
     public ResponseEntity<GetOrderResponse> getOrderById(@PathVariable Long orderId) {
         try {

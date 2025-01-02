@@ -16,8 +16,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @AllArgsConstructor
@@ -62,6 +64,32 @@ public class AuthenticationService {
         UserEntity savedUser = userRepository.save(user);
 
         // TODO: Send user confirmation email
+
+        return mapper.apply(savedUser);
+    }
+
+    public UserDTO registerGuest() {
+        String firstName = "Guest";
+        String lastName = String.valueOf(new Date().toInstant().toEpochMilli());
+        String email = firstName + lastName + "@commercify.app";
+        String password = UUID.randomUUID().toString();
+
+        UserEntity user = UserEntity.builder()
+                .firstName(firstName)
+                .lastName(lastName)
+                .email(email)
+                .password(passwordEncoder.encode(password))
+                .roles(List.of("GUEST"))
+                .emailConfirmed(true)
+                .build();
+        UserEntity savedUser = userRepository.save(user);
+
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        email,
+                        password
+                )
+        );
 
         return mapper.apply(savedUser);
     }
