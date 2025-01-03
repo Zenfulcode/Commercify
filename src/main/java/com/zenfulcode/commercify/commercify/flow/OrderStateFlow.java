@@ -15,12 +15,12 @@ public class OrderStateFlow {
 
         // Initial state -> Confirmed or Cancelled
         validTransitions.put(OrderStatus.PENDING, Set.of(
-                OrderStatus.CONFIRMED,
+                OrderStatus.PAID,
                 OrderStatus.CANCELLED
         ));
 
         // Payment received -> Processing or Cancelled
-        validTransitions.put(OrderStatus.CONFIRMED, Set.of(
+        validTransitions.put(OrderStatus.PAID, Set.of(
                 OrderStatus.SHIPPED,
                 OrderStatus.CANCELLED
         ));

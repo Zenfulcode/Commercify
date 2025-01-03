@@ -59,7 +59,7 @@ public class ProductValidationService {
     public void validateVariantDeletion(ProductVariantEntity variant) {
         Set<OrderEntity> activeOrders = orderLineRepository.findActiveOrdersForVariant(
                 variant.getId(),
-                List.of(OrderStatus.PENDING, OrderStatus.CONFIRMED, OrderStatus.SHIPPED)
+                List.of(OrderStatus.PENDING, OrderStatus.PAID, OrderStatus.SHIPPED)
         );
 
         if (!activeOrders.isEmpty()) {

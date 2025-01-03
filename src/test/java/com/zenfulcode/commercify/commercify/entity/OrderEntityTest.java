@@ -72,8 +72,8 @@ class OrderEntityTest {
     @Test
     @DisplayName("Should update status correctly")
     void testStatusUpdate() {
-        order.setStatus(OrderStatus.CONFIRMED);
-        assertEquals(OrderStatus.CONFIRMED, order.getStatus());
+        order.setStatus(OrderStatus.PAID);
+        assertEquals(OrderStatus.PAID, order.getStatus());
     }
 
     @Test

@@ -21,19 +21,19 @@ class StateFlowTest {
         @DisplayName("PENDING order can transition to CONFIRMED or CANCELLED")
         void testPendingTransitions() {
             Set<OrderStatus> validTransitions = orderStateFlow.getValidTransitions(OrderStatus.PENDING);
-            assertTrue(orderStateFlow.canTransition(OrderStatus.PENDING, OrderStatus.CONFIRMED));
+            assertTrue(orderStateFlow.canTransition(OrderStatus.PENDING, OrderStatus.PAID));
             assertTrue(orderStateFlow.canTransition(OrderStatus.PENDING, OrderStatus.CANCELLED));
             assertEquals(2, validTransitions.size());
-            assertTrue(validTransitions.contains(OrderStatus.CONFIRMED));
+            assertTrue(validTransitions.contains(OrderStatus.PAID));
             assertTrue(validTransitions.contains(OrderStatus.CANCELLED));
         }
 
         @Test
         @DisplayName("CONFIRMED order can transition to SHIPPED or CANCELLED")
         void testConfirmedTransitions() {
-            Set<OrderStatus> validTransitions = orderStateFlow.getValidTransitions(OrderStatus.CONFIRMED);
-            assertTrue(orderStateFlow.canTransition(OrderStatus.CONFIRMED, OrderStatus.SHIPPED));
-            assertTrue(orderStateFlow.canTransition(OrderStatus.CONFIRMED, OrderStatus.CANCELLED));
+            Set<OrderStatus> validTransitions = orderStateFlow.getValidTransitions(OrderStatus.PAID);
+            assertTrue(orderStateFlow.canTransition(OrderStatus.PAID, OrderStatus.SHIPPED));
+            assertTrue(orderStateFlow.canTransition(OrderStatus.PAID, OrderStatus.CANCELLED));
             assertEquals(2, validTransitions.size());
         }
 
@@ -63,7 +63,7 @@ class StateFlowTest {
         @DisplayName("Invalid transitions are not allowed")
         void testInvalidTransitions() {
             assertFalse(orderStateFlow.canTransition(OrderStatus.PENDING, OrderStatus.COMPLETED));
-            assertFalse(orderStateFlow.canTransition(OrderStatus.CONFIRMED, OrderStatus.RETURNED));
+            assertFalse(orderStateFlow.canTransition(OrderStatus.PAID, OrderStatus.RETURNED));
             assertFalse(orderStateFlow.canTransition(OrderStatus.SHIPPED, OrderStatus.CANCELLED));
             assertFalse(orderStateFlow.canTransition(OrderStatus.COMPLETED, OrderStatus.SHIPPED));
         }
