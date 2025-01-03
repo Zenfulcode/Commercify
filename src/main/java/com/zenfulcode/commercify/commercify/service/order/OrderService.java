@@ -261,8 +261,6 @@ public class OrderService {
 
         OrderShippingInfo shippingInfo = order.getOrderShippingInfo();
 
-        System.out.println("shippingInfo = " + shippingInfo);
-
         CustomerDetailsDTO customerDetails = CustomerDetailsDTO.builder()
                 .email(shippingInfo.getCustomerEmail())
                 .firstName(shippingInfo.getCustomerFirstName())

@@ -25,13 +25,6 @@ public class AuthenticationController {
     public ResponseEntity<AuthResponse> register(@RequestBody RegisterUserRequest registerRequest) {
         try {
             UserDTO user = authenticationService.registerUser(registerRequest);
-
-            if (registerRequest.isGuest()) {
-                UserDTO authenticated = authenticationService.authenticate(new LoginUserRequest(registerRequest.email(), registerRequest.password()));
-                String jwt = jwtService.generateToken(authenticated);
-                return ResponseEntity.ok(AuthResponse.UserAuthenticated(authenticated, jwt, jwtService.getExpirationTime()));
-            }
-
             return ResponseEntity.ok(AuthResponse.UserAuthenticated(user, "", 0));
         } catch (RuntimeException e) {
             log.error("Error registering user: {}", e.getMessage());
@@ -50,9 +43,39 @@ public class AuthenticationController {
         }
     }
 
+    @PutMapping("/{id}/register")
+    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
+    public ResponseEntity<AuthResponse> registerGuest(@PathVariable Long id, @RequestBody RegisterUserRequest request) {
+        try {
+            authenticationService.convertGuestToUser(id, request);
+
+            UserDTO authenticatedUser = authenticationService.authenticate(new LoginUserRequest(request.email(), request.password()));
+            String jwtToken = jwtService.generateToken(authenticatedUser);
+            return ResponseEntity.ok(AuthResponse.UserAuthenticated(authenticatedUser, jwtToken, jwtService.getExpirationTime()));
+        } catch (Exception e) {
+            log.error("Error converting guest to a user: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(AuthResponse.AuthenticationFailed(e.getMessage()));
+        }
+    }
+
     @GetMapping("/me")
-    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<UserDTO> getAuthenticatedUser(@RequestHeader("Authorization") String authHeader) {
-        return ResponseEntity.ok(authenticationService.getAuthenticatedUser(authHeader));
+        try {
+            return ResponseEntity.ok(authenticationService.getAuthenticatedUser(authHeader));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
+    @PostMapping("/guest")
+    public ResponseEntity<AuthResponse> registerGuest() {
+        try {
+            UserDTO user = authenticationService.registerGuest();
+            String jwt = jwtService.generateToken(user);
+            return ResponseEntity.ok(AuthResponse.UserAuthenticated(user, jwt, jwtService.getExpirationTime()));
+        } catch (RuntimeException e) {
+            log.error("Error registering guest: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(AuthResponse.AuthenticationFailed(e.getMessage()));
+        }
     }
 }

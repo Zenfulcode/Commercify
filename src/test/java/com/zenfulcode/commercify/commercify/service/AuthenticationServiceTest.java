@@ -77,7 +77,6 @@ class AuthenticationServiceTest {
                 "password123",
                 "John",
                 "Doe",
-                false,
                 shippingAddress
         );
 
@@ -127,9 +126,7 @@ class AuthenticationServiceTest {
     void registerUser_NoPasswordProvided_ShouldSetDefaultPassword() {
         // Arrange
         RegisterUserRequest request = new RegisterUserRequest(
-                "test@example.com", "", "Test", "User",
-                false,
-                null);
+                "test@example.com", "", "Test", "User", null);
 
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");

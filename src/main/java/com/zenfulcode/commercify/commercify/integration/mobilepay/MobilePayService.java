@@ -147,7 +147,7 @@ public class MobilePayService {
         }
     }
 
-    private Map<String, Object> createMobilePayRequest(OrderEntity order, PaymentRequest request) {
+    public Map<String, Object> createMobilePayRequest(OrderEntity order, PaymentRequest request) {
         validationPaymentRequest(request);
 
         Map<String, Object> paymentRequest = new HashMap<>();
