@@ -13,7 +13,7 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ProductId {
-    @Column(name = "id")
+    @Column(name = "product_id")
     private String id;
 
     private ProductId(String id) {

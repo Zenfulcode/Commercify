@@ -11,6 +11,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 interface SpringDataJpaProductRepository extends JpaRepository<Product, ProductId> {
     Page<Product> findByActiveTrue(Pageable pageable);
-    Page<Product> findByCategoryId(CategoryId categoryId, Pageable pageable);  // Update parameter type
+
+    Page<Product> findByCategoryId(CategoryId categoryId, Pageable pageable);
+
     Page<Product> findByStockLessThan(int threshold, Pageable pageable);
 }

@@ -1,11 +1,15 @@
 package com.zenfulcode.commercify.product.domain.repository;
 
 import com.zenfulcode.commercify.product.domain.model.Product;
+import com.zenfulcode.commercify.product.domain.model.ProductVariant;
 import com.zenfulcode.commercify.product.domain.valueobject.CategoryId;
 import com.zenfulcode.commercify.product.domain.valueobject.ProductId;
+import com.zenfulcode.commercify.product.domain.valueobject.VariantId;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public interface ProductRepository {
@@ -23,5 +27,7 @@ public interface ProductRepository {
 
     Page<Product> findByStockLessThan(int threshold, Pageable pageable);
 
-    boolean existsBySku(String sku);
+    List<Product> findAllById(Collection<ProductId> ids);
+
+    List<ProductVariant> findVariantsByIds(Collection<VariantId> variantIds);
 }

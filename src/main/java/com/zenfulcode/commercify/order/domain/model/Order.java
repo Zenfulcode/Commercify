@@ -7,6 +7,7 @@ import com.zenfulcode.commercify.order.domain.exception.OrderValidationException
 import com.zenfulcode.commercify.order.domain.valueobject.OrderId;
 import com.zenfulcode.commercify.shared.domain.model.AggregateRoot;
 import com.zenfulcode.commercify.shared.domain.model.Money;
+import com.zenfulcode.commercify.user.domain.valueobject.UserId;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -27,7 +28,7 @@ public class Order extends AggregateRoot {
     private OrderId id;
 
     @Column(name = "user_id")
-    private Long userId;
+    private UserId userId;
 
     @OneToMany(
             mappedBy = "order",
@@ -85,7 +86,7 @@ public class Order extends AggregateRoot {
 
     // Factory method
     public static Order create(
-            Long userId,
+            UserId userId,
             String currency,
             OrderShippingInfo shippingInfo
     ) {

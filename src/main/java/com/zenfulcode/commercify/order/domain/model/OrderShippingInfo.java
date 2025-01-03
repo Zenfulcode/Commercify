@@ -92,6 +92,38 @@ public class OrderShippingInfo {
         return info;
     }
 
+    public CustomerDetails toCustomerDetails() {
+        return new CustomerDetails(
+                customerFirstName,
+                customerLastName,
+                customerEmail,
+                customerPhone
+        );
+    }
+
+    public Address toShippingAddress() {
+        return new Address(
+                shippingStreet,
+                shippingCity,
+                shippingState,
+                shippingZip,
+                shippingCountry
+        );
+    }
+
+    public Address toBillingAddress() {
+        if (!hasBillingAddress()) {
+            return null;
+        }
+        return new Address(
+                billingStreet,
+                billingCity,
+                billingState,
+                billingZip,
+                billingCountry
+        );
+    }
+
     public boolean hasBillingAddress() {
         return billingStreet != null && !billingStreet.isBlank();
     }

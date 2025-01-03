@@ -3,6 +3,7 @@ package com.zenfulcode.commercify.order.domain.event;
 import com.zenfulcode.commercify.order.domain.valueobject.OrderId;
 import com.zenfulcode.commercify.shared.domain.event.DomainEvent;
 import com.zenfulcode.commercify.shared.domain.valueobject.AggregateId;
+import com.zenfulcode.commercify.user.domain.valueobject.UserId;
 import lombok.Getter;
 
 import java.time.Instant;
@@ -11,11 +12,11 @@ import java.time.Instant;
 public class OrderCreatedEvent extends DomainEvent {
     @AggregateId
     private final OrderId orderId;
-    private final Long userId;
+    private final UserId userId;
     private final String currency;
     private final Instant createdAt;
 
-    public OrderCreatedEvent(OrderId orderId, Long userId, String currency) {
+    public OrderCreatedEvent(OrderId orderId, UserId userId, String currency) {
         this.orderId = orderId;
         this.userId = userId;
         this.currency = currency;

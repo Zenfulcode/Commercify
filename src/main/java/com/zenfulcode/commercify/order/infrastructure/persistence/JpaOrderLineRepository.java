@@ -1,4 +1,4 @@
-package com.zenfulcode.commercify.product.infrastructure.persistence;
+package com.zenfulcode.commercify.order.infrastructure.persistence;
 
 import com.zenfulcode.commercify.order.domain.model.Order;
 import com.zenfulcode.commercify.order.domain.model.OrderLine;

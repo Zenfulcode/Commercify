@@ -12,8 +12,8 @@ import java.util.UUID;
 @Embeddable
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class VariantId extends ProductId{
-    @Column(name = "id")
+public class VariantId extends ProductId {
+    @Column(name = "variant_id")
     private String id;
 
     private VariantId(String id) {

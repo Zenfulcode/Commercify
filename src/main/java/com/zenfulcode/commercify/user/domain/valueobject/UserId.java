@@ -1,4 +1,4 @@
-package com.zenfulcode.commercify.order.domain.valueobject;
+package com.zenfulcode.commercify.user.domain.valueobject;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -12,27 +12,27 @@ import java.util.UUID;
 @Embeddable
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class OrderId {
-    @Column(name = "order_id")
+public class UserId {
+    @Column(name = "user_id")
     private String id;
 
-    private OrderId(String id) {
+    private UserId(String id) {
         this.id = Objects.requireNonNull(id);
     }
 
-    public static OrderId generate() {
-        return new OrderId(UUID.randomUUID().toString());
+    public static UserId generate() {
+        return new UserId(UUID.randomUUID().toString());
     }
 
-    public static OrderId of(String id) {
-        return new OrderId(id);
+    public static UserId of(String id) {
+        return new UserId(id);
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        OrderId that = (OrderId) o;
+        UserId that = (UserId) o;
         return Objects.equals(id, that.id);
     }
 
