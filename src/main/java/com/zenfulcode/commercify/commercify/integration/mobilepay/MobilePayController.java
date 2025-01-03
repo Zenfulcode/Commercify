@@ -2,7 +2,6 @@ package com.zenfulcode.commercify.commercify.integration.mobilepay;
 
 import com.zenfulcode.commercify.commercify.api.requests.PaymentRequest;
 import com.zenfulcode.commercify.commercify.api.responses.PaymentResponse;
-import com.zenfulcode.commercify.commercify.integration.WebhookResponse;
 import com.zenfulcode.commercify.commercify.integration.WebhookSubscribeRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -55,8 +54,8 @@ public class MobilePayController {
     @PostMapping("/webhooks")
     public ResponseEntity<?> registerWebhooks(@RequestBody WebhookSubscribeRequest request) {
         try {
-            WebhookResponse response = mobilePayService.registerWebhooks(request.callbackUrl());
-            return ResponseEntity.ok(response);
+            mobilePayService.registerWebhooks(request.callbackUrl());
+            return ResponseEntity.ok("Webhooks registered successfully");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error registering webhooks");
         }

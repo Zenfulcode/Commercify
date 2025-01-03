@@ -8,7 +8,7 @@ import com.zenfulcode.commercify.commercify.entity.OrderEntity;
 import com.zenfulcode.commercify.commercify.entity.PaymentEntity;
 import com.zenfulcode.commercify.commercify.exception.OrderNotFoundException;
 import com.zenfulcode.commercify.commercify.exception.PaymentProcessingException;
-import com.zenfulcode.commercify.commercify.integration.WebhookResponse;
+import com.zenfulcode.commercify.commercify.integration.WebhookRegistrationResponse;
 import com.zenfulcode.commercify.commercify.repository.OrderRepository;
 import com.zenfulcode.commercify.commercify.repository.PaymentRepository;
 import com.zenfulcode.commercify.commercify.service.PaymentService;
@@ -214,7 +214,7 @@ public class MobilePayService {
         };
     }
 
-    public WebhookResponse registerWebhooks(String callbackUrl) {
+    public void registerWebhooks(String callbackUrl) {
         HttpHeaders headers = mobilePayRequestHeaders();
 
         Map<String, Object> request = new HashMap<>();
@@ -222,17 +222,19 @@ public class MobilePayService {
         request.put("events", new String[]{
                 "epayments.payment.aborted.v1",
                 "epayments.payment.expired.v1",
-                "epayments.payment.cancelled.v1"
+                "epayments.payment.cancelled.v1",
+                "epayments.payment.captured.v1",
+                "epayments.payment.refunded.v1"
         });
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(request, headers);
 
         try {
-            ResponseEntity<WebhookResponse> response = restTemplate.exchange(
+            ResponseEntity<WebhookRegistrationResponse> response = restTemplate.exchange(
                     apiUrl + "/webhooks/v1/webhooks",
                     HttpMethod.POST,
                     entity,
-                    WebhookResponse.class
+                    WebhookRegistrationResponse.class
             );
 
             if (response.getBody() == null) {
@@ -240,8 +242,6 @@ public class MobilePayService {
             }
 
             webhookSecret = response.getBody().secret();
-
-            return response.getBody();
         } catch (Exception e) {
             log.error("Error registering MobilePay webhooks: {}", e.getMessage());
             throw new PaymentProcessingException("Failed to create MobilePay payment", e);

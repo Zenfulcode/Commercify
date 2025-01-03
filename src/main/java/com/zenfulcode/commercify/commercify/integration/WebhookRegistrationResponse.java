@@ -1,6 +1,6 @@
 package com.zenfulcode.commercify.commercify.integration;
 
-public record WebhookResponse(
+public record WebhookRegistrationResponse(
         String secret,
         String id
 ) {
