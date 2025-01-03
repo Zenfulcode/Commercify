@@ -14,7 +14,7 @@ import java.util.Objects;
 public class VariantOption {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long optionId;
 
     @Column(nullable = false)
     private String name;

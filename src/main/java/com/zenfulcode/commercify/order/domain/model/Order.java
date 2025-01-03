@@ -27,7 +27,6 @@ public class Order extends AggregateRoot {
     @EmbeddedId
     private OrderId id;
 
-    @Column(name = "user_id")
     private UserId userId;
 
     @OneToMany(
