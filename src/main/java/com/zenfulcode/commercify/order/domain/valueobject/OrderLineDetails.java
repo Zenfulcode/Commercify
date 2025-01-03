@@ -3,7 +3,6 @@ package com.zenfulcode.commercify.order.domain.valueobject;
 import com.zenfulcode.commercify.order.domain.exception.OrderValidationException;
 import com.zenfulcode.commercify.product.domain.valueobject.ProductId;
 import com.zenfulcode.commercify.product.domain.valueobject.VariantId;
-import com.zenfulcode.commercify.shared.domain.model.Money;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,8 +10,7 @@ import java.util.List;
 public record OrderLineDetails(
         ProductId productId,
         VariantId variantId,
-        int quantity,
-        Money unitPrice
+        int quantity
 ) {
     public OrderLineDetails {
         validate(productId, quantity);
@@ -32,10 +30,6 @@ public record OrderLineDetails(
         if (!violations.isEmpty()) {
             throw new OrderValidationException(violations);
         }
-    }
-
-    public Money calculateTotal() {
-        return unitPrice.multiply(quantity);
     }
 
     public boolean hasVariant() {

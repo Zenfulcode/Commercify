@@ -1,6 +1,6 @@
 package com.zenfulcode.commercify.api.product;
 
-import com.zenfulcode.commercify.api.product.dto.ProductDtoMapper;
+import com.zenfulcode.commercify.api.product.mapper.ProductDtoMapper;
 import com.zenfulcode.commercify.api.product.dto.request.*;
 import com.zenfulcode.commercify.api.product.dto.response.CreateProductResponse;
 import com.zenfulcode.commercify.api.product.dto.response.PagedProductResponse;

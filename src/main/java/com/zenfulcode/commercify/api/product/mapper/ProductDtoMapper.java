@@ -1,4 +1,4 @@
-package com.zenfulcode.commercify.api.product.dto;
+package com.zenfulcode.commercify.api.product.mapper;
 
 import com.zenfulcode.commercify.api.product.dto.request.*;
 import com.zenfulcode.commercify.api.product.dto.response.ProductDetailResponse;

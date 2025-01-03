@@ -12,9 +12,16 @@ import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public record OrderDetailsDTO(OrderId id, UserId userId, OrderStatus status, String currency, Money totalAmount,
-                              List<OrderLineDTO> orderLines, CustomerDetails customerDetails, Address shippingAddress,
-                              Address billingAddress, Instant createdAt) {
+public record OrderDetailsDTO(OrderId id,
+                              UserId userId,
+                              OrderStatus status,
+                              String currency,
+                              Money totalAmount,
+                              List<OrderLineDTO> orderLines,
+                              CustomerDetails customerDetails,
+                              Address shippingAddress,
+                              Address billingAddress,
+                              Instant createdAt) {
     public static OrderDetailsDTO fromOrder(Order order) {
         return new OrderDetailsDTO(
                 order.getId(),
