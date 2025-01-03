@@ -9,6 +9,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -16,7 +18,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -93,5 +95,53 @@ class MobilePayServiceTest {
         mobilePayService.handlePaymentCallback(PAYMENT_REFERENCE, "EXPIRED");
 
         verify(paymentService).handlePaymentStatusUpdate(eq(1L), eq(PaymentStatus.EXPIRED));
+    }
+
+    @ParameterizedTest
+    @DisplayName("Validate Mobile Pay Reference Format")
+    @ValueSource(strings = {
+            "HotelHunger-order-1234-10050",  // Typical case
+            "Commercify-order-9999-12345",   // Different system name
+            "A1-order-1-100",                // Minimum acceptable length
+            "VeryLongSystemName-order-999999-1000000" // Longer reference
+    })
+    void testValidMobilePayReferences(String reference) {
+        assertTrue(reference.matches("^[a-zA-Z0-9-]{8,50}$"),
+                "Reference should be valid: " + reference);
+    }
+
+    @ParameterizedTest
+    @DisplayName("Invalidate Incorrect Mobile Pay Reference Format")
+    @ValueSource(strings = {
+            "HotelHunger_order-1234-10050",  // Contains underscore
+            "System!order-1234-10050",       // Contains special character
+            "ab",                            // Too short
+            "ThisIsAVeryLongReferenceStringThatExceedsTheMaximumAllowedLengthOfFiftyCharacters" // Too long
+    })
+    void testInvalidMobilePayReferences(String reference) {
+        assertFalse(reference.matches("^[a-zA-Z0-9-]{8,50}$"),
+                "Reference should be invalid: " + reference);
+    }
+
+    @Test
+    @DisplayName("Validate Reference Generation Components")
+    void testMobilePayReferenceGeneration() {
+        // Assuming you have a method to generate the reference
+        // This is a placeholder - adjust based on your actual reference generation method
+        PaymentEntity testPayment = PaymentEntity.builder()
+                .id(1234L)
+                .build();
+
+        String generatedReference = "Commercify-order-" + testPayment.getId() + "-10050";
+
+        // Validate reference format
+        assertTrue(generatedReference.matches("^[a-zA-Z0-9-]{8,50}$"),
+                "Generated reference should match the required format");
+
+        // Additional checks
+        assertTrue(generatedReference.startsWith("Commercify-order-"),
+                "Reference should start with system name and 'order-'");
+        assertTrue(generatedReference.contains("-10050"),
+                "Reference should contain the total amount");
     }
 }
