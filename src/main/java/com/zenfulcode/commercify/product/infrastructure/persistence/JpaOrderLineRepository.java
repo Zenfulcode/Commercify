@@ -6,6 +6,7 @@ import com.zenfulcode.commercify.order.domain.model.OrderStatus;
 import com.zenfulcode.commercify.order.domain.repository.OrderLineRepository;
 import com.zenfulcode.commercify.order.domain.valueobject.OrderId;
 import com.zenfulcode.commercify.product.domain.valueobject.ProductId;
+import com.zenfulcode.commercify.product.domain.valueobject.VariantId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -32,22 +33,22 @@ public class JpaOrderLineRepository implements OrderLineRepository {
     @Override
     public Set<Order> findActiveOrdersForProduct(
             ProductId productId, Collection<OrderStatus> statuses) {
-        return repository.findActiveOrdersForProduct(productId.getValue(), statuses);
+        return repository.findActiveOrdersForProduct(productId, statuses);
     }
 
     @Override
     public Set<Order> findActiveOrdersForVariant(
-            Long variantId, Collection<OrderStatus> statuses) {
+            VariantId variantId, Collection<OrderStatus> statuses) {
         return repository.findActiveOrdersForVariant(variantId, statuses);
     }
 
     @Override
     public boolean hasActiveOrders(ProductId productId) {
-        return repository.hasActiveOrders(productId.getValue());
+        return repository.hasActiveOrders(productId);
     }
 
     @Override
-    public boolean hasActiveOrdersForVariant(ProductId variantId) {
+    public boolean hasActiveOrdersForVariant(VariantId variantId) {
         return repository.hasActiveOrdersForVariant(variantId);
     }
 }

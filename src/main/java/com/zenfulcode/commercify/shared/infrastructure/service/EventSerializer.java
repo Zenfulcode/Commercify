@@ -1,7 +1,8 @@
-package com.zenfulcode.commercify.shared.domain.service;
+package com.zenfulcode.commercify.shared.infrastructure.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zenfulcode.commercify.shared.domain.event.AggregateReference;
 import com.zenfulcode.commercify.shared.domain.event.DomainEvent;
 import com.zenfulcode.commercify.shared.domain.exception.EventDeserializationException;
 import com.zenfulcode.commercify.shared.domain.exception.EventSerializationException;
@@ -47,12 +48,10 @@ public class EventSerializer {
     }
 
     private String getAggregateId(DomainEvent event) {
-        // Use reflection or annotation to get aggregate ID
         return AggregateReference.extractId(event);
     }
 
     private String getAggregateType(DomainEvent event) {
-        // Use reflection or annotation to get aggregate type
         return AggregateReference.extractType(event);
     }
 }

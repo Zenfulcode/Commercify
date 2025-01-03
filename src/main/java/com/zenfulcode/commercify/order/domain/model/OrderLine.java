@@ -10,8 +10,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.Objects;
-
 @Entity
 @Table(name = "order_lines")
 @Getter
@@ -26,10 +24,13 @@ public class OrderLine {
     @Column(nullable = false)
     private Integer quantity;
 
+    @Column(name = "currency")
+    private String currency;
+
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "amount", column = @Column(name = "unit_price")),
-            @AttributeOverride(name = "currency", column = @Column(name = "currency"))
+            @AttributeOverride(name = "currency", column = @Column(name = "currency", insertable = false, updatable = false))
     })
     private Money unitPrice;
 
@@ -42,7 +43,6 @@ public class OrderLine {
     @JoinColumn(name = "order_id")
     private Order order;
 
-    // Factory method
     public static OrderLine create(
             ProductId productId,
             ProductVariant variant,
@@ -55,23 +55,11 @@ public class OrderLine {
         line.productVariant = variant;
         line.quantity = quantity;
         line.unitPrice = unitPrice;
+        line.currency = unitPrice.getCurrency();
         return line;
     }
 
     public Money getTotal() {
         return unitPrice.multiply(quantity);
-    }
-
-    // Equals and hashCode based on business identity
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof OrderLine that)) return false;
-        return Objects.equals(id, that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
     }
 }

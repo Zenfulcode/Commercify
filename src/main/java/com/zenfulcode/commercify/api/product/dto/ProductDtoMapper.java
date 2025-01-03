@@ -115,7 +115,7 @@ public class ProductDtoMapper {
 
     public ProductDetailResponse toDetailResponse(Product product) {
         return new ProductDetailResponse(
-                product.getId().getValue(),
+                product.getId(),
                 product.getName(),
                 product.getDescription(),
                 product.getStock(),

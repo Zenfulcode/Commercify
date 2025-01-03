@@ -5,7 +5,6 @@ import com.zenfulcode.commercify.shared.domain.event.DomainEventHandler;
 import com.zenfulcode.commercify.shared.domain.event.DomainEventPublisher;
 import com.zenfulcode.commercify.shared.domain.event.DomainEventStore;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
@@ -15,9 +14,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DefaultDomainEventPublisher implements DomainEventPublisher {
     private final ApplicationEventPublisher applicationEventPublisher;
-    @Qualifier("enhancedEventStore")
     private final DomainEventStore eventStore;
-    private final List<DomainEventHandler<?>> eventHandlers;
+    private final List<DomainEventHandler> eventHandlers;
 
     @Override
     public void publish(DomainEvent event) {

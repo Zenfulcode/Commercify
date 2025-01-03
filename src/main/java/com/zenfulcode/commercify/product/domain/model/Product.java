@@ -3,6 +3,7 @@ package com.zenfulcode.commercify.product.domain.model;
 import com.zenfulcode.commercify.product.domain.event.ProductCreatedEvent;
 import com.zenfulcode.commercify.product.domain.exception.InsufficientStockException;
 import com.zenfulcode.commercify.product.domain.exception.ProductModificationException;
+import com.zenfulcode.commercify.product.domain.valueobject.CategoryId;
 import com.zenfulcode.commercify.product.domain.valueobject.ProductId;
 import com.zenfulcode.commercify.shared.domain.model.AggregateRoot;
 import com.zenfulcode.commercify.shared.domain.model.Money;
@@ -48,6 +49,10 @@ public class Product extends AggregateRoot {
     @Builder.Default
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "product")
     private Set<ProductVariant> variants = new HashSet<>();
+
+    @Embedded
+    @AttributeOverride(name = "id", column = @Column(name = "category_id"))
+    private CategoryId categoryId;  // Add this field
 
     // Factory method for creating new products
     public static Product create(String name, String description, int stock, Money money) {

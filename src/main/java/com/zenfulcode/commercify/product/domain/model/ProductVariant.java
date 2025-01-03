@@ -1,6 +1,6 @@
 package com.zenfulcode.commercify.product.domain.model;
 
-import com.zenfulcode.commercify.product.domain.valueobject.ProductId;
+import com.zenfulcode.commercify.product.domain.valueobject.VariantId;
 import com.zenfulcode.commercify.shared.domain.model.Money;
 import jakarta.persistence.*;
 import lombok.*;
@@ -18,7 +18,7 @@ import java.util.Set;
 @AllArgsConstructor
 public class ProductVariant {
     @EmbeddedId
-    private ProductId id;
+    private VariantId id;
 
     @Column(nullable = false, unique = true)
     private String sku;
@@ -45,7 +45,7 @@ public class ProductVariant {
     // Factory method
     public static ProductVariant create(String sku, Integer stock, Money price) {
         ProductVariant variant = new ProductVariant();
-        variant.id = ProductId.generate();
+        variant.id = VariantId.generate();
         variant.sku = Objects.requireNonNull(sku, "SKU is required");
         variant.stock = stock;
         variant.price = price;

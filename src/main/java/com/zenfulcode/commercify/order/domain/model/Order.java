@@ -40,37 +40,38 @@ public class Order extends AggregateRoot {
     @Column(nullable = false)
     private OrderStatus status;
 
-    private String currency;
-
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "order_shipping_info_id")
     private OrderShippingInfo orderShippingInfo;
 
+    @Column(name = "currency")
+    private String currency;
+
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "amount", column = @Column(name = "subtotal")),
-            @AttributeOverride(name = "currency", column = @Column(name = "currency"))
+            @AttributeOverride(name = "currency", column = @Column(name = "currency", insertable = false, updatable = false))
     })
     private Money subtotal;
 
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "amount", column = @Column(name = "shipping_cost")),
-            @AttributeOverride(name = "currency", column = @Column(name = "currency"))
+            @AttributeOverride(name = "currency", column = @Column(name = "currency", insertable = false, updatable = false))
     })
     private Money shippingCost;
 
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "amount", column = @Column(name = "tax")),
-            @AttributeOverride(name = "currency", column = @Column(name = "currency"))
+            @AttributeOverride(name = "currency", column = @Column(name = "currency", insertable = false, updatable = false))
     })
     private Money tax;
 
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "amount", column = @Column(name = "total_amount")),
-            @AttributeOverride(name = "currency", column = @Column(name = "currency"))
+            @AttributeOverride(name = "currency", column = @Column(name = "currency", insertable = false, updatable = false))
     })
     private Money totalAmount;
 

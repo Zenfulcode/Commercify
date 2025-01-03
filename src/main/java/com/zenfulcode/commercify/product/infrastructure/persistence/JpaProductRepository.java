@@ -26,32 +26,32 @@ public class JpaProductRepository implements ProductRepository {
 
     @Override
     public Optional<Product> findById(ProductId id) {
-        return repository.findById(id.getValue());
+        return repository.findById(id);
     }
 
     @Override
     public void delete(Product product) {
-
+        repository.delete(product);
     }
 
     @Override
     public Page<Product> findAll(Pageable pageable) {
-        return null;
+        return repository.findAll(pageable);
     }
 
     @Override
     public Page<Product> findByActiveTrue(Pageable pageable) {
-        return null;
+        return repository.findByActiveTrue(pageable);
     }
 
     @Override
     public Page<Product> findByCategory(CategoryId categoryId, Pageable pageable) {
-        return repository.findByCategoryId(categoryId.getValue(), pageable);
+        return repository.findByCategoryId(categoryId, pageable);
     }
 
     @Override
     public Page<Product> findByStockLessThan(int threshold, Pageable pageable) {
-        return null;
+        return repository.findByStockLessThan(threshold, pageable);
     }
 
     @Override

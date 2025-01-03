@@ -33,10 +33,18 @@ public class StoredEvent {
     @Column
     private String aggregateType;
 
-    public StoredEvent(String eventId, String eventType, String eventData, Instant occurredOn) {
+    public StoredEvent(
+            String eventId,
+            String eventType,
+            String eventData,
+            Instant occurredOn,
+            String aggregateId,
+            String aggregateType) {
         this.eventId = eventId;
         this.eventType = eventType;
         this.eventData = eventData;
         this.occurredOn = occurredOn;
+        this.aggregateId = aggregateId;
+        this.aggregateType = aggregateType;
     }
 }

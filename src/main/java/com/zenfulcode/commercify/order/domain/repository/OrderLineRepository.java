@@ -5,6 +5,7 @@ import com.zenfulcode.commercify.order.domain.model.OrderLine;
 import com.zenfulcode.commercify.order.domain.model.OrderStatus;
 import com.zenfulcode.commercify.order.domain.valueobject.OrderId;
 import com.zenfulcode.commercify.product.domain.valueobject.ProductId;
+import com.zenfulcode.commercify.product.domain.valueobject.VariantId;
 
 import java.util.Collection;
 import java.util.List;
@@ -21,7 +22,7 @@ public interface OrderLineRepository {
     );
 
     Set<Order> findActiveOrdersForVariant(
-            Long variantId,
+            VariantId variantId,
             Collection<OrderStatus> statuses
     );
 
@@ -30,6 +31,6 @@ public interface OrderLineRepository {
     );
 
     boolean hasActiveOrdersForVariant(
-            ProductId variantId
+            VariantId variantId
     );
 }

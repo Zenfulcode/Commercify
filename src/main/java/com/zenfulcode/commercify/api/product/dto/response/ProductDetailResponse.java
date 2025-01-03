@@ -1,9 +1,11 @@
 package com.zenfulcode.commercify.api.product.dto.response;
 
+import com.zenfulcode.commercify.product.domain.valueobject.ProductId;
+
 import java.util.List;
 
 public record ProductDetailResponse(
-        String id,
+        ProductId id,
         String name,
         String description,
         int stock,

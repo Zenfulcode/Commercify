@@ -1,30 +1,48 @@
 package com.zenfulcode.commercify.order.domain.valueobject;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-import lombok.Value;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.Objects;
 import java.util.UUID;
 
-@Value
 @Embeddable
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class OrderId {
-    String value;
+    @Column(name = "id")
+    private String id;
 
-    private OrderId(String value) {
-        this.value = Objects.requireNonNull(value);
+    private OrderId(String id) {
+        this.id = Objects.requireNonNull(id);
     }
 
     public static OrderId generate() {
         return new OrderId(UUID.randomUUID().toString());
     }
 
-    public static OrderId of(String value) {
-        return new OrderId(value);
+    public static OrderId of(String id) {
+        return new OrderId(id);
     }
 
-    // Required by JPA
-    protected OrderId() {
-        this.value = null;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        OrderId that = (OrderId) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return id;
     }
 }

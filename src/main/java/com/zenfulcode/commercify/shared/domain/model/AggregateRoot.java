@@ -4,7 +4,6 @@ import com.zenfulcode.commercify.shared.domain.event.DomainEvent;
 import org.springframework.data.annotation.Transient;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public abstract class AggregateRoot {
@@ -16,7 +15,7 @@ public abstract class AggregateRoot {
     }
 
     public List<DomainEvent> getDomainEvents() {
-        return Collections.unmodifiableList(domainEvents);
+        return new ArrayList<>(domainEvents);
     }
 
     public void clearDomainEvents() {

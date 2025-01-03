@@ -1,32 +1,29 @@
 package com.zenfulcode.commercify.shared.infrastructure.persistence;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zenfulcode.commercify.shared.domain.event.DomainEvent;
 import com.zenfulcode.commercify.shared.domain.event.DomainEventStore;
-import com.zenfulcode.commercify.shared.domain.exception.EventDeserializationException;
-import com.zenfulcode.commercify.shared.domain.exception.EventSerializationException;
 import com.zenfulcode.commercify.shared.domain.model.StoredEvent;
+import com.zenfulcode.commercify.shared.infrastructure.service.EventSerializer;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Repository
+@Service
 @RequiredArgsConstructor
 public class JpaDomainEventStore implements DomainEventStore {
     private final EventStoreRepository repository;
     private final ObjectMapper objectMapper;
+    private final EventSerializer eventSerializer;
 
     @Override
     public void store(DomainEvent event) {
-        StoredEvent storedEvent = new StoredEvent(
-                event.getEventId(),
-                event.getEventType(),
-                serializeEvent(event),
-                event.getOccurredOn()
-        );
+        StoredEvent storedEvent = eventSerializer.serialize(event);
         repository.save(storedEvent);
     }
 
@@ -34,27 +31,30 @@ public class JpaDomainEventStore implements DomainEventStore {
     public List<DomainEvent> getEvents(String aggregateId, String aggregateType) {
         return repository.findByAggregateIdAndAggregateType(aggregateId, aggregateType)
                 .stream()
-                .map(this::deserializeEvent)
+                .map(eventSerializer::deserialize)
                 .collect(Collectors.toList());
     }
 
-    private String serializeEvent(DomainEvent event) {
-        try {
-            return objectMapper.writeValueAsString(event);
-        } catch (JsonProcessingException e) {
-            throw new EventSerializationException("Failed to serialize event", e);
-        }
+    public List<DomainEvent> getEventsSince(Instant since) {
+        return repository.findEventsSince(since)
+                .stream()
+                .map(eventSerializer::deserialize)
+                .collect(Collectors.toList());
     }
 
-    private DomainEvent deserializeEvent(StoredEvent storedEvent) {
-        try {
-            Class<?> eventClass = Class.forName(storedEvent.getEventType());
-            return (DomainEvent) objectMapper.readValue(
-                    storedEvent.getEventData(),
-                    eventClass
-            );
-        } catch (Exception e) {
-            throw new EventDeserializationException("Failed to deserialize event", e);
-        }
+    public <T extends DomainEvent> List<T> getEventsByType(Class<T> eventType) {
+        return repository.findByEventType(eventType.getName())
+                .stream()
+                .map(event -> (T) eventSerializer.deserialize(event))
+                .collect(Collectors.toList());
+    }
+
+    public Page<DomainEvent> getEventsByAggregateType(String aggregateType, Pageable pageable) {
+        return repository.findByAggregateType(aggregateType, pageable)
+                .map(eventSerializer::deserialize);
+    }
+
+    public boolean hasEventOccurred(String aggregateId, String aggregateType, String eventType) {
+        return repository.hasEventType(aggregateId, aggregateType, eventType);
     }
 }
