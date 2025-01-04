@@ -51,14 +51,14 @@ CREATE TABLE products
 -- changeset gkhaavik:1735938302939-4
 CREATE TABLE product_variants
 (
-    id         VARCHAR(255)   NOT NULL,
+    variant_id VARCHAR(255)   NOT NULL,
     product_id VARCHAR(255)   NOT NULL,
     sku        VARCHAR(255)   NOT NULL,
     stock      INT            NULL,
     image_url  VARCHAR(255)   NULL,
     unit_price DECIMAL(19, 2) NULL,
     currency   VARCHAR(255)   NULL,
-    CONSTRAINT pk_product_variants PRIMARY KEY (id),
+    CONSTRAINT pk_product_variants PRIMARY KEY (variant_id),
     CONSTRAINT uc_product_variants_sku UNIQUE (sku)
 );
 
@@ -112,7 +112,7 @@ ALTER TABLE product_variants
 ALTER TABLE variant_options
     ADD CONSTRAINT FK_VARIANT_OPTIONS_ON_VARIANT
         FOREIGN KEY (product_variant_id)
-            REFERENCES product_variants (id);
+            REFERENCES product_variants (variant_id);
 
 -- changeset gkhaavik:1735938302939-10
 ALTER TABLE orders
@@ -130,7 +130,7 @@ ALTER TABLE order_lines
 ALTER TABLE order_lines
     ADD CONSTRAINT FK_ORDER_LINES_ON_VARIANT
         FOREIGN KEY (product_variant_id)
-            REFERENCES product_variants (id);
+            REFERENCES product_variants (variant_id);
 
 -- changeset gkhaavik:1735938302939-13
 ALTER TABLE order_lines

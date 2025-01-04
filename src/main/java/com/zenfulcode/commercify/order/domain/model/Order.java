@@ -7,11 +7,13 @@ import com.zenfulcode.commercify.order.domain.service.OrderStateFlow;
 import com.zenfulcode.commercify.order.domain.valueobject.OrderId;
 import com.zenfulcode.commercify.shared.domain.model.AggregateRoot;
 import com.zenfulcode.commercify.shared.domain.model.Money;
+import com.zenfulcode.commercify.user.domain.model.User;
 import com.zenfulcode.commercify.user.domain.valueobject.UserId;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -74,6 +76,11 @@ public class Order extends AggregateRoot {
             @AttributeOverride(name = "currency", column = @Column(name = "currency", insertable = false, updatable = false))
     })
     private Money totalAmount;
+
+    @Setter
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    private User user;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false)

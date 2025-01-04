@@ -56,7 +56,7 @@ public class User extends AggregateRoot {
     private Set<UserRole> roles = new HashSet<>();
 
     @Setter
-    @OneToMany(mappedBy = "userId", orphanRemoval = true)
+    @OneToMany(mappedBy = "user", orphanRemoval = true)
     private Set<Order> orders = new LinkedHashSet<>();
 
     @CreationTimestamp
