@@ -1,6 +1,7 @@
 package com.zenfulcode.commercify.auth.domain.model;
 
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -11,6 +12,7 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Builder
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class AuthenticatedUser implements UserDetails {

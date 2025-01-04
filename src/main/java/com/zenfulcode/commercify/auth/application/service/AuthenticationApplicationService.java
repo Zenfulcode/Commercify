@@ -2,7 +2,6 @@ package com.zenfulcode.commercify.auth.application.service;
 
 import com.zenfulcode.commercify.auth.domain.event.UserAuthenticatedEvent;
 import com.zenfulcode.commercify.auth.domain.model.AuthenticatedUser;
-import com.zenfulcode.commercify.auth.domain.model.UserRole;
 import com.zenfulcode.commercify.auth.domain.service.AuthenticationDomainService;
 import com.zenfulcode.commercify.auth.infrastructure.security.TokenService;
 import com.zenfulcode.commercify.shared.domain.event.DomainEventPublisher;
@@ -15,10 +14,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Collection;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -70,11 +65,5 @@ public class AuthenticationApplicationService {
         String newRefreshToken = tokenService.generateRefreshToken(authenticatedUser);
 
         return new AuthenticationResult(newAccessToken, newRefreshToken, authenticatedUser);
-    }
-
-    public Set<UserRole> mapRoles(Collection<com.zenfulcode.commercify.user.domain.model.UserRole> roles) {
-        return roles.stream()
-                .map(role -> UserRole.valueOf("ROLE_" + role.name()))
-                .collect(Collectors.toSet());
     }
 }

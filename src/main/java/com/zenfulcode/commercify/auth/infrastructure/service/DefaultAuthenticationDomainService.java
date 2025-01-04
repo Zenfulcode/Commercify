@@ -1,8 +1,8 @@
 package com.zenfulcode.commercify.auth.infrastructure.service;
 
-import com.zenfulcode.commercify.auth.application.service.AuthenticationApplicationService;
 import com.zenfulcode.commercify.auth.domain.model.AuthenticatedUser;
 import com.zenfulcode.commercify.auth.domain.service.AuthenticationDomainService;
+import com.zenfulcode.commercify.auth.infrastructure.mapper.UserRoleMapper;
 import com.zenfulcode.commercify.shared.domain.exception.UserAccountLockedException;
 import com.zenfulcode.commercify.user.domain.model.User;
 import com.zenfulcode.commercify.user.domain.model.UserStatus;
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class DefaultAuthenticationDomainService implements AuthenticationDomainService {
-    private final AuthenticationApplicationService authenticationApplicationService;
+    private final UserRoleMapper roleMapper;
 
     @Override
     public AuthenticatedUser createAuthenticatedUser(User user) {
@@ -23,7 +23,7 @@ public class DefaultAuthenticationDomainService implements AuthenticationDomainS
                 user.getFullName(),
                 user.getEmail(),
                 user.getPassword(),
-                authenticationApplicationService.mapRoles(user.getRoles()),
+                roleMapper.mapRoles(user.getRoles()),
                 user.getStatus() == UserStatus.ACTIVE,
                 user.getStatus() != UserStatus.DEACTIVATED,
                 user.getStatus() != UserStatus.SUSPENDED,
