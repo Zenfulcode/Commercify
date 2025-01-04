@@ -20,7 +20,7 @@ import java.util.Set;
 @Service
 @RequiredArgsConstructor
 public class OrderValidationService {
-    private final OrderStateFlow orderStateFlow;
+    private final OrderStateFlow stateFlow;
 
     public void validateCreateOrder(Order order) {
         List<String> violations = new ArrayList<>();
@@ -56,7 +56,7 @@ public class OrderValidationService {
     }
 
     public void validateStatusTransition(Order order, OrderStatus newStatus) {
-        if (!orderStateFlow.canTransition(order.getStatus(), newStatus)) {
+        if (!stateFlow.canTransition(order.getStatus(), newStatus)) {
             throw new InvalidOrderStateTransitionException(
                     order.getId(),
                     order.getStatus(),
@@ -67,9 +67,9 @@ public class OrderValidationService {
     }
 
     public void validateOrderCancellation(Order order) {
-        if (!order.canBeCancelled()) {
+        if (order.isInTerminalState(stateFlow)) {
             throw new OrderValidationException(
-                    "Cannot cancel order in status: " + order.getStatus()
+                    "Cannot cancel order in terminal status: " + order.getStatus()
             );
         }
     }

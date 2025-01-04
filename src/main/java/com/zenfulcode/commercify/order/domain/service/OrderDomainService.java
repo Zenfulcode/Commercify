@@ -1,6 +1,5 @@
 package com.zenfulcode.commercify.order.domain.service;
 
-import com.zenfulcode.commercify.order.domain.exception.OrderValidationException;
 import com.zenfulcode.commercify.order.domain.model.Order;
 import com.zenfulcode.commercify.order.domain.model.OrderLine;
 import com.zenfulcode.commercify.order.domain.model.OrderShippingInfo;
@@ -22,7 +21,6 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class OrderDomainService {
-    private final OrderStateFlow orderStateFlow;
     private final OrderPricingStrategy pricingStrategy;
     private final OrderValidationService validationService;
 
@@ -110,14 +108,5 @@ public class OrderDomainService {
                 variant.getEffectivePrice() :
                 product.getPrice();
         return unitPrice.multiply(quantity);
-    }
-
-    private void validateOrderState(Order order) {
-        if (order.getOrderLines().isEmpty()) {
-            throw new OrderValidationException("Order must contain at least one item");
-        }
-        if (order.getTotalAmount().isLessThanOrEqual(Money.zero(order.getCurrency()))) {
-            throw new OrderValidationException("Order total must be greater than zero");
-        }
     }
 }

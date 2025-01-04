@@ -4,7 +4,6 @@ import com.zenfulcode.commercify.product.domain.valueobject.VariantId;
 import com.zenfulcode.commercify.shared.domain.model.Money;
 import jakarta.persistence.*;
 import lombok.*;
-import org.apache.commons.lang3.NotImplementedException;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -89,11 +88,14 @@ public class ProductVariant {
         return price != null ? price : product.getPrice();
     }
 
+    public void updatePrice(Money newPrice) {
+        this.price = Objects.requireNonNull(newPrice, "Price cannot be null");
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ProductVariant)) return false;
-        ProductVariant that = (ProductVariant) o;
+        if (!(o instanceof ProductVariant that)) return false;
         return Objects.equals(sku, that.sku);
     }
 
@@ -102,7 +104,5 @@ public class ProductVariant {
         return Objects.hash(sku);
     }
 
-    public void updatePrice(Money newPrice) {
-        throw new NotImplementedException("update price has not been implemented");
-    }
+
 }

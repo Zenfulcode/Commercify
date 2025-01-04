@@ -40,4 +40,9 @@ public class JpaOrderRepository implements OrderRepository {
     public boolean existsByIdAndUserId(OrderId id, UserId userId) {
         return repository.existsByIdAndUserId(id, userId);
     }
+
+    @Override
+    public boolean existsByUserId(UserId userId) {
+        return repository.findByUserId(userId, PageRequest.of(0, 1)).hasContent();
+    }
 }

@@ -2,8 +2,8 @@ package com.zenfulcode.commercify.order.domain.model;
 
 import com.zenfulcode.commercify.order.domain.event.OrderCreatedEvent;
 import com.zenfulcode.commercify.order.domain.event.OrderStatusChangedEvent;
-import com.zenfulcode.commercify.order.domain.exception.InvalidOrderStateTransitionException;
 import com.zenfulcode.commercify.order.domain.exception.OrderValidationException;
+import com.zenfulcode.commercify.order.domain.service.OrderStateFlow;
 import com.zenfulcode.commercify.order.domain.valueobject.OrderId;
 import com.zenfulcode.commercify.shared.domain.model.AggregateRoot;
 import com.zenfulcode.commercify.shared.domain.model.Money;
@@ -120,15 +120,6 @@ public class Order extends AggregateRoot {
     }
 
     public void updateStatus(OrderStatus newStatus) {
-        if (!canTransitionTo(newStatus)) {
-            throw new InvalidOrderStateTransitionException(
-                    id,
-                    status,
-                    newStatus,
-                    "Invalid order status transition"
-            );
-        }
-
         OrderStatus oldStatus = this.status;
         this.status = newStatus;
 
@@ -169,23 +160,18 @@ public class Order extends AggregateRoot {
         }
     }
 
-    private boolean canTransitionTo(OrderStatus newStatus) {
-        return switch (status) {
-            case PENDING -> Set.of(OrderStatus.CONFIRMED, OrderStatus.CANCELLED).contains(newStatus);
-            case CONFIRMED -> Set.of(OrderStatus.SHIPPED, OrderStatus.CANCELLED).contains(newStatus);
-            case SHIPPED -> Set.of(OrderStatus.COMPLETED, OrderStatus.RETURNED).contains(newStatus);
-            default -> false; // Terminal states
-        };
-    }
-
     private void recalculateTotal() {
         this.totalAmount = orderLines.stream()
                 .map(OrderLine::getTotal)
                 .reduce(Money.zero(currency), Money::add);
     }
 
-    public boolean canBeCancelled() {
-        return status == OrderStatus.PENDING || status == OrderStatus.CONFIRMED;
+    public boolean isInTerminalState(OrderStateFlow stateFlow) {
+        return stateFlow.isTerminalState(status);
+    }
+
+    public Set<OrderStatus> getValidTransitions(OrderStateFlow stateFlow) {
+        return stateFlow.getValidTransitions(status);
     }
 
     public boolean isCompleted() {

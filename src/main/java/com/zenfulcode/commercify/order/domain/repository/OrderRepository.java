@@ -12,10 +12,12 @@ public interface OrderRepository {
     Order save(Order order);
 
     Optional<Order> findById(OrderId id);
-
+    
     Page<Order> findByUserId(UserId userId, PageRequest pageRequest);
 
     Page<Order> findAll(PageRequest pageRequest);
 
     boolean existsByIdAndUserId(OrderId id, UserId userId);
+
+    boolean existsByUserId(UserId userId);
 }
