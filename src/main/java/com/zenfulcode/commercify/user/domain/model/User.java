@@ -164,6 +164,10 @@ public class User extends AggregateRoot {
                 });
     }
 
+    public String getUsername() {
+        return firstName + lastName;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -176,4 +180,7 @@ public class User extends AggregateRoot {
         return Objects.hash(id);
     }
 
+    public String getFullName() {
+        return firstName + lastName;
+    }
 }

@@ -1,15 +1,19 @@
 package com.zenfulcode.commercify.user.domain.valueobject;
 
 import com.zenfulcode.commercify.user.domain.model.UserRole;
+import com.zenfulcode.commercify.user.domain.model.UserStatus;
+import lombok.Builder;
 
 import java.util.Set;
 
+@Builder
 public record UserSpecification(
         String firstName,
         String lastName,
         String email,
         String password,
         String phone,
+        UserStatus status,
         Set<UserRole> roles
 ) {
     public boolean hasBasicInfoUpdate() {

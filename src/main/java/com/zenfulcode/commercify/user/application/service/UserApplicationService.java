@@ -6,6 +6,7 @@ import com.zenfulcode.commercify.user.application.command.UpdateUserCommand;
 import com.zenfulcode.commercify.user.application.command.UpdateUserStatusCommand;
 import com.zenfulcode.commercify.user.domain.exception.UserNotFoundException;
 import com.zenfulcode.commercify.user.domain.model.User;
+import com.zenfulcode.commercify.user.domain.model.UserRole;
 import com.zenfulcode.commercify.user.domain.model.UserStatus;
 import com.zenfulcode.commercify.user.domain.repository.UserRepository;
 import com.zenfulcode.commercify.user.domain.service.UserDomainService;
@@ -17,6 +18,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -40,6 +43,7 @@ public class UserApplicationService {
                 command.email(),
                 hashedPassword,
                 command.phoneNumber(),
+                UserStatus.PENDING,
                 command.roles()
         );
 
@@ -53,6 +57,35 @@ public class UserApplicationService {
         eventPublisher.publish(user.getDomainEvents());
 
         return savedUser.getId();
+    }
+
+    @Transactional
+    public void registerUser(
+            String firstName,
+            String lastName,
+            String email,
+            String password,
+            String phone
+    ) {
+        // Create user specification
+        UserSpecification spec = UserSpecification.builder()
+                .firstName(firstName)
+                .lastName(lastName)
+                .email(email)
+                .password(passwordEncoder.encode(password))
+                .phone(phone)
+                .status(UserStatus.ACTIVE)
+                .roles(Set.of(UserRole.USER))
+                .build();
+
+        // Create user through domain service
+        User user = userDomainService.createUser(spec);
+
+        // Save user
+        userRepository.save(user);
+
+        // Publish domain event
+        eventPublisher.publish(user.getDomainEvents());
     }
 
     /**

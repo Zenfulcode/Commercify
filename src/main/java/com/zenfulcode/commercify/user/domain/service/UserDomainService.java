@@ -3,8 +3,10 @@ package com.zenfulcode.commercify.user.domain.service;
 import com.zenfulcode.commercify.shared.domain.event.DomainEventPublisher;
 import com.zenfulcode.commercify.user.domain.event.UserCreatedEvent;
 import com.zenfulcode.commercify.user.domain.event.UserStatusChangedEvent;
+import com.zenfulcode.commercify.user.domain.exception.UserAlreadyExistsException;
 import com.zenfulcode.commercify.user.domain.model.User;
 import com.zenfulcode.commercify.user.domain.model.UserStatus;
+import com.zenfulcode.commercify.user.domain.repository.UserRepository;
 import com.zenfulcode.commercify.user.domain.valueobject.UserDeletionValidation;
 import com.zenfulcode.commercify.user.domain.valueobject.UserSpecification;
 import lombok.RequiredArgsConstructor;
@@ -21,11 +23,17 @@ public class UserDomainService {
     private final UserValidationService validationService;
     private final DomainEventPublisher eventPublisher;
     private final PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
 
     /**
      * Creates a new user with validation and enrichment
      */
     public User createUser(UserSpecification spec) {
+        // Check if username or email already exists
+        if (userRepository.existsByEmail(spec.email())) {
+            throw new UserAlreadyExistsException("Email already exists");
+        }
+
         // Create user with encrypted password
         User user = User.create(
                 spec.firstName(),
