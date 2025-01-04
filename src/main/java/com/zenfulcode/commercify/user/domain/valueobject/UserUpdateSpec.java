@@ -1,4 +1,4 @@
-package com.zenfulcode.commercify.user.application.dto;
+package com.zenfulcode.commercify.user.domain.valueobject;
 
 import com.zenfulcode.commercify.user.domain.model.UserRole;
 

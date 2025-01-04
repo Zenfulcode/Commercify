@@ -10,6 +10,7 @@ import com.zenfulcode.commercify.user.domain.model.UserStatus;
 import com.zenfulcode.commercify.user.domain.repository.UserRepository;
 import com.zenfulcode.commercify.user.domain.service.UserDomainService;
 import com.zenfulcode.commercify.user.domain.valueobject.UserId;
+import com.zenfulcode.commercify.user.domain.valueobject.UserSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,14 +34,17 @@ public class UserApplicationService {
         // Hash the password
         String hashedPassword = passwordEncoder.encode(command.password());
 
-        // Create the user through domain service
-        User user = userDomainService.createUser(
-                command.email(),
+        UserSpecification userSpecification = new UserSpecification(
                 command.firstName(),
                 command.lastName(),
+                command.email(),
                 hashedPassword,
+                command.phoneNumber(),
                 command.roles()
         );
+
+        // Create the user through domain service
+        User user = userDomainService.createUser(userSpecification);
 
         // Save the user
         User savedUser = userRepository.save(user);
@@ -61,7 +65,7 @@ public class UserApplicationService {
                 .orElseThrow(() -> new UserNotFoundException(command.userId()));
 
         // Update through domain service
-        userDomainService.updateUser(user, command.updateSpec());
+        userDomainService.updateUserInfo(user, command.userSpec());
 
         // Save changes
         userRepository.save(user);
@@ -96,7 +100,7 @@ public class UserApplicationService {
      */
     @Transactional
     public void deactivateUser(UserId userId) {
-        updateUserStatus(new UpdateUserStatusCommand(userId, UserStatus.INACTIVE));
+        updateUserStatus(new UpdateUserStatusCommand(userId, UserStatus.DEACTIVATED));
     }
 
     /**
@@ -155,7 +159,7 @@ public class UserApplicationService {
 
         // Hash new password and update
         String hashedPassword = passwordEncoder.encode(newPassword);
-        userDomainService.updatePassword(user, hashedPassword);
+        userDomainService.changePassword(user, hashedPassword);
 
         userRepository.save(user);
         eventPublisher.publish(user.getDomainEvents());
@@ -169,7 +173,7 @@ public class UserApplicationService {
         User user = getUser(userId);
 
         String hashedPassword = passwordEncoder.encode(newPassword);
-        userDomainService.updatePassword(user, hashedPassword);
+        userDomainService.changePassword(user, hashedPassword);
 
         userRepository.save(user);
         eventPublisher.publish(user.getDomainEvents());

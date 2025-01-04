@@ -1,19 +1,22 @@
 package com.zenfulcode.commercify.user.domain.model;
 
+import com.zenfulcode.commercify.order.domain.model.Order;
+import com.zenfulcode.commercify.order.domain.model.OrderStatus;
 import com.zenfulcode.commercify.shared.domain.model.AggregateRoot;
 import com.zenfulcode.commercify.user.domain.event.UserCreatedEvent;
 import com.zenfulcode.commercify.user.domain.event.UserStatusChangedEvent;
-import com.zenfulcode.commercify.user.domain.exception.InvalidUserStateException;
 import com.zenfulcode.commercify.user.domain.valueobject.UserId;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -52,6 +55,10 @@ public class User extends AggregateRoot {
     @Column(name = "role")
     private Set<UserRole> roles = new HashSet<>();
 
+    @Setter
+    @OneToMany(mappedBy = "userId", orphanRemoval = true)
+    private Set<Order> orders = new LinkedHashSet<>();
+
     @CreationTimestamp
     @Column(nullable = false)
     private Instant createdAt;
@@ -64,11 +71,12 @@ public class User extends AggregateRoot {
 
     // Factory method
     public static User create(
-            String email,
             String firstName,
             String lastName,
+            String email,
             String password,
-            Set<UserRole> roles
+            Set<UserRole> roles,
+            String phoneNumber
     ) {
         User user = new User();
         user.id = UserId.generate();
@@ -78,6 +86,7 @@ public class User extends AggregateRoot {
         user.password = Objects.requireNonNull(password, "Password is required");
         user.status = UserStatus.PENDING;
         user.roles = new HashSet<>(roles != null ? roles : Set.of(UserRole.USER));
+        user.phoneNumber = phoneNumber;
 
         // Register domain event
         user.registerEvent(new UserCreatedEvent(
@@ -90,15 +99,12 @@ public class User extends AggregateRoot {
     }
 
     // Domain methods
-    public void updateProfile(String firstName, String lastName, String phoneNumber) {
+    public void updateProfile(String firstName, String lastName) {
         if (firstName != null) {
             this.firstName = firstName;
         }
         if (lastName != null) {
             this.lastName = lastName;
-        }
-        if (phoneNumber != null) {
-            this.phoneNumber = phoneNumber;
         }
     }
 
@@ -106,20 +112,15 @@ public class User extends AggregateRoot {
         this.email = Objects.requireNonNull(newEmail, "Email is required").toLowerCase();
     }
 
+    public void updatePhone(String phone) {
+        this.phoneNumber = phone;
+    }
+
     public void updatePassword(String newPassword) {
         this.password = Objects.requireNonNull(newPassword, "Password is required");
     }
 
     public void updateStatus(UserStatus newStatus) {
-        if (!canTransitionTo(newStatus)) {
-            throw new InvalidUserStateException(
-                    id,
-                    status,
-                    newStatus,
-                    "Invalid status transition"
-            );
-        }
-
         UserStatus oldStatus = this.status;
         this.status = newStatus;
 
@@ -149,13 +150,18 @@ public class User extends AggregateRoot {
         return status == UserStatus.ACTIVE;
     }
 
-    private boolean canTransitionTo(UserStatus newStatus) {
-        return switch (status) {
-            case PENDING -> Set.of(UserStatus.ACTIVE, UserStatus.INACTIVE).contains(newStatus);
-            case ACTIVE -> Set.of(UserStatus.INACTIVE, UserStatus.SUSPENDED).contains(newStatus);
-            case INACTIVE -> Set.of(UserStatus.ACTIVE).contains(newStatus);
-            case SUSPENDED -> Set.of(UserStatus.ACTIVE, UserStatus.INACTIVE).contains(newStatus);
-        };
+    public boolean hasOutstandingPayments() {
+        return false;
+    }
+
+    public boolean hasActiveOrders() {
+        return orders.stream()
+                .anyMatch(order -> {
+                    OrderStatus status = order.getStatus();
+                    return status == OrderStatus.PENDING ||
+                            status == OrderStatus.CONFIRMED ||
+                            status == OrderStatus.SHIPPED;
+                });
     }
 
     @Override
@@ -169,4 +175,5 @@ public class User extends AggregateRoot {
     public int hashCode() {
         return Objects.hash(id);
     }
+
 }

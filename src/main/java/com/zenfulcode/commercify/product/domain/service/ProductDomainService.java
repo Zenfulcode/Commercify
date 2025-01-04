@@ -1,6 +1,8 @@
 package com.zenfulcode.commercify.product.domain.service;
 
 import com.zenfulcode.commercify.order.domain.repository.OrderLineRepository;
+import com.zenfulcode.commercify.product.domain.exception.InvalidPriceException;
+import com.zenfulcode.commercify.product.domain.exception.ProductValidationException;
 import com.zenfulcode.commercify.product.domain.exception.VariantNotFoundException;
 import com.zenfulcode.commercify.product.domain.model.Product;
 import com.zenfulcode.commercify.product.domain.model.ProductVariant;
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -118,8 +121,72 @@ public class ProductDomainService {
         });
     }
 
-    public void updateProduct(Product product, ProductUpdateSpec productUpdateSpec) {
-        // TODO: Implement product update logic
+    public void updateProduct(Product product, ProductUpdateSpec updateSpec) {
+        // Validate the product is not null
+        Objects.requireNonNull(product, "Product cannot be null");
+        Objects.requireNonNull(updateSpec, "Update specification cannot be null");
+
+        List<String> violations = new ArrayList<>();
+
+        // Update name if specified
+        if (updateSpec.hasNameUpdate()) {
+            if (updateSpec.name() == null || updateSpec.name().isBlank()) {
+                violations.add("Product name cannot be empty");
+            } else {
+                product.setName(updateSpec.name());
+            }
+        }
+
+        // Update description if specified
+        if (updateSpec.hasDescriptionUpdate()) {
+            product.setDescription(updateSpec.description());
+        }
+
+        // Update stock if specified
+        if (updateSpec.hasStockUpdate()) {
+            if (updateSpec.stock() < 0) {
+                violations.add("Stock cannot be negative");
+            } else {
+                InventoryAdjustment adjustment = new InventoryAdjustment(
+                        InventoryAdjustmentType.STOCK_CORRECTION,
+                        updateSpec.stock(),
+                        "Stock updated through product update"
+                );
+                this.adjustInventory(product, adjustment);
+            }
+        }
+
+        // Update price if specified
+        if (updateSpec.hasPriceUpdate()) {
+            if (updateSpec.price() == null || updateSpec.price().isNegative()) {
+                violations.add("Price must be non-negative");
+            } else {
+                try {
+                    pricingPolicy.applyDefaultPricing(product);
+                    product.updatePrice(updateSpec.price());
+                } catch (InvalidPriceException e) {
+                    violations.add(e.getMessage());
+                }
+            }
+        }
+
+        // Update active status if specified
+        if (updateSpec.hasActiveUpdate()) {
+            if (updateSpec.active()) {
+                product.activate();
+            } else {
+                product.deactivate();
+            }
+        }
+
+        // If there are any violations, throw an exception
+        if (!violations.isEmpty()) {
+            throw new ProductValidationException(violations);
+        }
+
+        if (updateSpec.hasStockUpdate()) {
+            inventoryPolicy.initializeInventory(product);
+        }
     }
 }
 

@@ -1,6 +1,7 @@
 package com.zenfulcode.commercify.product.domain.model;
 
 import com.zenfulcode.commercify.product.domain.event.ProductCreatedEvent;
+import com.zenfulcode.commercify.product.domain.event.ProductPriceUpdatedEvent;
 import com.zenfulcode.commercify.product.domain.exception.InsufficientStockException;
 import com.zenfulcode.commercify.product.domain.exception.ProductModificationException;
 import com.zenfulcode.commercify.product.domain.valueobject.CategoryId;
@@ -20,6 +21,7 @@ import java.util.Set;
 @Entity
 @Table(name = "products")
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 public class Product extends AggregateRoot {
@@ -101,6 +103,11 @@ public class Product extends AggregateRoot {
 
     public void updatePrice(Money newPrice) {
         this.price = Objects.requireNonNull(newPrice, "Price cannot be null");
+
+        registerEvent(new ProductPriceUpdatedEvent(
+                id,
+                newPrice
+        ));
     }
 
     public void activate() {
@@ -137,6 +144,13 @@ public class Product extends AggregateRoot {
     public Money getEffectivePrice(ProductVariant variant) {
         return variant != null && variant.getPrice() != null ?
                 variant.getPrice() : this.price;
+    }
+
+    public void setName(String name) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Product name cannot be empty");
+        }
+        this.name = name;
     }
 
     @Override

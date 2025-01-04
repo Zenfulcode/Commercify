@@ -9,5 +9,7 @@ public record CreateUserCommand(
         String firstName,
         String lastName,
         String password,
-        Set<UserRole> roles
-) {}
+        Set<UserRole> roles,
+        String phoneNumber
+) {
+}
