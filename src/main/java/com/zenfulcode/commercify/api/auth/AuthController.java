@@ -7,7 +7,6 @@ import com.zenfulcode.commercify.api.auth.dto.response.AuthResponse;
 import com.zenfulcode.commercify.auth.application.service.AuthenticationApplicationService;
 import com.zenfulcode.commercify.auth.application.service.AuthenticationResult;
 import com.zenfulcode.commercify.shared.interfaces.ApiResponse;
-import com.zenfulcode.commercify.user.application.command.CreateUserCommand;
 import com.zenfulcode.commercify.user.application.service.UserApplicationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,8 +14,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Set;
 
 @RestController
 @RequestMapping("/api/v1/auth")
