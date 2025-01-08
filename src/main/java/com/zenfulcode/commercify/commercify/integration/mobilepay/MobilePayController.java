@@ -1,6 +1,7 @@
 package com.zenfulcode.commercify.commercify.integration.mobilepay;
 
 import com.zenfulcode.commercify.commercify.api.requests.PaymentRequest;
+import com.zenfulcode.commercify.commercify.api.requests.WebhookPayload;
 import com.zenfulcode.commercify.commercify.api.responses.PaymentResponse;
 import com.zenfulcode.commercify.commercify.integration.WebhookSubscribeRequest;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,21 +29,20 @@ public class MobilePayController {
     }
 
     @PostMapping("/callback")
-    public ResponseEntity<String> handleCallback(@RequestHeader("x-ms-date") String date,
-                                                 @RequestHeader("x-ms-content-sha256") String contentSha256,
-                                                 @RequestHeader("Authorization") String authorization,
-                                                 HttpServletRequest request,
-                                                 @RequestBody String body) {
+    public ResponseEntity<String> handleCallback(
+//            @RequestHeader("x-ms-date") String date,
+//                                                 @RequestHeader("x-ms-content-sha256") String contentSha256,
+//                                                 @RequestHeader("Authorization") String authorization,
+            @RequestBody WebhookPayload payload,
+            HttpServletRequest request) {
+        String date = request.getHeader("x-ms-date");
+        String contentSha256 = request.getHeader("x-ms-content-sha256");
+        String authorization = request.getHeader("Authorization");
         try {
-            System.out.println(request.getRequestURI());
-            System.out.println(request.getHeader("x-ms-date"));
-            System.out.println(request.getHeader("x-ms-content-sha256"));
-            System.out.println(request.getHeader("Authorization"));
-            System.out.println(body);
+            mobilePayService.authenticateRequest(date, contentSha256, authorization, payload, request);
+            log.info("Request authenticated");
 
-            mobilePayService.authenticateRequest(date, contentSha256, authorization, body, request);
-
-//            mobilePayService.handlePaymentCallback(paymentReference, status);
+            mobilePayService.handlePaymentCallback(payload);
             return ResponseEntity.ok("Callback processed successfully");
         } catch (Exception e) {
             log.error("Error processing MobilePay callback", e);
@@ -58,6 +58,29 @@ public class MobilePayController {
             return ResponseEntity.ok("Webhooks registered successfully");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error registering webhooks");
+        }
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/webhooks/{id}")
+    public ResponseEntity<?> deleteWebhook(@PathVariable String id) {
+        try {
+            mobilePayService.deleteWebhook(id);
+            return ResponseEntity.ok("Webhook deleted successfully");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body("Error deleting webhook");
+        }
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/webhooks")
+    public ResponseEntity<?> getWebhooks() {
+        try {
+            System.out.println("Getting webhooks");
+            Object response = mobilePayService.getWebhooks();
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body("Error getting webhook");
         }
     }
 }

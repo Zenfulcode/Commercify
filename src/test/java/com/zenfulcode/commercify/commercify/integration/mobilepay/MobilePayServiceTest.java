@@ -1,6 +1,7 @@
 package com.zenfulcode.commercify.commercify.integration.mobilepay;
 
 import com.zenfulcode.commercify.commercify.PaymentStatus;
+import com.zenfulcode.commercify.commercify.api.requests.WebhookPayload;
 import com.zenfulcode.commercify.commercify.entity.PaymentEntity;
 import com.zenfulcode.commercify.commercify.exception.PaymentProcessingException;
 import com.zenfulcode.commercify.commercify.repository.PaymentRepository;
@@ -44,6 +45,8 @@ class MobilePayServiceTest {
     private PaymentEntity payment;
     private static final String PAYMENT_REFERENCE = "test-reference";
 
+    private WebhookPayload payload;
+
     @BeforeEach
     void setUp() {
         payment = PaymentEntity.builder()
@@ -52,15 +55,20 @@ class MobilePayServiceTest {
                 .mobilePayReference(PAYMENT_REFERENCE)
                 .status(PaymentStatus.PENDING)
                 .build();
+
+        payload = WebhookPayload.builder()
+                .reference(PAYMENT_REFERENCE)
+                .name("AUTHORIZED")
+                .build();
     }
 
     @Test
     @DisplayName("Should handle successful payment callback")
     void handlePaymentCallback_Success() {
-        when(paymentRepository.findByMobilePayReference(PAYMENT_REFERENCE))
+        when(paymentRepository.findByMobilePayReference(payload.reference()))
                 .thenReturn(Optional.of(payment));
 
-        mobilePayService.handlePaymentCallback(PAYMENT_REFERENCE, "AUTHORIZED");
+        mobilePayService.handlePaymentCallback(payload);
 
         verify(paymentService).handlePaymentStatusUpdate(eq(1L), eq(PaymentStatus.PAID));
     }
@@ -68,20 +76,25 @@ class MobilePayServiceTest {
     @Test
     @DisplayName("Should handle payment not found in callback")
     void handlePaymentCallback_PaymentNotFound() {
-        when(paymentRepository.findByMobilePayReference(PAYMENT_REFERENCE))
+        when(paymentRepository.findByMobilePayReference(payload.reference()))
                 .thenReturn(Optional.empty());
 
         assertThrows(PaymentProcessingException.class, () ->
-                mobilePayService.handlePaymentCallback(PAYMENT_REFERENCE, "AUTHORIZED"));
+                mobilePayService.handlePaymentCallback(payload));
     }
 
     @Test
     @DisplayName("Should handle aborted payment")
     void handlePaymentCallback_Aborted() {
-        when(paymentRepository.findByMobilePayReference(PAYMENT_REFERENCE))
+        payload = WebhookPayload.builder()
+                .reference(PAYMENT_REFERENCE)
+                .name("ABORTED")
+                .build();
+
+        when(paymentRepository.findByMobilePayReference(payload.reference()))
                 .thenReturn(Optional.of(payment));
 
-        mobilePayService.handlePaymentCallback(PAYMENT_REFERENCE, "ABORTED");
+        mobilePayService.handlePaymentCallback(payload);
 
         verify(paymentService).handlePaymentStatusUpdate(eq(1L), eq(PaymentStatus.CANCELLED));
     }
@@ -89,10 +102,15 @@ class MobilePayServiceTest {
     @Test
     @DisplayName("Should handle expired payment")
     void handlePaymentCallback_Expired() {
-        when(paymentRepository.findByMobilePayReference(PAYMENT_REFERENCE))
+        payload = WebhookPayload.builder()
+                .reference(PAYMENT_REFERENCE)
+                .name("EXPIRED")
+                .build();
+
+        when(paymentRepository.findByMobilePayReference(payload.reference()))
                 .thenReturn(Optional.of(payment));
 
-        mobilePayService.handlePaymentCallback(PAYMENT_REFERENCE, "EXPIRED");
+        mobilePayService.handlePaymentCallback(payload);
 
         verify(paymentService).handlePaymentStatusUpdate(eq(1L), eq(PaymentStatus.EXPIRED));
     }

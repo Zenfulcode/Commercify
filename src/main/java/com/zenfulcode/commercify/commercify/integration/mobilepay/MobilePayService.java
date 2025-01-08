@@ -3,14 +3,17 @@ package com.zenfulcode.commercify.commercify.integration.mobilepay;
 import com.zenfulcode.commercify.commercify.PaymentProvider;
 import com.zenfulcode.commercify.commercify.PaymentStatus;
 import com.zenfulcode.commercify.commercify.api.requests.PaymentRequest;
+import com.zenfulcode.commercify.commercify.api.requests.WebhookPayload;
 import com.zenfulcode.commercify.commercify.api.responses.PaymentResponse;
 import com.zenfulcode.commercify.commercify.entity.OrderEntity;
 import com.zenfulcode.commercify.commercify.entity.PaymentEntity;
+import com.zenfulcode.commercify.commercify.entity.WebhookConfigEntity;
 import com.zenfulcode.commercify.commercify.exception.OrderNotFoundException;
 import com.zenfulcode.commercify.commercify.exception.PaymentProcessingException;
 import com.zenfulcode.commercify.commercify.integration.WebhookRegistrationResponse;
 import com.zenfulcode.commercify.commercify.repository.OrderRepository;
 import com.zenfulcode.commercify.commercify.repository.PaymentRepository;
+import com.zenfulcode.commercify.commercify.repository.WebhookConfigRepository;
 import com.zenfulcode.commercify.commercify.service.PaymentService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +47,7 @@ public class MobilePayService {
     private final PaymentRepository paymentRepository;
 
     private final RestTemplate restTemplate;
+    private final WebhookConfigRepository webhookConfigRepository;
 
     @Value("${mobilepay.subscription-key}")
     private String subscriptionKey;
@@ -57,7 +61,7 @@ public class MobilePayService {
     @Value("${mobilepay.api-url}")
     private String apiUrl;
 
-    private String webhookSecret;
+    private static final String PROVIDER_NAME = "MOBILEPAY";
 
     @Transactional
     public PaymentResponse initiatePayment(PaymentRequest request) {
@@ -95,11 +99,11 @@ public class MobilePayService {
     }
 
     @Transactional
-    public void handlePaymentCallback(String paymentReference, String status) {
-        PaymentEntity payment = paymentRepository.findByMobilePayReference(paymentReference)
+    public void handlePaymentCallback(WebhookPayload payload) {
+        PaymentEntity payment = paymentRepository.findByMobilePayReference(payload.reference())
                 .orElseThrow(() -> new PaymentProcessingException("Payment not found", null));
 
-        PaymentStatus newStatus = mapMobilePayStatus(status);
+        PaymentStatus newStatus = mapMobilePayStatus(payload.name());
 
         // Update payment status and trigger confirmation email if needed
         paymentService.handlePaymentStatusUpdate(payment.getOrderId(), newStatus);
@@ -214,6 +218,7 @@ public class MobilePayService {
         };
     }
 
+    @Transactional
     public void registerWebhooks(String callbackUrl) {
         HttpHeaders headers = mobilePayRequestHeaders();
 
@@ -224,7 +229,8 @@ public class MobilePayService {
                 "epayments.payment.expired.v1",
                 "epayments.payment.cancelled.v1",
                 "epayments.payment.captured.v1",
-                "epayments.payment.refunded.v1"
+                "epayments.payment.refunded.v1",
+                "epayments.payment.authorized.v1"
         });
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(request, headers);
@@ -241,23 +247,43 @@ public class MobilePayService {
                 throw new PaymentProcessingException("No response from MobilePay API", null);
             }
 
-            webhookSecret = response.getBody().secret();
+            // Save or update webhook configuration
+            webhookConfigRepository.findByProvider(PROVIDER_NAME)
+                    .ifPresentOrElse(
+                            config -> {
+                                config.setWebhookUrl(callbackUrl);
+                                config.setWebhookSecret(response.getBody().secret());
+                                webhookConfigRepository.save(config);
+                            },
+                            () -> {
+                                WebhookConfigEntity newConfig = WebhookConfigEntity.builder()
+                                        .provider(PROVIDER_NAME)
+                                        .webhookUrl(callbackUrl)
+                                        .webhookSecret(response.getBody().secret())
+                                        .build();
+                                webhookConfigRepository.save(newConfig);
+                            }
+                    );
+
         } catch (Exception e) {
             log.error("Error registering MobilePay webhooks: {}", e.getMessage());
-            throw new PaymentProcessingException("Failed to create MobilePay payment", e);
+            throw new PaymentProcessingException("Failed to register MobilePay webhooks", e);
         }
     }
 
-    public void authenticateRequest(String date, String contentSha256, String authorization, String body, HttpServletRequest request) {
+
+    public void authenticateRequest(String date, String contentSha256, String authorization, WebhookPayload payload, HttpServletRequest request) {
         try {
 //            Verify content
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(body.getBytes(StandardCharsets.UTF_8));
+            byte[] hash = digest.digest(payload.toString().getBytes(StandardCharsets.UTF_8));
             String encodedHash = Base64.getEncoder().encodeToString(hash);
 
             if (!encodedHash.equals(contentSha256)) {
                 throw new SecurityException("Hash mismatch");
             }
+
+            log.info("Hash verified");
 
             URI uri = new URI(request.getRequestURL().toString());
             String path = uri.getPath() + (uri.getQuery() != null ? "?" + uri.getQuery() : "");
@@ -266,7 +292,7 @@ public class MobilePayService {
             String expectedSignedString = String.format("POST\n%s\n%s;%s;%s", path, date, uri.getHost(), encodedHash);
 
             Mac hmacSha256 = Mac.getInstance("HmacSHA256");
-            SecretKeySpec secretKey = new SecretKeySpec(webhookSecret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+            SecretKeySpec secretKey = new SecretKeySpec(getWebhookSecret().getBytes(StandardCharsets.UTF_8), "HmacSHA256");
             hmacSha256.init(secretKey);
 
             byte[] hmacSha256Bytes = hmacSha256.doFinal(expectedSignedString.getBytes(StandardCharsets.UTF_8));
@@ -281,6 +307,48 @@ public class MobilePayService {
         } catch (InvalidKeyException | URISyntaxException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void deleteWebhook(String id) {
+        HttpHeaders headers = mobilePayRequestHeaders();
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+        try {
+            restTemplate.exchange(
+                    apiUrl + "/webhooks/v1/webhooks/" + id,
+                    HttpMethod.DELETE,
+                    entity,
+                    Object.class);
+
+            log.info("Webhook deleted successfully");
+        } catch (Exception e) {
+            log.error("Error deleting MobilePay webhook: {}", e.getMessage());
+            throw new RuntimeException("Failed to delete MobilePay webhook", e);
+        }
+    }
+
+    public Object getWebhooks() {
+        HttpHeaders headers = mobilePayRequestHeaders();
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<Object> response = restTemplate.exchange(
+                    apiUrl + "/webhooks/v1/webhooks",
+                    HttpMethod.GET,
+                    entity,
+                    Object.class);
+
+            return response.getBody();
+        } catch (Exception e) {
+            log.error("Error getting MobilePay webhooks: {}", e.getMessage());
+            throw new RuntimeException("Failed to get MobilePay webhooks", e);
+        }
+    }
+
+    private String getWebhookSecret() {
+        return webhookConfigRepository.findByProvider(PROVIDER_NAME)
+                .map(WebhookConfigEntity::getWebhookSecret)
+                .orElseThrow(() -> new PaymentProcessingException("Webhook secret not found", null));
     }
 }
 
