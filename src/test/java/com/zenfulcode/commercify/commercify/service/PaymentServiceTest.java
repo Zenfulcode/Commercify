@@ -2,7 +2,6 @@ package com.zenfulcode.commercify.commercify.service;
 
 import com.zenfulcode.commercify.commercify.PaymentStatus;
 import com.zenfulcode.commercify.commercify.dto.OrderDetailsDTO;
-import com.zenfulcode.commercify.commercify.entity.OrderEntity;
 import com.zenfulcode.commercify.commercify.entity.PaymentEntity;
 import com.zenfulcode.commercify.commercify.repository.OrderRepository;
 import com.zenfulcode.commercify.commercify.repository.PaymentRepository;
@@ -31,9 +30,6 @@ class PaymentServiceTest {
     private PaymentRepository paymentRepository;
 
     @Mock
-    private OrderRepository orderRepository;
-
-    @Mock
     private EmailService emailService;
 
     @Mock
@@ -43,7 +39,6 @@ class PaymentServiceTest {
     private PaymentService paymentService;
 
     private PaymentEntity payment;
-    private OrderEntity order;
     private OrderDetailsDTO orderDetails;
 
     @BeforeEach
@@ -55,12 +50,6 @@ class PaymentServiceTest {
                 .totalAmount(199.99)
                 .build();
 
-        order = OrderEntity.builder()
-                .id(1L)
-                .userId(1L)
-                .totalAmount(199.99)
-                .build();
-
         orderDetails = new OrderDetailsDTO(null, null, null, null, null); // Simplified for testing
     }
 
@@ -69,7 +58,6 @@ class PaymentServiceTest {
     void handlePaymentStatusUpdate_Success() {
         when(paymentRepository.findByOrderId(1L)).thenReturn(Optional.of(payment));
         when(paymentRepository.save(any(PaymentEntity.class))).thenReturn(payment);
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
 
         paymentService.handlePaymentStatusUpdate(1L, PaymentStatus.PAID);
 
@@ -81,7 +69,6 @@ class PaymentServiceTest {
     @DisplayName("Should send confirmation email when payment is successful")
     void handlePaymentStatusUpdate_SendsEmail() throws MessagingException {
         when(paymentRepository.findByOrderId(1L)).thenReturn(Optional.of(payment));
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
         when(orderService.getOrderById(1L)).thenReturn(orderDetails);
 
         paymentService.handlePaymentStatusUpdate(1L, PaymentStatus.PAID);
@@ -112,7 +99,6 @@ class PaymentServiceTest {
     @DisplayName("Should handle email sending failure gracefully")
     void handlePaymentStatusUpdate_EmailFailure() throws MessagingException {
         when(paymentRepository.findByOrderId(1L)).thenReturn(Optional.of(payment));
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
         when(orderService.getOrderById(1L)).thenReturn(orderDetails);
         doThrow(new MessagingException("Failed to send email"))
                 .when(emailService).sendOrderConfirmation(any());

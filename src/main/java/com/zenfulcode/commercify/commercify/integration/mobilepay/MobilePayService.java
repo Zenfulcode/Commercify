@@ -272,11 +272,11 @@ public class MobilePayService {
     }
 
 
-    public void authenticateRequest(String date, String contentSha256, String authorization, WebhookPayload payload, HttpServletRequest request) {
+    public void authenticateRequest(String date, String contentSha256, String authorization, String payload, HttpServletRequest request) {
         try {
 //            Verify content
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(payload.toString().getBytes(StandardCharsets.UTF_8));
+            byte[] hash = digest.digest(payload.getBytes(StandardCharsets.UTF_8));
             String encodedHash = Base64.getEncoder().encodeToString(hash);
 
             if (!encodedHash.equals(contentSha256)) {

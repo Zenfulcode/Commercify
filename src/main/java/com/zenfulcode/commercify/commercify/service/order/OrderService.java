@@ -1,6 +1,7 @@
 package com.zenfulcode.commercify.commercify.service.order;
 
 import com.zenfulcode.commercify.commercify.OrderStatus;
+import com.zenfulcode.commercify.commercify.PaymentStatus;
 import com.zenfulcode.commercify.commercify.api.requests.orders.CreateOrderLineRequest;
 import com.zenfulcode.commercify.commercify.api.requests.orders.CreateOrderRequest;
 import com.zenfulcode.commercify.commercify.dto.*;
@@ -97,6 +98,18 @@ public class OrderService {
     public void updateOrderStatus(Long orderId, OrderStatus newStatus) {
         OrderEntity order = findOrderById(orderId);
         OrderStatus oldStatus = order.getStatus();
+
+        validationService.validateStatusTransition(oldStatus, newStatus);
+        order.setStatus(newStatus);
+
+        orderRepository.save(order);
+    }
+
+    @Transactional
+    public void updateOrderStatus(Long orderId, PaymentStatus paymentStatus) {
+        OrderEntity order = findOrderById(orderId);
+        OrderStatus oldStatus = order.getStatus();
+        OrderStatus newStatus = validationService.mapOrderStatus(paymentStatus);
 
         validationService.validateStatusTransition(oldStatus, newStatus);
         order.setStatus(newStatus);

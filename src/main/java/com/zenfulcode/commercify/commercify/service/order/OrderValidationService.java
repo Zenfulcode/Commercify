@@ -1,6 +1,7 @@
 package com.zenfulcode.commercify.commercify.service.order;
 
 import com.zenfulcode.commercify.commercify.OrderStatus;
+import com.zenfulcode.commercify.commercify.PaymentStatus;
 import com.zenfulcode.commercify.commercify.api.requests.orders.CreateOrderRequest;
 import com.zenfulcode.commercify.commercify.entity.OrderEntity;
 import com.zenfulcode.commercify.commercify.entity.ProductEntity;
@@ -99,4 +100,15 @@ public class OrderValidationService {
             );
         }
     }
+
+    public OrderStatus mapOrderStatus(PaymentStatus status) {
+        return switch (status) {
+            case PENDING -> OrderStatus.PENDING;
+            case PAID -> OrderStatus.PAID;
+            case FAILED, NOT_FOUND -> OrderStatus.FAILED;
+            case CANCELLED, TERMINATED, EXPIRED -> OrderStatus.CANCELLED;
+            case REFUNDED -> OrderStatus.REFUNDED;
+        };
+    }
+
 }

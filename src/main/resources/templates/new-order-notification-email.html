@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
-    <title>Order Confirmation</title>
+    <title>New Order Received</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <style>
         .order-details {
@@ -28,6 +28,13 @@
             font-weight: bold;
         }
 
+        .customer-details {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+
         .address-container {
             display: flex;
             justify-content: space-between;
@@ -52,14 +59,29 @@
         .address-line {
             margin: 5px 0;
         }
+
+        .action-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #2c5282;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
-<h1>Order Confirmation - #<span th:text="${order.id}">123</span></h1>
+<h1>New Order Received - #<span th:text="${order.id}">123</span></h1>
 
-<p>Dear <span th:text="${order.customerName}">Customer</span>,</p>
+<p>A new order has been received with the following details:</p>
 
-<p>Thank you for your order. Here are your order details:</p>
+<div class="customer-details">
+    <h3>Customer Information</h3>
+    <p>Name: <strong th:text="${order.customerName}">John Doe</strong></p>
+    <p>Email: <strong th:text="${order.customerEmail}">john@example.com</strong></p>
+    <p>Phone: <strong th:text="${order.customerPhone}">+1234567890</strong></p>
+</div>
 
 <div class="order-details">
     <p>Order Status: <span class="status" th:text="${order.status}">PENDING</span></p>
@@ -115,21 +137,10 @@
             th:text="${#numbers.formatDecimal(order.totalAmount, 1, 2) + ' ' + order.currency}">$99.99</span></p>
 </div>
 
-<p th:if="${order.status == 'PENDING'}">
-    Your order has been received and is being processed. We'll notify you when there are any updates.
-</p>
+<a th:href="${dashboardUrl}" class="action-button">View Order in Dashboard</a>
 
-<p th:if="${order.status == 'CONFIRMED'}">
-    Your order has been confirmed and is being prepared for shipping.
-</p>
+<p>Please process this order as soon as possible.</p>
 
-<p th:if="${order.status == 'SHIPPED'}">
-    Your order has been shipped! You can track your order using the following link:
-    <a th:href="${trackingUrl}" th:text="${trackingUrl}">Tracking Link</a>
-</p>
-
-<p>If you have any questions about your order, please contact our customer service.</p>
-
-<p>Best regards,<br/>Commercify Team</p>
+<p>Best regards,<br/>Commercify System</p>
 </body>
 </html>

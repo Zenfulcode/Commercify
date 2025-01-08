@@ -1,5 +1,7 @@
 package com.zenfulcode.commercify.commercify.integration.mobilepay;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zenfulcode.commercify.commercify.api.requests.PaymentRequest;
 import com.zenfulcode.commercify.commercify.api.requests.WebhookPayload;
 import com.zenfulcode.commercify.commercify.api.responses.PaymentResponse;
@@ -30,20 +32,29 @@ public class MobilePayController {
 
     @PostMapping("/callback")
     public ResponseEntity<String> handleCallback(
-//            @RequestHeader("x-ms-date") String date,
-//                                                 @RequestHeader("x-ms-content-sha256") String contentSha256,
-//                                                 @RequestHeader("Authorization") String authorization,
-            @RequestBody WebhookPayload payload,
+            @RequestBody String body,
             HttpServletRequest request) {
         String date = request.getHeader("x-ms-date");
         String contentSha256 = request.getHeader("x-ms-content-sha256");
         String authorization = request.getHeader("Authorization");
+
+        log.info("payload: {}", body);
+
         try {
-            mobilePayService.authenticateRequest(date, contentSha256, authorization, payload, request);
+            // First authenticate the request with the raw string payload
+            mobilePayService.authenticateRequest(date, contentSha256, authorization, body, request);
             log.info("Request authenticated");
 
-            mobilePayService.handlePaymentCallback(payload);
+            // Convert the string payload to WebhookPayload object
+            ObjectMapper objectMapper = new ObjectMapper();
+            WebhookPayload webhookPayload = objectMapper.readValue(body, WebhookPayload.class);
+
+            // Pass the converted payload to handlePaymentCallback
+            mobilePayService.handlePaymentCallback(webhookPayload);
             return ResponseEntity.ok("Callback processed successfully");
+        } catch (JsonProcessingException e) {
+            log.error("Error parsing webhook payload", e);
+            return ResponseEntity.badRequest().body("Invalid payload format");
         } catch (Exception e) {
             log.error("Error processing MobilePay callback", e);
             return ResponseEntity.badRequest().body("Error processing callback");
