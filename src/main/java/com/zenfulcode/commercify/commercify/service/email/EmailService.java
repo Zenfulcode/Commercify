@@ -34,6 +34,9 @@ public class EmailService {
     @Value("${app.frontend-url}")
     private String frontendUrl;
 
+    @Value("${admin.order-email}")
+    private String orderEmailReceiver;
+
     @Async
     public void sendConfirmationEmail(String to, String token) throws MessagingException {
         MimeMessage mimeMessage = mailSender.createMimeMessage();
@@ -66,6 +69,20 @@ public class EmailService {
                 order.getId(), order.getOrderStatus());
 
         sendTemplatedEmail(user.getEmail(), subject, template, context);
+    }
+
+    @Async
+    public void sendNewOrderNotification(OrderDetailsDTO orderDetails) throws MessagingException {
+        OrderDTO order = orderDetails.getOrder();
+
+        Context context = new Context();
+        context.setVariable("order", createOrderContext(orderDetails));
+        context.setVariable("dashboardUrl", frontendUrl + "/admin/orders/" + order.getId());
+
+        String template = "new-order-notification-email";
+        String subject = String.format("New Order Received - #%d", order.getId());
+
+        sendTemplatedEmail(orderEmailReceiver, subject, template, context);
     }
 
     @Async
@@ -107,6 +124,13 @@ public class EmailService {
         orderContext.put("createdAt", order.getCreatedAt());
         orderContext.put("currency", order.getCurrency());
         orderContext.put("totalAmount", order.getTotalAmount());
+        orderContext.put("customerName", orderDetails.getCustomerDetails().getFullName());
+        orderContext.put("customerEmail", orderDetails.getCustomerDetails().getEmail());
+        orderContext.put("customerPhone", orderDetails.getCustomerDetails().getPhone());
+
+        // Add shipping and billing addresses
+        orderContext.put("shippingAddress", orderDetails.getShippingAddress());
+        orderContext.put("billingAddress", orderDetails.getBillingAddress());
 
         // Transform order lines into a format suitable for the template
         List<Map<String, Object>> items = orderDetails.getOrderLines().stream()

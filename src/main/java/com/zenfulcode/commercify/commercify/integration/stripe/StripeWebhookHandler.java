@@ -51,7 +51,7 @@ public class StripeWebhookHandler {
                 .orElseThrow(() -> new OrderNotFoundException(Long.parseLong(orderId)));
 
         // Update order status
-        order.setStatus(OrderStatus.CONFIRMED);
+        order.setStatus(OrderStatus.PAID);
         orderRepository.save(order);
 
         // Update payment status

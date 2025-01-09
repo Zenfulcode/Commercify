@@ -24,7 +24,6 @@ import java.util.List;
 @RequiredArgsConstructor
 @EnableRetry
 public class SecurityConfig {
-
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
 
@@ -35,7 +34,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/v1/auth/**",
                                 "/api/v1/products/active",
-                                "/api/v1/products/{id}").permitAll()
+                                "/api/v1/products/{id}",
+                                "/api/v1/payments/mobilepay/callback").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(smc -> smc.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

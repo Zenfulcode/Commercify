@@ -39,7 +39,7 @@ public class ProductDeletionService {
         List<OrderDTO> activeOrders = orderLineRepository
                 .findActiveOrdersForProduct(
                         product.getId(),
-                        List.of(OrderStatus.PENDING, OrderStatus.CONFIRMED, OrderStatus.SHIPPED)
+                        List.of(OrderStatus.PENDING, OrderStatus.PAID, OrderStatus.SHIPPED)
                 )
                 .stream()
                 .map(orderMapper)

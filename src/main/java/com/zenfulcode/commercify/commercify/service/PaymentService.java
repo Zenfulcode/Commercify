@@ -3,7 +3,6 @@ package com.zenfulcode.commercify.commercify.service;
 import com.zenfulcode.commercify.commercify.PaymentStatus;
 import com.zenfulcode.commercify.commercify.dto.OrderDetailsDTO;
 import com.zenfulcode.commercify.commercify.entity.PaymentEntity;
-import com.zenfulcode.commercify.commercify.repository.OrderRepository;
 import com.zenfulcode.commercify.commercify.repository.PaymentRepository;
 import com.zenfulcode.commercify.commercify.service.email.EmailService;
 import com.zenfulcode.commercify.commercify.service.order.OrderService;
@@ -18,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class PaymentService {
     private final PaymentRepository paymentRepository;
-    private final OrderRepository orderRepository;
     private final EmailService emailService;
     private final OrderService orderService;
 
@@ -31,17 +29,17 @@ public class PaymentService {
         payment.setStatus(newStatus);
         paymentRepository.save(payment);
 
+        orderService.updateOrderStatus(orderId, newStatus);
+
         // If payment is successful, send confirmation email
         if (newStatus == PaymentStatus.PAID && oldStatus != PaymentStatus.PAID) {
             try {
-                orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found: " + orderId));
-
                 // Get order details for email
                 OrderDetailsDTO orderDetails = orderService.getOrderById(orderId);
 
                 // Send confirmation email
                 emailService.sendOrderConfirmation(orderDetails);
-
+                emailService.sendNewOrderNotification(orderDetails);
                 log.info("Order confirmation email sent for order: {}", orderId);
             } catch (MessagingException e) {
                 log.error("Failed to send order confirmation email for order {}: {}",
