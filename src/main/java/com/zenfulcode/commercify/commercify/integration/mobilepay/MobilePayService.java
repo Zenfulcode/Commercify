@@ -283,8 +283,6 @@ public class MobilePayService {
                 throw new SecurityException("Hash mismatch");
             }
 
-            log.info("Hash verified");
-
             URI uri = new URI(request.getRequestURL().toString());
             String path = uri.getPath() + (uri.getQuery() != null ? "?" + uri.getQuery() : "");
 

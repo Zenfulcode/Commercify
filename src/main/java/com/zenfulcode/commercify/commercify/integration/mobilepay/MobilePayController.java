@@ -38,12 +38,10 @@ public class MobilePayController {
         String contentSha256 = request.getHeader("x-ms-content-sha256");
         String authorization = request.getHeader("Authorization");
 
-        log.info("payload: {}", body);
-
         try {
             // First authenticate the request with the raw string payload
             mobilePayService.authenticateRequest(date, contentSha256, authorization, body, request);
-            log.info("Request authenticated");
+            log.info("MP Webhook authenticated");
 
             // Convert the string payload to WebhookPayload object
             ObjectMapper objectMapper = new ObjectMapper();

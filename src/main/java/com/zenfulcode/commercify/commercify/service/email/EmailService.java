@@ -76,12 +76,8 @@ public class EmailService {
         OrderDTO order = orderDetails.getOrder();
 
         Context context = new Context();
-        Map<String, Object> orderContext = createOrderContext(orderDetails);
-        orderContext.put("dashboardUrl", frontendUrl + "/admin/orders/" + order.getId());
-        orderContext.put("customerEmail", orderDetails.getCustomerDetails().getEmail());
-        orderContext.put("customerPhone", orderDetails.getCustomerDetails().getPhone());
-
-        context.setVariables(orderContext);
+        context.setVariable("order", createOrderContext(orderDetails));
+        context.setVariable("dashboardUrl", frontendUrl + "/admin/orders/" + order.getId());
 
         String template = "new-order-notification-email";
         String subject = String.format("New Order Received - #%d", order.getId());
@@ -129,6 +125,8 @@ public class EmailService {
         orderContext.put("currency", order.getCurrency());
         orderContext.put("totalAmount", order.getTotalAmount());
         orderContext.put("customerName", orderDetails.getCustomerDetails().getFullName());
+        orderContext.put("customerEmail", orderDetails.getCustomerDetails().getEmail());
+        orderContext.put("customerPhone", orderDetails.getCustomerDetails().getPhone());
 
         // Add shipping and billing addresses
         orderContext.put("shippingAddress", orderDetails.getShippingAddress());
