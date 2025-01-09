@@ -8,6 +8,7 @@ import com.zenfulcode.commercify.commercify.service.UserManagementService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EmailService {
@@ -69,6 +71,7 @@ public class EmailService {
                 order.getId(), order.getOrderStatus());
 
         sendTemplatedEmail(user.getEmail(), subject, template, context);
+        log.info("Order confirmation sent to {}", user.getEmail());
     }
 
     @Async
@@ -83,6 +86,7 @@ public class EmailService {
         String subject = String.format("New Order Received - #%d", order.getId());
 
         sendTemplatedEmail(orderEmailReceiver, subject, template, context);
+        log.info("New order notification sent to {}", orderEmailReceiver);
     }
 
     @Async
