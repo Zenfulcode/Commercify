@@ -3,18 +3,18 @@ package com.zenfulcode.commercify.order.domain.model;
 import com.zenfulcode.commercify.order.domain.valueobject.Address;
 import com.zenfulcode.commercify.order.domain.valueobject.CustomerDetails;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "order_shipping_info")
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class OrderShippingInfo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long orderInfoId;
+    @Column(name = "id", nullable = false)
+    private Long id;
 
     @Column(name = "customer_first_name")
     private String customerFirstName;

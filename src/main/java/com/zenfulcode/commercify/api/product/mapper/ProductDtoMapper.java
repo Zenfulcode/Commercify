@@ -95,7 +95,7 @@ public class ProductDtoMapper {
                 .map(variant -> new ProductVariantSummaryResponse(
                         variant.getId().toString(),
                         variant.getSku(),
-                        variant.getOptions().stream()
+                        variant.getVariantOptions().stream()
                                 .map(opt -> new ProductVariantSummaryResponse.VariantOptionResponse(
                                         opt.getName(),
                                         opt.getValue()
@@ -121,7 +121,7 @@ public class ProductDtoMapper {
                 product.getStock(),
                 toPriceResponse(product.getPrice()),
                 product.isActive(),
-                mapVariants(product.getVariants())
+                mapVariants(product.getProductVariants())
         );
     }
 }

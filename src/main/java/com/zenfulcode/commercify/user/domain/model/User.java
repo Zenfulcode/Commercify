@@ -7,9 +7,7 @@ import com.zenfulcode.commercify.user.domain.event.UserCreatedEvent;
 import com.zenfulcode.commercify.user.domain.event.UserStatusChangedEvent;
 import com.zenfulcode.commercify.user.domain.valueobject.UserId;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -20,56 +18,56 @@ import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 
-@Entity
-@Table(name = "users")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Setter
+@Entity
+@Table(name = "users", uniqueConstraints = {
+        @UniqueConstraint(name = "uc_users_email", columnNames = {"email"})
+})
 public class User extends AggregateRoot {
     @EmbeddedId
     private UserId id;
 
-    @Column(nullable = false, unique = true)
+    @Column(name = "email", nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false)
+    @Column(name = "first_name", nullable = false)
     private String firstName;
 
-    @Column(nullable = false)
+    @Column(name = "last_name", nullable = false)
     private String lastName;
 
-    @Column(nullable = false)
+    @Column(name = "password", nullable = false)
     private String password;
 
+    @Column(name = "phone_number")
     private String phoneNumber;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "status", nullable = false)
     private UserStatus status;
+
+    @CreationTimestamp
+    private Instant createdAt;
+
+    @UpdateTimestamp
+    private Instant updatedAt;
+
+    @Column(name = "last_login_at")
+    private Instant lastLoginAt;
+
+    @OneToMany(mappedBy = "user")
+    private Set<Order> orders = new LinkedHashSet<>();
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
             name = "user_roles",
-            joinColumns = @JoinColumn(name = "user_id")
+            joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id")
     )
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
     private Set<UserRole> roles = new HashSet<>();
 
-    @Setter
-    @OneToMany(mappedBy = "user", orphanRemoval = true)
-    private Set<Order> orders = new LinkedHashSet<>();
-
-    @CreationTimestamp
-    @Column(nullable = false)
-    private Instant createdAt;
-
-    @UpdateTimestamp
-    @Column(nullable = false)
-    private Instant updatedAt;
-
-    private Instant lastLoginAt;
-
-    // Factory method
     public static User create(
             String firstName,
             String lastName,

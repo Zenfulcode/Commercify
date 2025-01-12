@@ -45,12 +45,7 @@ public class ProductFactory {
             String sku = skuGenerator.generateSku(product, spec);
             Money variantPrice = pricingPolicy.calculateVariantPrice(product, spec);
 
-            ProductVariant variant = ProductVariant.builder()
-                    .sku(sku)
-                    .stock(spec.stock())
-                    .price(variantPrice)
-                    .imageUrl(spec.imageUrl())
-                    .build();
+            ProductVariant variant = ProductVariant.create(sku, spec.stock(), variantPrice, spec.imageUrl());
 
             // Add variant options
             spec.options().forEach(option ->

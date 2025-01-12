@@ -18,7 +18,7 @@ public record OrderLineDTO(OrderLineId id,
     public static OrderLineDTO fromOrderLine(OrderLine orderLine) {
         return OrderLineDTO.builder()
                 .id(orderLine.getId())
-                .productId(orderLine.getProductId())
+                .productId(orderLine.getProduct().getId())
                 .variantId(orderLine.getProductVariant() != null ?
                         orderLine.getProductVariant().getId() : null)
                 .quantity(orderLine.getQuantity())

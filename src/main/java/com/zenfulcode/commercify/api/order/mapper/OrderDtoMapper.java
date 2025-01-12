@@ -108,7 +108,7 @@ public class OrderDtoMapper {
     private OrderSummaryResponse toSummaryResponse(Order order) {
         return new OrderSummaryResponse(
                 order.getId().toString(),
-                order.getUserId().toString(),
+                order.getUser().getId().toString(),
                 order.getStatus().toString(),
                 new MoneyResponse(
                         order.getTotalAmount().getAmount().doubleValue(),

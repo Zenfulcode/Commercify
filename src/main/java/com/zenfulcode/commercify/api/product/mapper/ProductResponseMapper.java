@@ -62,7 +62,7 @@ public class ProductResponseMapper {
         return new ProductVariantSummaryResponse(
                 variant.getId().toString(),
                 variant.getSku(),
-                toVariantOptionResponses(variant.getOptions()),
+                toVariantOptionResponses(variant.getVariantOptions()),
                 toVariantPriceResponse(variant),
                 variant.getStock() != null ? variant.getStock() : variant.getProduct().getStock()
         );

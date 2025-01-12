@@ -22,7 +22,7 @@ interface SpringDataJpaOrderLineRepository extends JpaRepository<OrderLine, Long
 
     @Query("""
             SELECT DISTINCT ol.order FROM OrderLine ol
-            WHERE ol.productId = :productId
+            WHERE ol.product.id = :productId
             AND ol.order.status IN :statuses
             """)
     Set<Order> findActiveOrdersForProduct(
@@ -43,7 +43,7 @@ interface SpringDataJpaOrderLineRepository extends JpaRepository<OrderLine, Long
 
     @Query("""
             SELECT COUNT(ol) > 0 FROM OrderLine ol
-            WHERE ol.productId = :productId
+            WHERE ol.product.id = :productId
             """)
     boolean hasActiveOrders(
             @Param("productId") ProductId productId

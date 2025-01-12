@@ -1,9 +1,12 @@
 package com.zenfulcode.commercify.user.infrastructure.config;
 
+import com.zenfulcode.commercify.shared.domain.exception.DomainException;
 import com.zenfulcode.commercify.user.application.command.CreateUserCommand;
+import com.zenfulcode.commercify.user.application.command.UpdateUserStatusCommand;
 import com.zenfulcode.commercify.user.application.service.UserApplicationService;
-import com.zenfulcode.commercify.user.domain.exception.UserAlreadyExistsException;
 import com.zenfulcode.commercify.user.domain.model.UserRole;
+import com.zenfulcode.commercify.user.domain.model.UserStatus;
+import com.zenfulcode.commercify.user.domain.valueobject.UserId;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,10 +39,12 @@ public class AdminUserLoader {
                     null
             );
 
-            userApplicationService.createUser(command);
+            UserId adminId = userApplicationService.createUser(command);
+            userApplicationService.updateUserStatus(new UpdateUserStatusCommand(adminId, UserStatus.ACTIVE));
+
             log.info("Admin user created");
-        } catch (UserAlreadyExistsException e) {
-            log.warn("Admin user already exists with email: {}", adminEmail);
+        } catch (DomainException e) {
+            log.warn("Failed to create admin user: {}", e.getMessage());
         }
     }
 }

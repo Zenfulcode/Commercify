@@ -25,7 +25,7 @@ public record OrderDetailsDTO(OrderId id,
     public static OrderDetailsDTO fromOrder(Order order) {
         return new OrderDetailsDTO(
                 order.getId(),
-                order.getUserId(),
+                order.getUser().getId(),
                 order.getStatus(),
                 order.getCurrency(),
                 order.getTotalAmount(),

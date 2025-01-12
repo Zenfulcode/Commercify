@@ -9,37 +9,40 @@ import com.zenfulcode.commercify.product.domain.valueobject.ProductId;
 import com.zenfulcode.commercify.shared.domain.model.AggregateRoot;
 import com.zenfulcode.commercify.shared.domain.model.Money;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.NotImplementedException;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
-import java.util.HashSet;
+import java.time.Instant;
+import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-@Builder
-@Entity
-@Table(name = "products")
 @Getter
 @Setter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
+@Entity
+@Table(name = "products")
 public class Product extends AggregateRoot {
     @EmbeddedId
     private ProductId id;
 
-    @Column(nullable = false)
+    @Column(name = "name", nullable = false)
     private String name;
 
+    @Column(name = "description")
     private String description;
 
-    @Column(nullable = false)
-    private int stock;
+    @Column(name = "stock", nullable = false)
+    private Integer stock;
 
+    @Column(name = "image_url")
     private String imageUrl;
 
-    @Column(nullable = false)
-    private boolean active;
+    @Column(name = "active", nullable = false)
+    private Boolean active = false;
 
     @Embedded
     @AttributeOverrides({
@@ -48,15 +51,19 @@ public class Product extends AggregateRoot {
     })
     private Money price;
 
-    @Builder.Default
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "product")
-    private Set<ProductVariant> variants = new HashSet<>();
-
     @Embedded
     @AttributeOverride(name = "id", column = @Column(name = "category_id"))
-    private CategoryId categoryId;  // Add this field
+    private CategoryId categoryId;
 
-    // Factory method for creating new products
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "product")
+    private Set<ProductVariant> productVariants = new LinkedHashSet<>();
+
+    @CreationTimestamp
+    private Instant createdAt;
+
+    @UpdateTimestamp
+    private Instant updatedAt;
+
     public static Product create(String name, String description, int stock, Money money) {
         Product product = new Product();
         product.id = ProductId.generate();
@@ -124,7 +131,7 @@ public class Product extends AggregateRoot {
 
     public void addVariant(ProductVariant variant) {
         Objects.requireNonNull(variant, "Variant cannot be null");
-        variants.add(variant);
+        productVariants.add(variant);
         variant.setProduct(this);
     }
 
@@ -132,12 +139,12 @@ public class Product extends AggregateRoot {
         if (variant.hasActiveOrders()) {
             throw new ProductModificationException("Cannot remove variant with active orders");
         }
-        variants.remove(variant);
+        productVariants.remove(variant);
         variant.setProduct(null);
     }
 
     public boolean hasVariant(String sku) {
-        return variants.stream()
+        return productVariants.stream()
                 .anyMatch(variant -> variant.getSku().equals(sku));
     }
 
@@ -167,5 +174,9 @@ public class Product extends AggregateRoot {
 
     public Optional<ProductVariant> findVariantBySku(String sku) {
         throw new NotImplementedException("find variant by sku has not been implemented");
+    }
+
+    public boolean isActive() {
+        return active;
     }
 }

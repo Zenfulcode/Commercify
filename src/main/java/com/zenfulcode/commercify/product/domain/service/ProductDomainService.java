@@ -49,7 +49,7 @@ public class ProductDomainService {
         }
 
         // Check variants
-        for (ProductVariant variant : product.getVariants()) {
+        for (ProductVariant variant : product.getProductVariants()) {
             if (orderLineRepository.hasActiveOrdersForVariant(variant.getId())) {
                 issues.add("Variant " + variant.getSku() + " has active orders");
             }

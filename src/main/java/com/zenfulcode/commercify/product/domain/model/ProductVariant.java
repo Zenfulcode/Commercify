@@ -3,27 +3,34 @@ package com.zenfulcode.commercify.product.domain.model;
 import com.zenfulcode.commercify.product.domain.valueobject.VariantId;
 import com.zenfulcode.commercify.shared.domain.model.Money;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 
-@Builder
-@Entity
-@Table(name = "product_variants")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
+@Setter
+@Entity
+@Table(name = "product_variants", uniqueConstraints = {
+        @UniqueConstraint(name = "uc_product_variants_sku", columnNames = {"sku"})
+})
 public class ProductVariant {
     @EmbeddedId
     private VariantId id;
 
-    @Column(nullable = false, unique = true)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "product_id", nullable = false)
+    private Product product;
+
+    @Column(name = "sku", nullable = false)
     private String sku;
 
+    @Column(name = "stock")
     private Integer stock;
 
+    @Column(name = "image_url")
     private String imageUrl;
 
     @Embedded
@@ -33,21 +40,16 @@ public class ProductVariant {
     })
     private Money price;
 
-    @Setter
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Product product;
+    @OneToMany(mappedBy = "productVariant")
+    private Set<VariantOption> variantOptions = new LinkedHashSet<>();
 
-    @Builder.Default
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<VariantOption> options = new HashSet<>();
-
-    // Factory method
-    public static ProductVariant create(String sku, Integer stock, Money price) {
+    public static ProductVariant create(String sku, Integer stock, Money price, String imageUrl) {
         ProductVariant variant = new ProductVariant();
         variant.id = VariantId.generate();
         variant.sku = Objects.requireNonNull(sku, "SKU is required");
         variant.stock = stock;
         variant.price = price;
+        variant.imageUrl = imageUrl;
         return variant;
     }
 
@@ -60,7 +62,7 @@ public class ProductVariant {
     }
 
     public void addOption(String name, String value) {
-        options.add(VariantOption.create(name, value, this));
+        variantOptions.add(VariantOption.create(name, value, this));
     }
 
     public boolean hasActiveOrders() {
@@ -103,6 +105,4 @@ public class ProductVariant {
     public int hashCode() {
         return Objects.hash(sku);
     }
-
-
 }

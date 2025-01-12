@@ -1,36 +1,36 @@
 package com.zenfulcode.commercify.shared.domain.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AccessLevel;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.Instant;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "domain_events")
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 public class StoredEvent {
     @Id
+    @Column(name = "event_id", nullable = false)
     private String eventId;
 
-    @Column(nullable = false)
+    @Column(name = "event_type", nullable = false)
     private String eventType;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Lob
+    @Column(name = "event_data", nullable = false)
     private String eventData;
 
-    @Column(nullable = false)
+    @Column(name = "occurred_on", nullable = false)
     private Instant occurredOn;
 
-    @Column
+    @Column(name = "aggregate_id")
     private String aggregateId;
 
-    @Column
+    @Column(name = "aggregate_type")
     private String aggregateType;
 
     public StoredEvent(

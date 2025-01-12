@@ -1,6 +1,5 @@
 package com.zenfulcode.commercify.user.domain.valueobject;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -13,7 +12,6 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserId {
-    @Column(name = "user_id")
     private String id;
 
     private UserId(String id) {

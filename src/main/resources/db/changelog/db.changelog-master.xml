@@ -3,6 +3,5 @@
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                    https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
-    <include file="db/changelog/migrations/250103220503-changelog.sql"/>
-    <include file="db/changelog/migrations/250104134452-changelog.sql"/>
+    <include file="db/changelog/migrations/250112212603-changelog.sql"/>
 </databaseChangeLog>

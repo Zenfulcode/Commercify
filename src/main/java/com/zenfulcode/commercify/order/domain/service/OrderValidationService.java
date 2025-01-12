@@ -47,10 +47,10 @@ public class OrderValidationService {
     private void validateOrderLines(Set<OrderLine> orderLines, List<String> violations) {
         for (OrderLine line : orderLines) {
             if (line.getQuantity() <= 0) {
-                violations.add("Quantity must be greater than 0 for product: " + line.getProductId());
+                violations.add("Quantity must be greater than 0 for product: " + line.getProduct().getId());
             }
             if (!line.getUnitPrice().isPositive()) {
-                violations.add("Unit price must be greater than 0 for product: " + line.getProductId());
+                violations.add("Unit price must be greater than 0 for product: " + line.getProduct().getId());
             }
         }
     }

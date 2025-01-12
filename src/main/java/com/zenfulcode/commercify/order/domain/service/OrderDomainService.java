@@ -10,6 +10,8 @@ import com.zenfulcode.commercify.product.domain.model.Product;
 import com.zenfulcode.commercify.product.domain.model.ProductVariant;
 import com.zenfulcode.commercify.product.domain.valueobject.ProductId;
 import com.zenfulcode.commercify.shared.domain.model.Money;
+import com.zenfulcode.commercify.user.application.service.UserApplicationService;
+import com.zenfulcode.commercify.user.domain.model.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +25,7 @@ import java.util.stream.Collectors;
 public class OrderDomainService {
     private final OrderPricingStrategy pricingStrategy;
     private final OrderValidationService validationService;
+    private final UserApplicationService userApplicationService;
 
     public Order createOrder(OrderDetails orderDetails, List<Product> products, List<ProductVariant> variants) {
         // Create order with shipping info
@@ -32,11 +35,15 @@ public class OrderDomainService {
                 orderDetails.billingAddress()
         );
 
+        User customer = userApplicationService.getUser(orderDetails.customerId());
+
         Order order = Order.create(
-                orderDetails.customerId(),
+                customer.getId(),
                 orderDetails.currency(),
                 shippingInfo
         );
+
+        order.setUser(customer);
 
         // Map products and variants for lookup
         Map<ProductId, Product> productMap = products.stream()
@@ -59,11 +66,12 @@ public class OrderDomainService {
 
             Money linePrice = calculateLinePrice(product, variant, lineDetails.quantity());
             OrderLine line = OrderLine.create(
-                    product.getId(),
                     variant,
                     lineDetails.quantity(),
                     linePrice
             );
+
+            line.setProduct(product);
 
             order.addOrderLine(line);
         }

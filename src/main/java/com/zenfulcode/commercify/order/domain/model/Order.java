@@ -10,44 +10,36 @@ import com.zenfulcode.commercify.shared.domain.model.Money;
 import com.zenfulcode.commercify.user.domain.model.User;
 import com.zenfulcode.commercify.user.domain.valueobject.UserId;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "orders")
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Order extends AggregateRoot {
     @EmbeddedId
     private OrderId id;
 
-    private UserId userId;
-
-    @OneToMany(
-            mappedBy = "order",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
-    private Set<OrderLine> orderLines = new HashSet<>();
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "status", nullable = false)
     private OrderStatus status;
-
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "order_shipping_info_id")
-    private OrderShippingInfo orderShippingInfo;
 
     @Column(name = "currency")
     private String currency;
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<OrderLine> orderLines = new LinkedHashSet<>();
 
     @Embedded
     @AttributeOverrides({
@@ -77,17 +69,14 @@ public class Order extends AggregateRoot {
     })
     private Money totalAmount;
 
-    @Setter
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "user_id", insertable = false, updatable = false)
-    private User user;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_shipping_info_id")
+    private OrderShippingInfo orderShippingInfo;
 
     @CreationTimestamp
-    @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
     @UpdateTimestamp
-    @Column(name = "updated_at")
     private Instant updatedAt;
 
     // Factory method
@@ -98,7 +87,6 @@ public class Order extends AggregateRoot {
     ) {
         Order order = new Order();
         order.id = OrderId.generate();
-        order.userId = userId;
         order.currency = currency;
         order.status = OrderStatus.PENDING;
         order.orderShippingInfo = shippingInfo;
@@ -107,7 +95,7 @@ public class Order extends AggregateRoot {
         // Register domain event
         order.registerEvent(new OrderCreatedEvent(
                 order.getId(),
-                order.getUserId(),
+                userId,
                 order.getCurrency()
         ));
 
