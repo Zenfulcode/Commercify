@@ -1,11 +1,11 @@
 package com.zenfulcode.commercify.api.product;
 
-import com.zenfulcode.commercify.api.product.mapper.ProductDtoMapper;
 import com.zenfulcode.commercify.api.product.dto.request.*;
 import com.zenfulcode.commercify.api.product.dto.response.CreateProductResponse;
 import com.zenfulcode.commercify.api.product.dto.response.PagedProductResponse;
 import com.zenfulcode.commercify.api.product.dto.response.ProductDetailResponse;
 import com.zenfulcode.commercify.api.product.dto.response.UpdateProductResponse;
+import com.zenfulcode.commercify.api.product.mapper.ProductDtoMapper;
 import com.zenfulcode.commercify.api.product.mapper.ProductResponseMapper;
 import com.zenfulcode.commercify.product.application.command.*;
 import com.zenfulcode.commercify.product.application.query.ProductQuery;
@@ -23,7 +23,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/products")
+@RequestMapping("/api/v2/products")
 @RequiredArgsConstructor
 public class ProductController {
     private final ProductApplicationService productApplicationService;

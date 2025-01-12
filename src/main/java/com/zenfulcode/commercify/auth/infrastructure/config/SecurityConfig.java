@@ -37,10 +37,12 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
                                                    JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers("/api/v1/products").permitAll()
-                        .requestMatchers("/api/v1/products/{id}").permitAll()
+                .authorizeHttpRequests(req -> req
+                        .requestMatchers(
+                                "/api/v2/auth/**",
+                                "/api/v2/products/active",
+                                "/api/v2/products/{id}",
+                                "/api/v2/payments/mobilepay/callback").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

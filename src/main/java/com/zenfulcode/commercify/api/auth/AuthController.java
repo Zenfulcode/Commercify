@@ -16,19 +16,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/api/v2/auth")
 @RequiredArgsConstructor
 public class AuthController {
-
     private final AuthenticationApplicationService authService;
     private final UserApplicationService userService;
 
-    @PostMapping("/login")
+    @PostMapping("/signin")
     public ResponseEntity<ApiResponse<AuthResponse>> login(
             @RequestBody LoginRequest request) {
-
         AuthenticationResult result = authService.authenticate(
-                request.username(),
+                request.email(),
                 request.password()
         );
 
@@ -36,7 +34,7 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @PostMapping("/register")
+    @PostMapping("/signup")
     public ResponseEntity<ApiResponse<AuthResponse>> register(
             @RequestBody RegisterRequest request) {
 

@@ -4,6 +4,7 @@ import com.zenfulcode.commercify.shared.domain.exception.DomainException;
 import com.zenfulcode.commercify.user.application.command.CreateUserCommand;
 import com.zenfulcode.commercify.user.application.command.UpdateUserStatusCommand;
 import com.zenfulcode.commercify.user.application.service.UserApplicationService;
+import com.zenfulcode.commercify.user.domain.exception.UserAlreadyExistsException;
 import com.zenfulcode.commercify.user.domain.model.UserRole;
 import com.zenfulcode.commercify.user.domain.model.UserStatus;
 import com.zenfulcode.commercify.user.domain.valueobject.UserId;
@@ -43,6 +44,8 @@ public class AdminUserLoader {
             userApplicationService.updateUserStatus(new UpdateUserStatusCommand(adminId, UserStatus.ACTIVE));
 
             log.info("Admin user created");
+        } catch (UserAlreadyExistsException e) {
+            log.warn("Admin user already exists");
         } catch (DomainException e) {
             log.warn("Failed to create admin user: {}", e.getMessage());
         }

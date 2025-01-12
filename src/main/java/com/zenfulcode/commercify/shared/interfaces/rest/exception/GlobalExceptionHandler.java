@@ -21,6 +21,7 @@ public class GlobalExceptionHandler {
                 "DOMAIN_ERROR",
                 400
         );
+
         return ResponseEntity.badRequest().body(response);
     }
 
@@ -48,6 +49,7 @@ public class GlobalExceptionHandler {
                 "NOT_FOUND",
                 404
         );
+
         return ResponseEntity.status(404).body(response);
     }
 }

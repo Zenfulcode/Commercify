@@ -1,8 +1,6 @@
 package com.zenfulcode.commercify.user.domain.service;
 
 import com.zenfulcode.commercify.shared.domain.event.DomainEventPublisher;
-import com.zenfulcode.commercify.user.domain.event.UserCreatedEvent;
-import com.zenfulcode.commercify.user.domain.event.UserStatusChangedEvent;
 import com.zenfulcode.commercify.user.domain.exception.UserAlreadyExistsException;
 import com.zenfulcode.commercify.user.domain.model.User;
 import com.zenfulcode.commercify.user.domain.model.UserStatus;
@@ -19,7 +17,6 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class UserDomainService {
-    private final UserStateFlow userStateFlow;
     private final UserValidationService validationService;
     private final DomainEventPublisher eventPublisher;
     private final PasswordEncoder passwordEncoder;
@@ -39,7 +36,7 @@ public class UserDomainService {
                 spec.firstName(),
                 spec.lastName(),
                 spec.email(),
-                passwordEncoder.encode(spec.password()),
+                spec.password(),
                 spec.roles(),
                 spec.phone()
         );
@@ -47,12 +44,7 @@ public class UserDomainService {
         // Validate user
         validationService.validateCreateUser(user);
 
-        // Register creation event
-        user.registerEvent(new UserCreatedEvent(
-                user.getId(),
-                user.getEmail(),
-                user.getStatus()
-        ));
+        eventPublisher.publish(user.getDomainEvents());
 
         return user;
     }
@@ -69,15 +61,9 @@ public class UserDomainService {
             validationService.validateDeactivation(user);
         }
 
-        UserStatus oldStatus = user.getStatus();
         user.updateStatus(newStatus);
 
-        // Register status change event
-        user.registerEvent(new UserStatusChangedEvent(
-                user.getId(),
-                oldStatus,
-                newStatus
-        ));
+        eventPublisher.publish(user.getDomainEvents());
     }
 
     /**
@@ -110,6 +96,8 @@ public class UserDomainService {
 
         // Update password
         user.updatePassword(passwordEncoder.encode(newPassword));
+
+        eventPublisher.publish(user.getDomainEvents());
     }
 
     /**

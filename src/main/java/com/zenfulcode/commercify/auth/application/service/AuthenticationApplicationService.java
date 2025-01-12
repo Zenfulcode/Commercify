@@ -8,7 +8,7 @@ import com.zenfulcode.commercify.shared.domain.event.DomainEventPublisher;
 import com.zenfulcode.commercify.user.domain.model.User;
 import com.zenfulcode.commercify.user.domain.repository.UserRepository;
 import com.zenfulcode.commercify.user.domain.valueobject.UserId;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class AuthenticationApplicationService {
     private final AuthenticationManager authenticationManager;
     private final AuthenticationDomainService authenticationDomainService;
@@ -26,7 +26,6 @@ public class AuthenticationApplicationService {
 
     @Transactional
     public AuthenticationResult authenticate(String email, String password) {
-        // Authenticate using Spring Security
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(email, password)
         );
