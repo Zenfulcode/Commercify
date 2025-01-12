@@ -48,9 +48,11 @@ public class User extends AggregateRoot {
     private UserStatus status;
 
     @CreationTimestamp
+    @Column(name = "created_at")
     private Instant createdAt;
 
     @UpdateTimestamp
+    @Column(name = "updated_at")
     private Instant updatedAt;
 
     @Column(name = "last_login_at")

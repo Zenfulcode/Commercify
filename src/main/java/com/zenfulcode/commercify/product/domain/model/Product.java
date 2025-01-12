@@ -59,9 +59,11 @@ public class Product extends AggregateRoot {
     private Set<ProductVariant> productVariants = new LinkedHashSet<>();
 
     @CreationTimestamp
+    @Column(name = "created_at")
     private Instant createdAt;
 
     @UpdateTimestamp
+    @Column(name = "updated_at")
     private Instant updatedAt;
 
     public static Product create(String name, String description, int stock, Money money) {

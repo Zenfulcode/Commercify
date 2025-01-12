@@ -38,6 +38,7 @@ public class Order extends AggregateRoot {
     @Column(name = "currency")
     private String currency;
 
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<OrderLine> orderLines = new LinkedHashSet<>();
 
@@ -69,14 +70,16 @@ public class Order extends AggregateRoot {
     })
     private Money totalAmount;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "order_shipping_info_id")
     private OrderShippingInfo orderShippingInfo;
 
     @CreationTimestamp
+    @Column(name = "created_at")
     private Instant createdAt;
 
     @UpdateTimestamp
+    @Column(name = "updated_at")
     private Instant updatedAt;
 
     // Factory method

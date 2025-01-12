@@ -29,6 +29,10 @@ public record OrderDetails(
     ) {
         List<String> violations = new ArrayList<>();
 
+        if (customerId == null) {
+            violations.add("Customer ID is required");
+        }
+
         if (currency == null || currency.isBlank()) {
             violations.add("Currency is required");
         }

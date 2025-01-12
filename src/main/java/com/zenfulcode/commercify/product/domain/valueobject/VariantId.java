@@ -23,6 +23,7 @@ public class VariantId extends ProductId {
     }
 
     public static VariantId of(String id) {
+        if (id == null) return null;
         return new VariantId(id);
     }
 

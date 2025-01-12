@@ -64,11 +64,10 @@ public class OrderDomainService {
                 validationService.validateVariant(variant, product, lineDetails);
             }
 
-            Money linePrice = calculateLinePrice(product, variant, lineDetails.quantity());
             OrderLine line = OrderLine.create(
+                    product,
                     variant,
-                    lineDetails.quantity(),
-                    linePrice
+                    lineDetails.quantity()
             );
 
             line.setProduct(product);
@@ -109,12 +108,5 @@ public class OrderDomainService {
         }
 
         order.updateStatus(newStatus);
-    }
-
-    private Money calculateLinePrice(Product product, ProductVariant variant, int quantity) {
-        Money unitPrice = variant != null ?
-                variant.getEffectivePrice() :
-                product.getPrice();
-        return unitPrice.multiply(quantity);
     }
 }

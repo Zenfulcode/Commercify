@@ -1,6 +1,6 @@
 -- liquibase formatted sql
 
--- changeset gkhaavik:1736713563747-1
+-- changeset gkhaavik:1736722698857-1
 CREATE TABLE domain_events
 (
     event_id       VARCHAR(255) NOT NULL,
@@ -12,7 +12,7 @@ CREATE TABLE domain_events
     CONSTRAINT pk_domain_events PRIMARY KEY (event_id)
 );
 
--- changeset gkhaavik:1736713563747-2
+-- changeset gkhaavik:1736722698857-2
 CREATE TABLE order_lines
 (
     quantity           INT          NOT NULL,
@@ -25,7 +25,7 @@ CREATE TABLE order_lines
     CONSTRAINT pk_order_lines PRIMARY KEY (id)
 );
 
--- changeset gkhaavik:1736713563747-3
+-- changeset gkhaavik:1736722698857-3
 CREATE TABLE order_shipping_info
 (
     id                  BIGINT AUTO_INCREMENT NOT NULL,
@@ -46,13 +46,13 @@ CREATE TABLE order_shipping_info
     CONSTRAINT pk_order_shipping_info PRIMARY KEY (id)
 );
 
--- changeset gkhaavik:1736713563747-4
+-- changeset gkhaavik:1736722698857-4
 CREATE TABLE orders
 (
     status                 VARCHAR(255) NOT NULL,
     currency               VARCHAR(255) NULL,
     order_shipping_info_id BIGINT       NULL,
-    created_at             datetime     NOT NULL,
+    created_at             datetime     NULL,
     updated_at             datetime     NULL,
     id                     VARCHAR(255) NOT NULL,
     subtotal               DECIMAL      NULL,
@@ -63,7 +63,7 @@ CREATE TABLE orders
     CONSTRAINT pk_orders PRIMARY KEY (id)
 );
 
--- changeset gkhaavik:1736713563747-5
+-- changeset gkhaavik:1736722698857-5
 CREATE TABLE product_variants
 (
     sku        VARCHAR(255) NOT NULL,
@@ -76,7 +76,7 @@ CREATE TABLE product_variants
     CONSTRAINT pk_product_variants PRIMARY KEY (id)
 );
 
--- changeset gkhaavik:1736713563747-6
+-- changeset gkhaavik:1736722698857-6
 CREATE TABLE products
 (
     name          VARCHAR(255) NOT NULL,
@@ -84,6 +84,8 @@ CREATE TABLE products
     stock         INT          NOT NULL,
     image_url     VARCHAR(255) NULL,
     active        BIT(1)       NOT NULL,
+    created_at    datetime     NULL,
+    updated_at    datetime     NULL,
     id            VARCHAR(255) NOT NULL,
     unit_price    DECIMAL      NULL,
     currency      VARCHAR(255) NULL,
@@ -91,14 +93,14 @@ CREATE TABLE products
     CONSTRAINT pk_products PRIMARY KEY (id)
 );
 
--- changeset gkhaavik:1736713563747-7
+-- changeset gkhaavik:1736722698857-7
 CREATE TABLE user_roles
 (
     user_id VARCHAR(255) NOT NULL,
     `role`  VARCHAR(255) NULL
 );
 
--- changeset gkhaavik:1736713563747-8
+-- changeset gkhaavik:1736722698857-8
 CREATE TABLE users
 (
     email         VARCHAR(255) NOT NULL,
@@ -107,14 +109,14 @@ CREATE TABLE users
     password      VARCHAR(255) NOT NULL,
     phone_number  VARCHAR(255) NULL,
     status        VARCHAR(255) NOT NULL,
-    created_at    datetime     NOT NULL,
-    updated_at    datetime     NOT NULL,
+    created_at    datetime     NULL,
+    updated_at    datetime     NULL,
     last_login_at datetime     NULL,
     id            VARCHAR(255) NOT NULL,
     CONSTRAINT pk_users PRIMARY KEY (id)
 );
 
--- changeset gkhaavik:1736713563747-9
+-- changeset gkhaavik:1736722698857-9
 CREATE TABLE variant_options
 (
     id                 BIGINT AUTO_INCREMENT NOT NULL,
@@ -124,43 +126,43 @@ CREATE TABLE variant_options
     CONSTRAINT pk_variant_options PRIMARY KEY (id)
 );
 
--- changeset gkhaavik:1736713563747-10
+-- changeset gkhaavik:1736722698857-10
 ALTER TABLE product_variants
     ADD CONSTRAINT uc_product_variants_sku UNIQUE (sku);
 
--- changeset gkhaavik:1736713563747-11
+-- changeset gkhaavik:1736722698857-11
 ALTER TABLE users
     ADD CONSTRAINT uc_users_email UNIQUE (email);
 
--- changeset gkhaavik:1736713563747-12
+-- changeset gkhaavik:1736722698857-12
 ALTER TABLE orders
     ADD CONSTRAINT FK_ORDERS_ON_ORDER_SHIPPING_INFO FOREIGN KEY (order_shipping_info_id) REFERENCES order_shipping_info (id);
 
--- changeset gkhaavik:1736713563747-13
+-- changeset gkhaavik:1736722698857-13
 ALTER TABLE orders
     ADD CONSTRAINT FK_ORDERS_ON_USER FOREIGN KEY (user_id) REFERENCES users (id);
 
--- changeset gkhaavik:1736713563747-14
+-- changeset gkhaavik:1736722698857-14
 ALTER TABLE order_lines
     ADD CONSTRAINT FK_ORDER_LINES_ON_ORDER FOREIGN KEY (order_id) REFERENCES orders (id);
 
--- changeset gkhaavik:1736713563747-15
+-- changeset gkhaavik:1736722698857-15
 ALTER TABLE order_lines
     ADD CONSTRAINT FK_ORDER_LINES_ON_PRODUCT FOREIGN KEY (product_id) REFERENCES products (id);
 
--- changeset gkhaavik:1736713563747-16
+-- changeset gkhaavik:1736722698857-16
 ALTER TABLE order_lines
     ADD CONSTRAINT FK_ORDER_LINES_ON_PRODUCT_VARIANT FOREIGN KEY (product_variant_id) REFERENCES product_variants (id);
 
--- changeset gkhaavik:1736713563747-17
+-- changeset gkhaavik:1736722698857-17
 ALTER TABLE product_variants
     ADD CONSTRAINT FK_PRODUCT_VARIANTS_ON_PRODUCT FOREIGN KEY (product_id) REFERENCES products (id);
 
--- changeset gkhaavik:1736713563747-18
+-- changeset gkhaavik:1736722698857-18
 ALTER TABLE variant_options
     ADD CONSTRAINT FK_VARIANT_OPTIONS_ON_PRODUCT_VARIANT FOREIGN KEY (product_variant_id) REFERENCES product_variants (id);
 
--- changeset gkhaavik:1736713563747-19
+-- changeset gkhaavik:1736722698857-19
 ALTER TABLE user_roles
     ADD CONSTRAINT fk_user_roles_on_user FOREIGN KEY (user_id) REFERENCES users (id);
 

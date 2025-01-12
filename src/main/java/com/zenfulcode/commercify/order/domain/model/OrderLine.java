@@ -39,15 +39,16 @@ public class OrderLine {
     private Money unitPrice;
 
     public static OrderLine create(
+            Product product,
             ProductVariant variant,
-            Integer quantity,
-            Money unitPrice
+            Integer quantity
     ) {
         OrderLine line = new OrderLine();
         line.id = OrderLineId.generate();
+        line.product = product;
         line.productVariant = variant;
         line.quantity = quantity;
-        line.unitPrice = unitPrice;
+        line.unitPrice = product.getEffectivePrice(variant);
         return line;
     }
 
