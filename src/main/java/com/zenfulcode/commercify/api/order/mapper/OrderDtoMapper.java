@@ -121,8 +121,8 @@ public class OrderDtoMapper {
     private OrderLineResponse toOrderLineResponse(OrderLineDTO line) {
         return new OrderLineResponse(
                 line.id().toString(),
-                line.productId().toString(),
-                line.variantId().toString(),
+                line.productId(),
+                line.variantId(),
                 line.quantity(),
                 new MoneyResponse(
                         line.unitPrice().getAmount().doubleValue(),
