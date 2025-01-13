@@ -13,5 +13,4 @@ public abstract class DomainValidationException extends DomainException {
         super(message);
         this.violations = Collections.unmodifiableList(violations);
     }
-
 }

@@ -12,5 +12,4 @@ public class EntityNotFoundException extends DomainException {
         this.entityType = entityType;
         this.entityId = entityId;
     }
-
 }
