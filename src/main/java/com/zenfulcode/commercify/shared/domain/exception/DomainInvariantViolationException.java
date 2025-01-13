@@ -10,5 +10,4 @@ public class DomainInvariantViolationException extends DomainException {
         super(message);
         this.invariantName = invariantName;
     }
-
 }
