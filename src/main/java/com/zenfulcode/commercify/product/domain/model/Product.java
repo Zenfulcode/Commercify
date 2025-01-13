@@ -181,4 +181,8 @@ public class Product extends AggregateRoot {
     public boolean isActive() {
         return active;
     }
+
+    public boolean hasVariants() {
+        return !productVariants.isEmpty();
+    }
 }

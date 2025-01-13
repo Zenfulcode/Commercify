@@ -46,6 +46,14 @@ public class OrderValidationService {
 
     private void validateOrderLines(Set<OrderLine> orderLines, List<String> violations) {
         for (OrderLine line : orderLines) {
+            if (line.getProduct() == null) {
+                violations.add("Product is required for order line");
+            }
+
+            if (line.getProduct().hasVariants() && line.getProductVariant() == null) {
+                violations.add("Variant is required for product with variants");
+            }
+
             if (line.getQuantity() <= 0) {
                 violations.add("Quantity must be greater than 0 for product: " + line.getProduct().getId());
             }
