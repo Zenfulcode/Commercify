@@ -9,6 +9,7 @@ public record CreateOrderRequest(
         String currency,
         CustomerDetailsDTO customerDetails,
         List<CreateOrderLineRequest> orderLines,
+        Double shippingCost,
         AddressDTO shippingAddress,
         AddressDTO billingAddress
 ) {

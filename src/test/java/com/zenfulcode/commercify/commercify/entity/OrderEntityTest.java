@@ -34,7 +34,8 @@ class OrderEntityTest {
                 .orderLines(orderLines)
                 .status(OrderStatus.PENDING)
                 .currency("USD")
-                .totalAmount(199.98)
+                .subTotal(199.98)
+                .shippingCost(39.0)
                 .build();
 
         // Set up bidirectional relationship
@@ -49,7 +50,8 @@ class OrderEntityTest {
         assertEquals(1L, order.getUserId());
         assertEquals(OrderStatus.PENDING, order.getStatus());
         assertEquals("USD", order.getCurrency());
-        assertEquals(199.98, order.getTotalAmount());
+        assertEquals(199.98, order.getSubTotal());
+        assertEquals(39.0, order.getShippingCost());
     }
 
     @Test

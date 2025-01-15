@@ -43,8 +43,11 @@ public class OrderEntity {
     private OrderStatus status;
 
     private String currency;
-    @Column(name = "total_amount")
-    private Double totalAmount;
+    @Column(name = "sub_total")
+    private Double subTotal;
+
+    @Column(name = "shipping_cost")
+    private Double shippingCost;
 
     @ToString.Exclude
     @ManyToOne(cascade = CascadeType.ALL)
@@ -58,6 +61,10 @@ public class OrderEntity {
     @Column(name = "updated_at")
     @UpdateTimestamp
     private Instant updatedAt;
+
+    public double getTotal() {
+        return subTotal + shippingCost;
+    }
 
     @Override
     public final boolean equals(Object o) {

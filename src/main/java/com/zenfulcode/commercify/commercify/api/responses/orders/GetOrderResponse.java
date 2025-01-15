@@ -18,7 +18,8 @@ public record GetOrderResponse(
         AddressDTO shippingAddress,
         OrderStatus orderStatus,
         String currency,
-        Double totalAmount,
+        Double subTotal,
+        Double shippingCost,
         Instant createdAt,
         Instant updatedAt,
         List<OrderLineViewModel> orderLines
@@ -33,7 +34,8 @@ public record GetOrderResponse(
                 orderDetails.getShippingAddress(),
                 order.getOrderStatus(),
                 order.getCurrency(),
-                order.getTotalAmount(),
+                order.getSubTotal(),
+                order.getShippingCost(),
                 order.getCreatedAt(),
                 order.getUpdatedAt(),
                 orderDetails.getOrderLines().stream()

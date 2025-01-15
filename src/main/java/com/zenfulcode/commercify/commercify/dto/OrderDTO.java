@@ -14,9 +14,14 @@ public class OrderDTO {
     private long id;
     private Long userId;
     private String currency;
-    private double totalAmount;
+    private double subTotal;
+    private double shippingCost;
     private OrderStatus orderStatus;
     private int orderLinesAmount;
     private Instant createdAt;
     private Instant updatedAt;
+
+    public double getTotal() {
+        return subTotal + shippingCost;
+    }
 }

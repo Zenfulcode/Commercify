@@ -45,7 +45,8 @@ class OrderMapperTest {
                 .orderLines(orderLines)
                 .status(OrderStatus.PENDING)
                 .currency("USD")
-                .totalAmount(199.98)
+                .subTotal(199.98)
+                .shippingCost(39.0)
                 .createdAt(now)
                 .updatedAt(now)
                 .build();
@@ -61,7 +62,8 @@ class OrderMapperTest {
         assertEquals(orderEntity.getUserId(), result.getUserId());
         assertEquals(orderEntity.getStatus(), result.getOrderStatus());
         assertEquals(orderEntity.getCurrency(), result.getCurrency());
-        assertEquals(orderEntity.getTotalAmount(), result.getTotalAmount());
+        assertEquals(orderEntity.getSubTotal(), result.getSubTotal());
+        assertEquals(orderEntity.getShippingCost(), result.getShippingCost());
         assertEquals(orderEntity.getCreatedAt(), result.getCreatedAt());
         assertEquals(orderEntity.getUpdatedAt(), result.getUpdatedAt());
         assertEquals(orderEntity.getOrderLines().size(), result.getOrderLinesAmount());
@@ -81,18 +83,19 @@ class OrderMapperTest {
         assertEquals(0, result.getOrderLinesAmount());
         assertNull(result.getUserId());
         assertNull(result.getCurrency());
-        assertEquals(0.0, result.getTotalAmount());
+        assertEquals(0.0, result.getSubTotal());
+        assertEquals(0.0, result.getShippingCost());
     }
 
     @Test
     @DisplayName("Should handle null totalAmount correctly")
     void apply_HandlesNullTotalAmount() {
-        orderEntity.setTotalAmount(null);
+        orderEntity.setSubTotal(null);
 
         OrderDTO result = orderMapper.apply(orderEntity);
 
         assertNotNull(result);
-        assertEquals(0.0, result.getTotalAmount());
+        assertEquals(0.0, result.getSubTotal());
     }
 
     @Test
@@ -104,5 +107,14 @@ class OrderMapperTest {
 
         assertNotNull(result);
         assertEquals(0, result.getOrderLinesAmount());
+    }
+
+    @Test
+    @DisplayName("Should handle getTotalPrice correctly")
+    void getTotalPrice() {
+        OrderDTO result = orderMapper.apply(orderEntity);
+
+        assertNotNull(result);
+        assertEquals(238.98, result.getTotal());
     }
 }

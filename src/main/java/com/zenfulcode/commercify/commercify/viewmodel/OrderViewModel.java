@@ -19,7 +19,7 @@ public record OrderViewModel(
                 orderDTO.getId(),
                 orderDTO.getUserId(),
                 orderDTO.getOrderLinesAmount(),
-                orderDTO.getTotalAmount(),
+                orderDTO.getSubTotal(),
                 orderDTO.getCurrency(),
                 orderDTO.getOrderStatus(),
                 orderDTO.getCreatedAt()

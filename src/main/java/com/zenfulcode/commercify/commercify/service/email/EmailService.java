@@ -127,7 +127,9 @@ public class EmailService {
         orderContext.put("status", order.getOrderStatus());
         orderContext.put("createdAt", order.getCreatedAt());
         orderContext.put("currency", order.getCurrency());
-        orderContext.put("totalAmount", order.getTotalAmount());
+        orderContext.put("subTotal", order.getSubTotal());
+        orderContext.put("totalPrice", order.getTotal());
+        orderContext.put("shippingCost", order.getShippingCost());
         orderContext.put("customerName", orderDetails.getCustomerDetails().getFullName());
         orderContext.put("customerEmail", orderDetails.getCustomerDetails().getEmail());
         orderContext.put("customerPhone", orderDetails.getCustomerDetails().getPhone());

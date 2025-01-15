@@ -92,7 +92,8 @@ class OrderServiceTest {
                 .userId(1L)
                 .status(OrderStatus.PENDING)
                 .currency("USD")
-                .totalAmount(199.98)
+                .subTotal(199.98)
+                .shippingCost(39.0)
                 .orderLines(Set.of(orderLine))
                 .createdAt(Instant.now())
                 .build();
@@ -102,7 +103,7 @@ class OrderServiceTest {
                 .userId(1L)
                 .orderStatus(OrderStatus.PENDING)
                 .currency("USD")
-                .totalAmount(199.98)
+                .subTotal(199.98)
                 .build();
 
         AddressDTO addressDTO = AddressDTO.builder()
@@ -134,7 +135,7 @@ class OrderServiceTest {
                 .build();
 
         CreateOrderLineRequest orderLineRequest = new CreateOrderLineRequest(1L, null, 2);
-        createOrderRequest = new CreateOrderRequest("USD", customerDetailsDTO, List.of(orderLineRequest), addressDTO, null);
+        createOrderRequest = new CreateOrderRequest("USD", customerDetailsDTO, List.of(orderLineRequest), 39.0, addressDTO, null);
     }
 
     @Nested
@@ -154,7 +155,9 @@ class OrderServiceTest {
 
             assertNotNull(result);
             assertEquals(orderDTO.getId(), result.getId());
-            assertEquals(orderDTO.getTotalAmount(), result.getTotalAmount());
+            assertEquals(orderDTO.getSubTotal(), result.getSubTotal());
+            assertEquals(orderDTO.getShippingCost(), result.getShippingCost());
+            assertEquals(orderDTO.getTotal(), result.getTotal());
             verify(validationService).validateCreateOrderRequest(createOrderRequest);
         }
 
