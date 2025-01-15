@@ -196,14 +196,15 @@ public class OrderService {
                         line.variantId() != null ? variants.get(line.variantId()) : null))
                 .collect(Collectors.toSet());
 
-        double totalAmount = calculationService.calculateTotalAmount(orderLines);
+        double subTotal = calculationService.calculateTotalAmount(orderLines);
 
         OrderEntity order = OrderEntity.builder()
                 .userId(userId)
                 .orderLines(orderLines)
                 .status(OrderStatus.PENDING)
                 .currency(request.currency())
-                .totalAmount(totalAmount)
+                .subTotal(subTotal)
+                .shippingCost(request.shippingCost())
                 .orderShippingInfo(shippingInfo)
                 .build();
 

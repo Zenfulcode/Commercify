@@ -43,7 +43,7 @@ public class StripeService {
 
             PaymentEntity payment = PaymentEntity.builder()
                     .orderId(order.getId())
-                    .totalAmount(order.getTotalAmount())
+                    .totalAmount(order.getTotal())
                     .paymentProvider(PaymentProvider.STRIPE)
                     .status(PaymentStatus.PENDING)
                     .paymentMethod(request.paymentMethod())

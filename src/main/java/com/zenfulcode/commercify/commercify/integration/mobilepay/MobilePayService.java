@@ -78,7 +78,7 @@ public class MobilePayService {
             // Create and save payment entity
             PaymentEntity payment = PaymentEntity.builder()
                     .orderId(order.getId())
-                    .totalAmount(order.getTotalAmount())
+                    .totalAmount(order.getTotal())
                     .paymentProvider(PaymentProvider.MOBILEPAY)
                     .status(PaymentStatus.PENDING)
                     .paymentMethod(request.paymentMethod()) // 'WALLET' or 'CARD'
@@ -158,7 +158,7 @@ public class MobilePayService {
 
         // Amount object
         Map<String, Object> amount = new HashMap<>();
-        String value = String.valueOf(Math.round(order.getTotalAmount() * 100)); // Convert to minor units
+        String value = String.valueOf(Math.round(order.getTotal() * 100)); // Convert to minor units
         amount.put("value", value); // Convert to minor units
         amount.put("currency", "DKK");
         paymentRequest.put("amount", amount);
