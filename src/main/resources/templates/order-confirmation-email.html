@@ -112,7 +112,7 @@
     </table>
 
     <p class="total">Total Amount: <span
-            th:text="${#numbers.formatDecimal(order.totalAmount, 1, 2) + ' ' + order.currency}">$99.99</span></p>
+            th:text="${#numbers.formatDecimal(order.totalPrice, 1, 2) + ' ' + order.currency}">$99.99</span></p>
 </div>
 
 <p th:if="${order.status == 'PENDING'}">
@@ -129,7 +129,5 @@
 </p>
 
 <p>If you have any questions about your order, please contact our customer service.</p>
-
-<p>Best regards,<br/>Commercify Team</p>
 </body>
 </html>

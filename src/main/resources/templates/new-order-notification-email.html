@@ -134,7 +134,7 @@
     </table>
 
     <p class="total">Total Amount: <span
-            th:text="${#numbers.formatDecimal(order.totalAmount, 1, 2) + ' ' + order.currency}">$99.99</span></p>
+            th:text="${#numbers.formatDecimal(order.totalPrice, 1, 2) + ' ' + order.currency}">$99.99</span></p>
 </div>
 
 <a th:href="${dashboardUrl}" class="action-button">View Order in Dashboard</a>
