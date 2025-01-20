@@ -105,14 +105,18 @@
                 <div th:if="${item.variant}" th:text="${item.variant}">Variant Details</div>
             </td>
             <td th:text="${item.quantity}">1</td>
-            <td th:text="${#numbers.formatDecimal(item.unitPrice, 1, 2) + ' ' + order.currency}">$99.99</td>
-            <td th:text="${#numbers.formatDecimal(item.total, 1, 2) + ' ' + order.currency}">$99.99</td>
+            <td th:text="${item.unitPrice}">$99.99</td>
+            <td th:text="${item.totalPrice}">$99.99</td>
         </tr>
         </tbody>
     </table>
 
+    <p class="subtotal">Subtotal Amount: <span
+            th:text="${order.subTotal}">$100.00</span></p>
+    <p class="shippingCost">Shipping Cost: <span
+            th:text="${order.shippingCost}">$8.00</span></p>
     <p class="total">Total Amount: <span
-            th:text="${#numbers.formatDecimal(order.totalAmount, 1, 2) + ' ' + order.currency}">$99.99</span></p>
+            th:text="${order.totalPrice}">$108.00</span></p>
 </div>
 
 <p th:if="${order.status == 'PENDING'}">
@@ -129,7 +133,5 @@
 </p>
 
 <p>If you have any questions about your order, please contact our customer service.</p>
-
-<p>Best regards,<br/>Commercify Team</p>
 </body>
 </html>

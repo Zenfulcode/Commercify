@@ -1,27 +1,22 @@
 package com.zenfulcode.commercify.commercify.service;
 
 import com.zenfulcode.commercify.commercify.PaymentStatus;
-import com.zenfulcode.commercify.commercify.api.requests.products.PriceRequest;
 import com.zenfulcode.commercify.commercify.dto.OrderDetailsDTO;
 import com.zenfulcode.commercify.commercify.entity.PaymentEntity;
-import com.zenfulcode.commercify.commercify.integration.mobilepay.MobilePayService;
 import com.zenfulcode.commercify.commercify.repository.PaymentRepository;
 import com.zenfulcode.commercify.commercify.service.email.EmailService;
 import com.zenfulcode.commercify.commercify.service.order.OrderService;
 import jakarta.mail.MessagingException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service
 @AllArgsConstructor
 @Slf4j
 public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final EmailService emailService;
     private final OrderService orderService;
-    private final MobilePayService mobilePayService;
 
     @Transactional
     public void handlePaymentStatusUpdate(Long orderId, PaymentStatus newStatus) {
@@ -58,22 +53,6 @@ public class PaymentService {
     }
 
     public void capturePayment(Long paymentId, double captureAmount, boolean isPartialCapture) {
-        PaymentEntity payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new RuntimeException("Payment not found: " + paymentId));
-
-        OrderDetailsDTO order = orderService.getOrderById(payment.getOrderId());
-
-        double capturingAmount = isPartialCapture ? captureAmount : payment.getTotalAmount();
-
-        PriceRequest priceRequest = new PriceRequest(order.getOrder().getCurrency(), capturingAmount);
-
-        // Capture payment
-        if (payment.getMobilePayReference() != null) {
-            mobilePayService.capturePayment(payment.getMobilePayReference(), priceRequest);
-        }
-
-        // Update payment status
-        payment.setStatus(PaymentStatus.PAID);
-        paymentRepository.save(payment);
+        throw new UnsupportedOperationException("Capture payment is not supported yet");
     }
 }

@@ -21,6 +21,10 @@ public class OrderDTO {
     private Instant createdAt;
     private Instant updatedAt;
 
+    public OrderDTO() {
+
+    }
+
     public double getTotal() {
         return subTotal + shippingCost;
     }

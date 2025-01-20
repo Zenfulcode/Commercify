@@ -6,23 +6,24 @@ import com.zenfulcode.commercify.commercify.api.requests.PaymentRequest;
 import com.zenfulcode.commercify.commercify.api.requests.WebhookPayload;
 import com.zenfulcode.commercify.commercify.api.requests.products.PriceRequest;
 import com.zenfulcode.commercify.commercify.api.responses.PaymentResponse;
-import com.zenfulcode.commercify.commercify.entity.OrderEntity;
+import com.zenfulcode.commercify.commercify.dto.OrderDTO;
+import com.zenfulcode.commercify.commercify.dto.OrderDetailsDTO;
 import com.zenfulcode.commercify.commercify.entity.PaymentEntity;
 import com.zenfulcode.commercify.commercify.entity.WebhookConfigEntity;
-import com.zenfulcode.commercify.commercify.exception.OrderNotFoundException;
 import com.zenfulcode.commercify.commercify.exception.PaymentProcessingException;
 import com.zenfulcode.commercify.commercify.integration.WebhookRegistrationResponse;
-import com.zenfulcode.commercify.commercify.repository.OrderRepository;
 import com.zenfulcode.commercify.commercify.repository.PaymentRepository;
 import com.zenfulcode.commercify.commercify.repository.WebhookConfigRepository;
 import com.zenfulcode.commercify.commercify.service.PaymentService;
+import com.zenfulcode.commercify.commercify.service.email.EmailService;
+import com.zenfulcode.commercify.commercify.service.order.OrderService;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -36,15 +37,15 @@ import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
-public class MobilePayService {
-    private final PaymentService paymentService;
+public class MobilePayService extends PaymentService {
     private final MobilePayTokenService tokenService;
 
-    private final OrderRepository orderRepository;
+    private final OrderService orderService;
     private final PaymentRepository paymentRepository;
 
     private final RestTemplate restTemplate;
@@ -62,24 +63,59 @@ public class MobilePayService {
     @Value("${mobilepay.api-url}")
     private String apiUrl;
 
+    @Value("${commercify.host}")
+    private String host;
+
     private static final String PROVIDER_NAME = "MOBILEPAY";
+
+    public MobilePayService(PaymentRepository paymentRepository, EmailService emailService, OrderService orderService, MobilePayTokenService tokenService, OrderService orderService1, PaymentRepository paymentRepository1, RestTemplate restTemplate, WebhookConfigRepository webhookConfigRepository) {
+        super(paymentRepository, emailService, orderService);
+        this.tokenService = tokenService;
+        this.orderService = orderService1;
+        this.paymentRepository = paymentRepository1;
+        this.restTemplate = restTemplate;
+        this.webhookConfigRepository = webhookConfigRepository;
+    }
+
+    @Override
+    public void capturePayment(Long paymentId, double captureAmount, boolean isPartialCapture) {
+        PaymentEntity payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new RuntimeException("Payment not found: " + paymentId));
+
+        if (payment.getStatus() != PaymentStatus.PAID) {
+            throw new RuntimeException("Payment cannot captured");
+        }
+
+        OrderDetailsDTO order = orderService.getOrderById(payment.getOrderId());
+
+        double capturingAmount = isPartialCapture ? captureAmount : payment.getTotalAmount();
+
+        PriceRequest priceRequest = new PriceRequest(order.getOrder().getCurrency(), capturingAmount);
+
+        // Capture payment
+        if (payment.getMobilePayReference() != null) {
+            capturePayment(payment.getMobilePayReference(), priceRequest);
+        }
+
+        // Update payment status
+        payment.setStatus(PaymentStatus.PAID);
+        paymentRepository.save(payment);
+    }
 
     @Transactional
     public PaymentResponse initiatePayment(PaymentRequest request) {
         try {
-            OrderEntity order = orderRepository.findById(request.orderId())
-                    .orElseThrow(() -> new OrderNotFoundException(request.orderId()));
-
+            OrderDetailsDTO orderDetails = orderService.getOrderById(request.orderId());
             // Create MobilePay payment request
-            Map<String, Object> paymentRequest = createMobilePayRequest(order, request);
+            Map<String, Object> paymentRequest = createMobilePayRequest(orderDetails.getOrder(), request);
 
             // Call MobilePay API
             MobilePayCheckoutResponse mobilePayCheckoutResponse = createMobilePayPayment(paymentRequest);
 
             // Create and save payment entity
             PaymentEntity payment = PaymentEntity.builder()
-                    .orderId(order.getId())
-                    .totalAmount(order.getTotal())
+                    .orderId(orderDetails.getOrder().getId())
+                    .totalAmount(orderDetails.getOrder().getTotal())
                     .paymentProvider(PaymentProvider.MOBILEPAY)
                     .status(PaymentStatus.PENDING)
                     .paymentMethod(request.paymentMethod()) // 'WALLET' or 'CARD'
@@ -107,7 +143,7 @@ public class MobilePayService {
         PaymentStatus newStatus = mapMobilePayStatus(payload.name());
 
         // Update payment status and trigger confirmation email if needed
-        paymentService.handlePaymentStatusUpdate(payment.getOrderId(), newStatus);
+        handlePaymentStatusUpdate(payment.getOrderId(), newStatus);
     }
 
     private HttpHeaders mobilePayRequestHeaders() {
@@ -152,7 +188,7 @@ public class MobilePayService {
         }
     }
 
-    public Map<String, Object> createMobilePayRequest(OrderEntity order, PaymentRequest request) {
+    public Map<String, Object> createMobilePayRequest(OrderDTO order, PaymentRequest request) {
         validationPaymentRequest(request);
 
         Map<String, Object> paymentRequest = new HashMap<>();
@@ -175,7 +211,7 @@ public class MobilePayService {
         paymentRequest.put("customer", customer);
 
         // Other fields
-        String reference = String.join("-", merchantId, systemName, order.getId().toString(), value);
+        String reference = String.join("-", merchantId, systemName, String.valueOf(order.getId()), value);
         paymentRequest.put("reference", reference);
         paymentRequest.put("returnUrl", request.returnUrl() + "?orderId=" + order.getId());
         paymentRequest.put("userFlow", "WEB_REDIRECT");
@@ -212,9 +248,11 @@ public class MobilePayService {
         return switch (status.toUpperCase()) {
             case "CREATED" -> PaymentStatus.PENDING;
             case "AUTHORIZED" -> PaymentStatus.PAID;
-            case "ABORTED" -> PaymentStatus.CANCELLED;
+            case "ABORTED", "CANCELLED" -> PaymentStatus.CANCELLED;
             case "EXPIRED" -> PaymentStatus.EXPIRED;
             case "TERMINATED" -> PaymentStatus.TERMINATED;
+            case "CAPTURED" -> PaymentStatus.CAPTURED;
+            case "REFUNDED" -> PaymentStatus.REFUNDED;
             default -> throw new PaymentProcessingException("Unknown MobilePay status: " + status, null);
         };
     }
@@ -255,6 +293,8 @@ public class MobilePayService {
                                 config.setWebhookUrl(callbackUrl);
                                 config.setWebhookSecret(response.getBody().secret());
                                 webhookConfigRepository.save(config);
+
+                                log.info("Webhook updated successfully");
                             },
                             () -> {
                                 WebhookConfigEntity newConfig = WebhookConfigEntity.builder()
@@ -263,6 +303,8 @@ public class MobilePayService {
                                         .webhookSecret(response.getBody().secret())
                                         .build();
                                 webhookConfigRepository.save(newConfig);
+
+                                log.info("Webhook registered successfully");
                             }
                     );
 
@@ -272,10 +314,11 @@ public class MobilePayService {
         }
     }
 
-
+    @Transactional(readOnly = true)
     public void authenticateRequest(String date, String contentSha256, String authorization, String payload, HttpServletRequest request) {
         try {
 //            Verify content
+            log.info("Verifying content");
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest(payload.getBytes(StandardCharsets.UTF_8));
             String encodedHash = Base64.getEncoder().encodeToString(hash);
@@ -284,26 +327,34 @@ public class MobilePayService {
                 throw new SecurityException("Hash mismatch");
             }
 
-            URI uri = new URI(request.getRequestURL().toString());
-            String path = uri.getPath() + (uri.getQuery() != null ? "?" + uri.getQuery() : "");
+            log.info("Content verified");
 
 //            Verify signature
+            log.info("Verifying signature");
+            String path = request.getRequestURI();
+            URI uri = new URI(host + path);
+
             String expectedSignedString = String.format("POST\n%s\n%s;%s;%s", path, date, uri.getHost(), encodedHash);
 
             Mac hmacSha256 = Mac.getInstance("HmacSHA256");
-            SecretKeySpec secretKey = new SecretKeySpec(getWebhookSecret().getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+
+            CompletableFuture<byte[]> secretByteArray = getWebhookSecret().thenApply(s -> s.getBytes(StandardCharsets.UTF_8));
+
+            SecretKeySpec secretKey = new SecretKeySpec(secretByteArray.get(), "HmacSHA256");
             hmacSha256.init(secretKey);
 
             byte[] hmacSha256Bytes = hmacSha256.doFinal(expectedSignedString.getBytes(StandardCharsets.UTF_8));
             String expectedSignature = Base64.getEncoder().encodeToString(hmacSha256Bytes);
-            String expectedAuthorization = "HMAC-SHA256 SignedHeaders=x-ms-date;host;x-ms-content-sha256&Signature=" + expectedSignature;
+            String expectedAuthorization = String.format("HMAC-SHA256 SignedHeaders=x-ms-date;host;x-ms-content-sha256&Signature=%s", expectedSignature);
 
             if (!authorization.equals(expectedAuthorization)) {
                 throw new SecurityException("Signature mismatch");
             }
+
+            log.info("Signature verified");
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException("SHA-256 algorithm not found", e);
-        } catch (InvalidKeyException | URISyntaxException e) {
+        } catch (InvalidKeyException | URISyntaxException | ExecutionException | InterruptedException e) {
             throw new RuntimeException(e);
         }
     }
@@ -344,14 +395,22 @@ public class MobilePayService {
         }
     }
 
-    private String getWebhookSecret() {
-        return webhookConfigRepository.findByProvider(PROVIDER_NAME)
-                .map(WebhookConfigEntity::getWebhookSecret)
-                .orElseThrow(() -> new PaymentProcessingException("Webhook secret not found", null));
+    @Async
+    protected CompletableFuture<String> getWebhookSecret() {
+        try {
+            final String secret = webhookConfigRepository.findByProvider(PROVIDER_NAME)
+                    .map(WebhookConfigEntity::getWebhookSecret)
+                    .orElseThrow(() -> new PaymentProcessingException("Webhook secret not found", null));
+
+            return CompletableFuture.completedFuture(secret);
+        } catch (Exception e) {
+            log.error("Error getting webhook secret: {}", e.getMessage());
+            return CompletableFuture.failedFuture(e);
+        }
     }
 
     public void capturePayment(String mobilePayReference, PriceRequest captureAmount) {
-        PaymentEntity payment = paymentRepository.findByMobilePayReference(mobilePayReference)
+        paymentRepository.findByMobilePayReference(mobilePayReference)
                 .orElseThrow(() -> new PaymentProcessingException("Payment not found", null));
 
         HttpHeaders headers = mobilePayRequestHeaders();
@@ -367,9 +426,6 @@ public class MobilePayService {
                     HttpMethod.POST,
                     entity,
                     Object.class);
-
-            payment.setStatus(PaymentStatus.PAID);
-            paymentRepository.save(payment);
         } catch (Exception e) {
             log.error("Error capturing MobilePay payment: {}", e.getMessage());
             throw new PaymentProcessingException("Failed to capture MobilePay payment", e);

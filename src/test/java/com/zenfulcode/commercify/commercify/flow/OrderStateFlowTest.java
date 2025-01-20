@@ -29,12 +29,14 @@ class StateFlowTest {
         }
 
         @Test
-        @DisplayName("CONFIRMED order can transition to SHIPPED or CANCELLED")
+        @DisplayName("PAID order can transition to SHIPPED, CANCELLED and COMPLETED")
         void testConfirmedTransitions() {
             Set<OrderStatus> validTransitions = orderStateFlow.getValidTransitions(OrderStatus.PAID);
             assertTrue(orderStateFlow.canTransition(OrderStatus.PAID, OrderStatus.SHIPPED));
             assertTrue(orderStateFlow.canTransition(OrderStatus.PAID, OrderStatus.CANCELLED));
-            assertEquals(2, validTransitions.size());
+            assertTrue(orderStateFlow.canTransition(OrderStatus.PAID, OrderStatus.COMPLETED));
+
+            assertEquals(3, validTransitions.size());
         }
 
         @Test

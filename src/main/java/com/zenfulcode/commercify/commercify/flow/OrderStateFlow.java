@@ -22,7 +22,8 @@ public class OrderStateFlow {
         // Payment received -> Processing or Cancelled
         validTransitions.put(OrderStatus.PAID, Set.of(
                 OrderStatus.SHIPPED,
-                OrderStatus.CANCELLED
+                OrderStatus.CANCELLED,
+                OrderStatus.COMPLETED
         ));
 
         // Shipped -> Completed or Returned

@@ -8,5 +8,5 @@ public enum PaymentStatus {
     REFUNDED,
     NOT_FOUND,
     TERMINATED,
-    EXPIRED
+    CAPTURED, EXPIRED
 }

@@ -41,7 +41,7 @@ public class MobilePayController {
         try {
             // First authenticate the request with the raw string payload
             mobilePayService.authenticateRequest(date, contentSha256, authorization, body, request);
-            log.info("MP Webhook authenticated");
+            log.info("Mobilepay Webhook authenticated");
 
             // Convert the string payload to WebhookPayload object
             ObjectMapper objectMapper = new ObjectMapper();
