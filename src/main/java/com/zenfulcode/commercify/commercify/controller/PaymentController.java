@@ -1,6 +1,7 @@
 package com.zenfulcode.commercify.commercify.controller;
 
 import com.zenfulcode.commercify.commercify.PaymentStatus;
+import com.zenfulcode.commercify.commercify.api.requests.CapturePaymentRequest;
 import com.zenfulcode.commercify.commercify.service.PaymentService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,5 +35,16 @@ public class PaymentController {
     public ResponseEntity<PaymentStatus> getPaymentStatus(@PathVariable Long orderId) {
         PaymentStatus status = paymentService.getPaymentStatus(orderId);
         return ResponseEntity.ok(status);
+    }
+
+    @PostMapping("/{paymentId}/capture")
+    public ResponseEntity<String> capturePayment(@PathVariable Long paymentId, @RequestBody CapturePaymentRequest request) {
+        try {
+            paymentService.capturePayment(paymentId, request.captureAmount(), request.isPartialCapture());
+            return ResponseEntity.ok("Payment captured successfully");
+        } catch (Exception e) {
+            log.error("Error capturing payment", e);
+            return ResponseEntity.badRequest().body("Error capturing payment");
+        }
     }
 }

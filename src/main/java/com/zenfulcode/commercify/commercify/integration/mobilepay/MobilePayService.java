@@ -4,6 +4,7 @@ import com.zenfulcode.commercify.commercify.PaymentProvider;
 import com.zenfulcode.commercify.commercify.PaymentStatus;
 import com.zenfulcode.commercify.commercify.api.requests.PaymentRequest;
 import com.zenfulcode.commercify.commercify.api.requests.WebhookPayload;
+import com.zenfulcode.commercify.commercify.api.requests.products.PriceRequest;
 import com.zenfulcode.commercify.commercify.api.responses.PaymentResponse;
 import com.zenfulcode.commercify.commercify.entity.OrderEntity;
 import com.zenfulcode.commercify.commercify.entity.PaymentEntity;
@@ -348,6 +349,38 @@ public class MobilePayService {
                 .map(WebhookConfigEntity::getWebhookSecret)
                 .orElseThrow(() -> new PaymentProcessingException("Webhook secret not found", null));
     }
+
+    public void capturePayment(String mobilePayReference, PriceRequest captureAmount) {
+        PaymentEntity payment = paymentRepository.findByMobilePayReference(mobilePayReference)
+                .orElseThrow(() -> new PaymentProcessingException("Payment not found", null));
+
+        HttpHeaders headers = mobilePayRequestHeaders();
+
+        Map<String, Object> request = new HashMap<>();
+        request.put("modificationAmount", new MobilePayPrice(Math.round(captureAmount.amount() * 100), captureAmount.currency()));
+
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(request, headers);
+
+        try {
+            restTemplate.exchange(
+                    apiUrl + "/epayment/v1/payments/" + mobilePayReference + "/capture",
+                    HttpMethod.POST,
+                    entity,
+                    Object.class);
+
+            payment.setStatus(PaymentStatus.PAID);
+            paymentRepository.save(payment);
+        } catch (Exception e) {
+            log.error("Error capturing MobilePay payment: {}", e.getMessage());
+            throw new PaymentProcessingException("Failed to capture MobilePay payment", e);
+        }
+    }
+}
+
+record MobilePayPrice(
+        long value,
+        String currency
+) {
 }
 
 record MobilePayCheckoutResponse(
