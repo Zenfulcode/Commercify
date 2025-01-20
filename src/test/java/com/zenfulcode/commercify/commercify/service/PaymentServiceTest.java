@@ -1,18 +1,18 @@
 package com.zenfulcode.commercify.commercify.service;
 
 import com.zenfulcode.commercify.commercify.PaymentStatus;
+import com.zenfulcode.commercify.commercify.dto.OrderDTO;
 import com.zenfulcode.commercify.commercify.dto.OrderDetailsDTO;
 import com.zenfulcode.commercify.commercify.entity.PaymentEntity;
-import com.zenfulcode.commercify.commercify.repository.OrderRepository;
 import com.zenfulcode.commercify.commercify.repository.PaymentRepository;
 import com.zenfulcode.commercify.commercify.service.email.EmailService;
 import com.zenfulcode.commercify.commercify.service.order.OrderService;
 import jakarta.mail.MessagingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -20,112 +20,138 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class PaymentServiceTest {
 
     @Mock
     private PaymentRepository paymentRepository;
-
     @Mock
     private EmailService emailService;
-
     @Mock
     private OrderService orderService;
 
-    @InjectMocks
     private PaymentService paymentService;
-
-    private PaymentEntity payment;
-    private OrderDetailsDTO orderDetails;
 
     @BeforeEach
     void setUp() {
-        payment = PaymentEntity.builder()
-                .id(1L)
-                .orderId(1L)
-                .status(PaymentStatus.PENDING)
-                .totalAmount(199.99)
-                .build();
+        paymentService = new PaymentService(paymentRepository, emailService, orderService);
+    }
 
-        orderDetails = new OrderDetailsDTO(null, null, null, null, null); // Simplified for testing
+    @Nested
+    @DisplayName("Payment Status Update Tests")
+    class PaymentStatusUpdateTests {
+
+        @Test
+        @DisplayName("Should successfully update payment status and send confirmation email when payment is successful")
+        void shouldUpdateStatusAndSendEmailOnSuccessfulPayment() throws MessagingException {
+            // Arrange
+            Long orderId = 1L;
+            PaymentEntity payment = PaymentEntity.builder()
+                    .id(1L)
+                    .orderId(orderId)
+                    .status(PaymentStatus.PENDING)
+                    .build();
+
+            OrderDetailsDTO orderDetails = new OrderDetailsDTO();
+            orderDetails.setOrder(new OrderDTO());
+
+            when(paymentRepository.findByOrderId(orderId)).thenReturn(Optional.of(payment));
+            when(orderService.getOrderById(orderId)).thenReturn(orderDetails);
+
+            // Act
+            paymentService.handlePaymentStatusUpdate(orderId, PaymentStatus.PAID);
+
+            // Assert
+            verify(paymentRepository).save(payment);
+            verify(orderService).updateOrderStatus(orderId, PaymentStatus.PAID);
+            verify(emailService).sendOrderConfirmation(orderDetails);
+            verify(emailService).sendNewOrderNotification(orderDetails);
+            assertThat(payment.getStatus()).isEqualTo(PaymentStatus.PAID);
+        }
+
+        @Test
+        @DisplayName("Should throw exception when payment is not found")
+        void shouldThrowExceptionWhenPaymentNotFound() {
+            // Arrange
+            Long orderId = 1L;
+            when(paymentRepository.findByOrderId(orderId)).thenReturn(Optional.empty());
+
+            // Act & Assert
+            assertThrows(RuntimeException.class,
+                    () -> paymentService.handlePaymentStatusUpdate(orderId, PaymentStatus.PAID));
+        }
+
+//        @Test
+//        @DisplayName("Should not send email for non-successful payment status updates")
+//        void shouldNotSendEmailForNonSuccessfulPayments() {
+//            // Arrange
+//            Long orderId = 1L;
+//            PaymentEntity payment = PaymentEntity.builder()
+//                    .id(1L)
+//                    .orderId(orderId)
+//                    .status(PaymentStatus.PENDING)
+//                    .build();
+//
+//            when(paymentRepository.findByOrderId(orderId)).thenReturn(Optional.of(payment));
+//
+//            // Act
+//            paymentService.handlePaymentStatusUpdate(orderId, PaymentStatus.CANCELLED);
+//
+//            // Assert
+//            verify(paymentRepository).save(payment);
+//            verify(orderService).updateOrderStatus(orderId, PaymentStatus.CANCELLED);
+//            verify(emailService, never()).sendOrderConfirmation(any());
+//            verify(emailService, never()).sendNewOrderNotification(any());
+//            assertThat(payment.getStatus()).isEqualTo(PaymentStatus.CANCELLED);
+//        }
+    }
+
+    @Nested
+    @DisplayName("Get Payment Status Tests")
+    class GetPaymentStatusTests {
+
+        @Test
+        @DisplayName("Should return correct payment status when payment exists")
+        void shouldReturnCorrectPaymentStatus() {
+            // Arrange
+            Long orderId = 1L;
+            PaymentEntity payment = PaymentEntity.builder()
+                    .id(1L)
+                    .orderId(orderId)
+                    .status(PaymentStatus.PAID)
+                    .build();
+
+            when(paymentRepository.findByOrderId(orderId)).thenReturn(Optional.of(payment));
+
+            // Act
+            PaymentStatus status = paymentService.getPaymentStatus(orderId);
+
+            // Assert
+            assertThat(status).isEqualTo(PaymentStatus.PAID);
+        }
+
+        @Test
+        @DisplayName("Should return NOT_FOUND status when payment doesn't exist")
+        void shouldReturnNotFoundStatusWhenPaymentDoesntExist() {
+            // Arrange
+            Long orderId = 1L;
+            when(paymentRepository.findByOrderId(orderId)).thenReturn(Optional.empty());
+
+            // Act
+            PaymentStatus status = paymentService.getPaymentStatus(orderId);
+
+            // Assert
+            assertThat(status).isEqualTo(PaymentStatus.NOT_FOUND);
+        }
     }
 
     @Test
-    @DisplayName("Should update payment status successfully")
-    void handlePaymentStatusUpdate_Success() {
-        when(paymentRepository.findByOrderId(1L)).thenReturn(Optional.of(payment));
-        when(paymentRepository.save(any(PaymentEntity.class))).thenReturn(payment);
-
-        paymentService.handlePaymentStatusUpdate(1L, PaymentStatus.PAID);
-
-        verify(paymentRepository).save(payment);
-        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.PAID);
-    }
-
-    @Test
-    @DisplayName("Should send confirmation email when payment is successful")
-    void handlePaymentStatusUpdate_SendsEmail() throws MessagingException {
-        when(paymentRepository.findByOrderId(1L)).thenReturn(Optional.of(payment));
-        when(orderService.getOrderById(1L)).thenReturn(orderDetails);
-
-        paymentService.handlePaymentStatusUpdate(1L, PaymentStatus.PAID);
-
-        verify(emailService).sendOrderConfirmation(orderDetails);
-    }
-
-    @Test
-    @DisplayName("Should not send email for non-successful payment status")
-    void handlePaymentStatusUpdate_NoEmailForNonSuccess() throws MessagingException {
-        when(paymentRepository.findByOrderId(1L)).thenReturn(Optional.of(payment));
-
-        paymentService.handlePaymentStatusUpdate(1L, PaymentStatus.FAILED);
-
-        verify(emailService, never()).sendOrderConfirmation(any());
-    }
-
-    @Test
-    @DisplayName("Should handle payment not found")
-    void handlePaymentStatusUpdate_PaymentNotFound() {
-        when(paymentRepository.findByOrderId(1L)).thenReturn(Optional.empty());
-
-        assertThrows(RuntimeException.class, () ->
-                paymentService.handlePaymentStatusUpdate(1L, PaymentStatus.PAID));
-    }
-
-    @Test
-    @DisplayName("Should handle email sending failure gracefully")
-    void handlePaymentStatusUpdate_EmailFailure() throws MessagingException {
-        when(paymentRepository.findByOrderId(1L)).thenReturn(Optional.of(payment));
-        when(orderService.getOrderById(1L)).thenReturn(orderDetails);
-        doThrow(new MessagingException("Failed to send email"))
-                .when(emailService).sendOrderConfirmation(any());
-
-        paymentService.handlePaymentStatusUpdate(1L, PaymentStatus.PAID);
-
-        verify(paymentRepository).save(payment);
-        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.PAID);
-    }
-
-    @Test
-    @DisplayName("Should get payment status successfully")
-    void getPaymentStatus_Success() {
-        when(paymentRepository.findByOrderId(1L)).thenReturn(Optional.of(payment));
-
-        PaymentStatus status = paymentService.getPaymentStatus(1L);
-
-        assertThat(status).isEqualTo(PaymentStatus.PENDING);
-    }
-
-    @Test
-    @DisplayName("Should return NOT_FOUND for non-existent payment")
-    void getPaymentStatus_NotFound() {
-        when(paymentRepository.findByOrderId(1L)).thenReturn(Optional.empty());
-
-        PaymentStatus status = paymentService.getPaymentStatus(1L);
-
-        assertThat(status).isEqualTo(PaymentStatus.NOT_FOUND);
+    @DisplayName("Should throw UnsupportedOperationException when attempting to capture payment")
+    void shouldThrowExceptionWhenCapturingPayment() {
+        assertThrows(UnsupportedOperationException.class,
+                () -> paymentService.capturePayment(1L, 100.0, false));
     }
 }

@@ -1,7 +1,8 @@
 package com.zenfulcode.commercify.commercify.controller;
 
 import com.zenfulcode.commercify.commercify.PaymentStatus;
-import com.zenfulcode.commercify.commercify.service.PaymentService;
+import com.zenfulcode.commercify.commercify.api.requests.CapturePaymentRequest;
+import com.zenfulcode.commercify.commercify.integration.mobilepay.MobilePayService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @AllArgsConstructor
 @Slf4j
 public class PaymentController {
-    private final PaymentService paymentService;
+    private final MobilePayService mobilePayService;
 
     @PostMapping("/{orderId}/status")
     @PreAuthorize("hasRole('ADMIN')")
@@ -22,7 +23,7 @@ public class PaymentController {
             @PathVariable Long orderId,
             @RequestParam PaymentStatus status) {
         try {
-            paymentService.handlePaymentStatusUpdate(orderId, status);
+            mobilePayService.handlePaymentStatusUpdate(orderId, status);
             return ResponseEntity.ok("Payment status updated successfully");
         } catch (Exception e) {
             log.error("Error updating payment status", e);
@@ -32,7 +33,19 @@ public class PaymentController {
 
     @GetMapping("/{orderId}/status")
     public ResponseEntity<PaymentStatus> getPaymentStatus(@PathVariable Long orderId) {
-        PaymentStatus status = paymentService.getPaymentStatus(orderId);
+        PaymentStatus status = mobilePayService.getPaymentStatus(orderId);
         return ResponseEntity.ok(status);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/{paymentId}/capture")
+    public ResponseEntity<String> capturePayment(@PathVariable Long paymentId, @RequestBody CapturePaymentRequest request) {
+        try {
+            mobilePayService.capturePayment(paymentId, request.captureAmount(), request.isPartialCapture());
+            return ResponseEntity.ok("Payment captured successfully");
+        } catch (Exception e) {
+            log.error("Error capturing payment", e);
+            return ResponseEntity.badRequest().body("Error capturing payment");
+        }
     }
 }

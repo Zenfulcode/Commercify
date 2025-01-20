@@ -61,7 +61,6 @@ public class EmailService {
     @Async
     public void sendOrderConfirmation(OrderDetailsDTO orderDetails) throws MessagingException {
         OrderDTO order = orderDetails.getOrder();
-        UserDTO user = userService.getUserById(order.getUserId());
 
         Context context = new Context();
         context.setVariable("order", createOrderContext(orderDetails));
@@ -70,8 +69,10 @@ public class EmailService {
         String subject = String.format("Order Confirmation #%d - %s",
                 order.getId(), order.getOrderStatus());
 
-        sendTemplatedEmail(user.getEmail(), subject, template, context);
-        log.info("Order confirmation sent to {}", user.getEmail());
+        String receivingEmail = orderDetails.getCustomerDetails().getEmail();
+
+        sendTemplatedEmail(receivingEmail, subject, template, context);
+        log.info("Order confirmation sent to {}", receivingEmail);
     }
 
     @Async
@@ -127,9 +128,9 @@ public class EmailService {
         orderContext.put("status", order.getOrderStatus());
         orderContext.put("createdAt", order.getCreatedAt());
         orderContext.put("currency", order.getCurrency());
-        orderContext.put("subTotal", order.getSubTotal());
-        orderContext.put("totalPrice", order.getTotal());
-        orderContext.put("shippingCost", order.getShippingCost());
+        orderContext.put("subTotal", order.getSubTotal() + " " + order.getCurrency());
+        orderContext.put("totalPrice", order.getTotal() + " " + order.getCurrency());
+        orderContext.put("shippingCost", order.getShippingCost() + " " + order.getCurrency());
         orderContext.put("customerName", orderDetails.getCustomerDetails().getFullName());
         orderContext.put("customerEmail", orderDetails.getCustomerDetails().getEmail());
         orderContext.put("customerPhone", orderDetails.getCustomerDetails().getPhone());
@@ -144,14 +145,16 @@ public class EmailService {
                     Map<String, Object> item = new HashMap<>();
                     item.put("name", line.getProduct().getName());
                     item.put("quantity", line.getQuantity());
-                    item.put("unitPrice", line.getUnitPrice());
-                    item.put("total", line.getQuantity() * line.getUnitPrice());
+                    item.put("unitPrice", line.getUnitPrice() + " " + order.getCurrency());
+                    item.put("totalPrice", (line.getQuantity() * line.getUnitPrice()) + " " + order.getCurrency());
 
                     if (line.getVariant() != null) {
                         String variantDetails = line.getVariant().getOptions().stream()
                                 .map(opt -> opt.getName() + ": " + opt.getValue())
                                 .collect(Collectors.joining(", "));
                         item.put("variant", variantDetails);
+                    } else {
+                        item.put("variant", "");
                     }
 
                     return item;

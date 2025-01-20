@@ -127,20 +127,22 @@
                 <div th:if="${item.variant}" th:text="${item.variant}">Variant Details</div>
             </td>
             <td th:text="${item.quantity}">1</td>
-            <td th:text="${#numbers.formatDecimal(item.unitPrice, 1, 2) + ' ' + order.currency}">$99.99</td>
-            <td th:text="${#numbers.formatDecimal(item.total, 1, 2) + ' ' + order.currency}">$99.99</td>
+            <td th:text="${item.unitPrice}">$99.99</td>
+            <td th:text="${item.totalPrice}">$99.99</td>
         </tr>
         </tbody>
     </table>
 
+    <p class="subtotal">Subtotal Amount: <span
+            th:text="${order.subTotal}">$100.00</span></p>
+    <p class="shippingCost">Shipping Cost: <span
+            th:text="${order.shippingCost}">$8.00</span></p>
     <p class="total">Total Amount: <span
-            th:text="${#numbers.formatDecimal(order.totalPrice, 1, 2) + ' ' + order.currency}">$99.99</span></p>
+            th:text="${order.totalPrice}">$108.00</span></p>
 </div>
 
 <a th:href="${dashboardUrl}" class="action-button">View Order in Dashboard</a>
 
 <p>Please process this order as soon as possible.</p>
-
-<p>Best regards,<br/>Commercify System</p>
 </body>
 </html>

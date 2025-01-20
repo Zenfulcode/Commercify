@@ -9,10 +9,8 @@ import com.zenfulcode.commercify.commercify.service.order.OrderService;
 import jakarta.mail.MessagingException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service
 @AllArgsConstructor
 @Slf4j
 public class PaymentService {
@@ -52,5 +50,9 @@ public class PaymentService {
         return paymentRepository.findByOrderId(orderId)
                 .map(PaymentEntity::getStatus)
                 .orElse(PaymentStatus.NOT_FOUND);
+    }
+
+    public void capturePayment(Long paymentId, double captureAmount, boolean isPartialCapture) {
+        throw new UnsupportedOperationException("Capture payment is not supported yet");
     }
 }

@@ -106,6 +106,7 @@ public class OrderValidationService {
             case PENDING -> OrderStatus.PENDING;
             case PAID -> OrderStatus.PAID;
             case FAILED, NOT_FOUND -> OrderStatus.FAILED;
+            case CAPTURED -> OrderStatus.COMPLETED;
             case CANCELLED, TERMINATED, EXPIRED -> OrderStatus.CANCELLED;
             case REFUNDED -> OrderStatus.REFUNDED;
         };

@@ -15,4 +15,8 @@ public class OrderDetailsDTO {
     private CustomerDetailsDTO customerDetails;
     private AddressDTO shippingAddress;
     private AddressDTO billingAddress;
+
+    public OrderDetailsDTO() {
+
+    }
 }
