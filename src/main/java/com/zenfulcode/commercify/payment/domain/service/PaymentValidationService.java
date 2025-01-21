@@ -53,8 +53,8 @@ public class PaymentValidationService {
         List<String> violations = new ArrayList<>();
 
         // Validate payment state
-        if (payment.getStatus() != PaymentStatus.PENDING) {
-            violations.add("Payment must be in PENDING state to be captured");
+        if (payment.getStatus() != PaymentStatus.RESERVED) {
+            violations.add("Payment must be in RESERVED state to be captured");
         }
 
         // Validate capture amount matches payment amount

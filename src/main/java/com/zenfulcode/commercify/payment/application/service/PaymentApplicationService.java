@@ -1,6 +1,8 @@
 package com.zenfulcode.commercify.payment.application.service;
 
+import com.zenfulcode.commercify.payment.application.command.CapturePaymentCommand;
 import com.zenfulcode.commercify.payment.application.command.InitiatePaymentCommand;
+import com.zenfulcode.commercify.payment.application.dto.CaptureResponse;
 import com.zenfulcode.commercify.payment.application.dto.PaymentResponse;
 import com.zenfulcode.commercify.payment.domain.model.Payment;
 import com.zenfulcode.commercify.payment.domain.model.PaymentProvider;
@@ -61,5 +63,17 @@ public class PaymentApplicationService {
     public void handlePaymentCallback(PaymentProvider provider, WebhookPayload payload) {
         PaymentProviderService providerService = providerFactory.getProvider(provider);
         providerService.handleCallback(payload);
+    }
+
+    @Transactional
+    public CaptureResponse capturePayment(CapturePaymentCommand command) {
+        Payment payment = paymentDomainService.getPaymentById(command.paymentId());
+
+        paymentDomainService.capturePayment(payment, command.transactionId(), command.captureAmount());
+
+        // Publish events
+        eventPublisher.publish(payment.getDomainEvents());
+
+        return new CaptureResponse(payment.getTransactionId(), payment.getAmount());
     }
 }

@@ -1,9 +1,13 @@
 package com.zenfulcode.commercify.payment.domain.service;
 
 import com.zenfulcode.commercify.order.domain.model.Order;
+import com.zenfulcode.commercify.payment.domain.event.PaymentCreatedEvent;
+import com.zenfulcode.commercify.payment.domain.exception.PaymentNotFoundException;
 import com.zenfulcode.commercify.payment.domain.model.Payment;
 import com.zenfulcode.commercify.payment.domain.model.PaymentMethod;
 import com.zenfulcode.commercify.payment.domain.model.PaymentProvider;
+import com.zenfulcode.commercify.payment.domain.repository.PaymentRepository;
+import com.zenfulcode.commercify.payment.domain.valueobject.PaymentId;
 import com.zenfulcode.commercify.payment.domain.valueobject.PaymentStatus;
 import com.zenfulcode.commercify.payment.domain.valueobject.refund.RefundRequest;
 import com.zenfulcode.commercify.shared.domain.event.DomainEventPublisher;
@@ -17,6 +21,7 @@ public class PaymentDomainService {
     private final PaymentValidationService validationService;
     private final PaymentStateFlow paymentStateFlow;
     private final DomainEventPublisher eventPublisher;
+    private final PaymentRepository paymentRepository;
 
     /**
      * Creates a new payment for an order
@@ -32,6 +37,14 @@ public class PaymentDomainService {
         );
 
         payment.setOrder(order);
+
+        payment.registerEvent(new PaymentCreatedEvent(
+                payment.getId(),
+                payment.getOrder().getId(),
+                payment.getAmount(),
+                payment.getPaymentMethod(),
+                payment.getProvider()
+        ));
 
         return payment;
     }
@@ -88,7 +101,14 @@ public class PaymentDomainService {
 
         payment.cancel();
 
-        // Publish payment cancelled event
         eventPublisher.publish(payment.getDomainEvents());
+    }
+
+    /**
+     * Get payment by ID
+     */
+    public Payment getPaymentById(PaymentId paymentId) {
+        return paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new PaymentNotFoundException(paymentId));
     }
 }

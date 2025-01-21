@@ -1,8 +1,8 @@
 package com.zenfulcode.commercify.payment.domain.service;
 
 import com.zenfulcode.commercify.payment.domain.exception.InvalidPaymentStateException;
-import com.zenfulcode.commercify.payment.domain.valueobject.PaymentStatus;
 import com.zenfulcode.commercify.payment.domain.valueobject.PaymentStateMetadata;
+import com.zenfulcode.commercify.payment.domain.valueobject.PaymentStatus;
 import org.springframework.stereotype.Component;
 
 import java.util.EnumMap;
@@ -25,13 +25,21 @@ public class PaymentStateFlow {
     private void initializeStateTransitions() {
         // Initial state -> PENDING
         validTransitions.put(PaymentStatus.PENDING, Set.of(
-                PaymentStatus.CAPTURED,
                 PaymentStatus.FAILED,
-                PaymentStatus.CANCELLED,
-                PaymentStatus.EXPIRED
+                PaymentStatus.RESERVED,
+                PaymentStatus.CANCELLED
         ));
 
-        // PAID -> REFUNDED or PARTIALLY_REFUNDED
+        // RESERVED/PAID -> RESERVED or CANCELLED
+        validTransitions.put(PaymentStatus.RESERVED, Set.of(
+                PaymentStatus.CAPTURED,
+                PaymentStatus.EXPIRED,
+                PaymentStatus.FAILED,
+                PaymentStatus.PARTIALLY_REFUNDED,
+                PaymentStatus.REFUNDED
+        ));
+
+        // CAPTURED -> REFUNDED or PARTIALLY_REFUNDED
         validTransitions.put(PaymentStatus.CAPTURED, Set.of(
                 PaymentStatus.REFUNDED,
                 PaymentStatus.PARTIALLY_REFUNDED

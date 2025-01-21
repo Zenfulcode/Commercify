@@ -65,7 +65,7 @@ public class Payment extends AggregateRoot {
     @ElementCollection
     @CollectionTable(
             name = "payment_attempts",
-            joinColumns = @JoinColumn(name = "payment_id")
+            joinColumns = @JoinColumn(name = "payment_id", referencedColumnName = "id")
     )
     private List<PaymentAttempt> paymentAttempts = new ArrayList<>();
 
@@ -98,15 +98,6 @@ public class Payment extends AggregateRoot {
         payment.paymentMethod = paymentMethod;
         payment.provider = provider;
         payment.status = PaymentStatus.PENDING;
-
-        // Register domain event
-        payment.registerEvent(new PaymentCreatedEvent(
-                payment.getId(),
-                payment.getOrder().getId(),
-                payment.getAmount(),
-                payment.getPaymentMethod(),
-                payment.getProvider()
-        ));
 
         return payment;
     }
