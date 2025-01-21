@@ -38,10 +38,10 @@ public class PaymentController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/{paymentId}/capture")
-    public ResponseEntity<String> capturePayment(@PathVariable Long paymentId, @RequestBody CapturePaymentRequest request) {
+    @PostMapping("/{orderId}/capture")
+    public ResponseEntity<String> capturePayment(@PathVariable Long orderId, @RequestBody CapturePaymentRequest request) {
         try {
-            mobilePayService.capturePayment(paymentId, request.captureAmount(), request.isPartialCapture());
+            mobilePayService.capturePayment(orderId, request.captureAmount(), request.isPartialCapture());
             return ResponseEntity.ok("Payment captured successfully");
         } catch (Exception e) {
             log.error("Error capturing payment", e);

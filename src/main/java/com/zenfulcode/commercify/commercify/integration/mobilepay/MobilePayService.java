@@ -4,7 +4,6 @@ import com.zenfulcode.commercify.commercify.PaymentProvider;
 import com.zenfulcode.commercify.commercify.PaymentStatus;
 import com.zenfulcode.commercify.commercify.api.requests.PaymentRequest;
 import com.zenfulcode.commercify.commercify.api.requests.WebhookPayload;
-import com.zenfulcode.commercify.commercify.api.requests.products.PriceRequest;
 import com.zenfulcode.commercify.commercify.api.responses.PaymentResponse;
 import com.zenfulcode.commercify.commercify.dto.OrderDTO;
 import com.zenfulcode.commercify.commercify.dto.OrderDetailsDTO;
@@ -78,9 +77,9 @@ public class MobilePayService extends PaymentService {
     }
 
     @Override
-    public void capturePayment(Long paymentId, double captureAmount, boolean isPartialCapture) {
-        PaymentEntity payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new RuntimeException("Payment not found: " + paymentId));
+    public void capturePayment(Long orderId, double captureAmount, boolean isPartialCapture) {
+        PaymentEntity payment = paymentRepository.findByOrderId(orderId)
+                .orElseThrow(() -> new RuntimeException("Payment not found for orderId: " + orderId));
 
         if (payment.getStatus() != PaymentStatus.PAID) {
             throw new RuntimeException("Payment cannot captured");
@@ -89,12 +88,13 @@ public class MobilePayService extends PaymentService {
         OrderDetailsDTO order = orderService.getOrderById(payment.getOrderId());
 
         double capturingAmount = isPartialCapture ? captureAmount : payment.getTotalAmount();
+        capturingAmount *= 100; // Convert to minor units
 
-        PriceRequest priceRequest = new PriceRequest(order.getOrder().getCurrency(), capturingAmount);
+        log.info("Capturing payment: orderId={}, amount={} formatted={}", orderId, capturingAmount, Math.round(capturingAmount));
 
         // Capture payment
         if (payment.getMobilePayReference() != null) {
-            capturePayment(payment.getMobilePayReference(), priceRequest);
+            capturePayment(payment.getMobilePayReference(), Math.round(capturingAmount), order.getOrder().getCurrency());
         }
 
         // Update payment status
@@ -409,14 +409,14 @@ public class MobilePayService extends PaymentService {
         }
     }
 
-    public void capturePayment(String mobilePayReference, PriceRequest captureAmount) {
+    public void capturePayment(String mobilePayReference, long captureAmount, String currency) {
         paymentRepository.findByMobilePayReference(mobilePayReference)
                 .orElseThrow(() -> new PaymentProcessingException("Payment not found", null));
 
         HttpHeaders headers = mobilePayRequestHeaders();
 
         Map<String, Object> request = new HashMap<>();
-        request.put("modificationAmount", new MobilePayPrice(Math.round(captureAmount.amount() * 100), captureAmount.currency()));
+        request.put("modificationAmount", new MobilePayPrice(captureAmount, currency));
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(request, headers);
 
