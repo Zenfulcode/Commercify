@@ -1,6 +1,5 @@
 package com.zenfulcode.commercify.payment.domain.service;
 
-import com.zenfulcode.commercify.payment.domain.exception.InvalidPaymentStateException;
 import com.zenfulcode.commercify.payment.domain.valueobject.PaymentStateMetadata;
 import com.zenfulcode.commercify.payment.domain.valueobject.PaymentStatus;
 import org.springframework.stereotype.Component;
@@ -11,11 +10,9 @@ import java.util.Set;
 @Component
 public class PaymentStateFlow {
     private final EnumMap<PaymentStatus, Set<PaymentStatus>> validTransitions;
-    private final EnumMap<PaymentStatus, Boolean> terminalStates;
 
     public PaymentStateFlow() {
         this.validTransitions = new EnumMap<>(PaymentStatus.class);
-        this.terminalStates = new EnumMap<>(PaymentStatus.class);
         initializeStateTransitions();
     }
 
@@ -60,29 +57,20 @@ public class PaymentStateFlow {
         validTransitions.put(PaymentStatus.REFUNDED, Set.of());
         validTransitions.put(PaymentStatus.CANCELLED, Set.of());
         validTransitions.put(PaymentStatus.EXPIRED, Set.of());
-
-        // Mark terminal states
-        terminalStates.put(PaymentStatus.REFUNDED, true);
-        terminalStates.put(PaymentStatus.CANCELLED, true);
-        terminalStates.put(PaymentStatus.EXPIRED, true);
-        terminalStates.put(PaymentStatus.CAPTURED, false);
-        terminalStates.put(PaymentStatus.PENDING, false);
-        terminalStates.put(PaymentStatus.FAILED, false);
-        terminalStates.put(PaymentStatus.PARTIALLY_REFUNDED, false);
     }
 
     /**
      * Check if a state transition is valid
      */
     public boolean canTransitionTo(PaymentStatus currentState, PaymentStatus targetState) {
-        Set<PaymentStatus> allowedTransitions = validTransitions.get(currentState);
-        return allowedTransitions != null && allowedTransitions.contains(targetState);
+        final PaymentStateMetadata metadata = getStateMetadata(currentState);
+        return metadata.canTransitionTo(targetState);
     }
 
     /**
      * Get valid next states for a given state
      */
-    public Set<PaymentStatus> getValidTransitions(PaymentStatus currentState) {
+    private Set<PaymentStatus> getValidTransitions(PaymentStatus currentState) {
         return validTransitions.getOrDefault(currentState, Set.of());
     }
 
@@ -90,21 +78,7 @@ public class PaymentStateFlow {
      * Check if a state is terminal
      */
     public boolean isTerminalState(PaymentStatus state) {
-        return terminalStates.getOrDefault(state, false);
-    }
-
-    /**
-     * Validate state transition and throw exception if invalid
-     */
-    public void validateStateTransition(PaymentStatus currentState, PaymentStatus targetState) {
-        if (!canTransitionTo(currentState, targetState)) {
-            throw new InvalidPaymentStateException(
-                    null, // PaymentId would be set by the calling service
-                    currentState,
-                    targetState,
-                    "Invalid payment status transition"
-            );
-        }
+        return state.isTerminalState();
     }
 
     /**
@@ -116,9 +90,11 @@ public class PaymentStateFlow {
         diagram.append("------------------------\n");
 
         validTransitions.forEach((state, transitions) -> {
-            if (!transitions.isEmpty()) {
+            PaymentStateMetadata metadata = getStateMetadata(state);
+
+            if (metadata.hasTransitions()) {
                 diagram.append(state).append(" -> ");
-                diagram.append(String.join(" | ", transitions.stream()
+                diagram.append(String.join(" | ", metadata.validTransitions().stream()
                         .map(PaymentStatus::name)
                         .toList()));
                 diagram.append("\n");

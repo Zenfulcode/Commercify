@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class PaymentDomainService {
     private final PaymentValidationService validationService;
-    private final PaymentStateFlow paymentStateFlow;
     private final DomainEventPublisher eventPublisher;
     private final PaymentRepository paymentRepository;
 
@@ -66,7 +65,7 @@ public class PaymentDomainService {
      */
     public void failPayment(Payment payment, String failureReason) {
         // Validate current state
-        paymentStateFlow.validateStateTransition(payment.getStatus(), PaymentStatus.FAILED);
+        validationService.validateStatusTransition(payment, PaymentStatus.FAILED);
 
         payment.markAsFailed(failureReason);
 
