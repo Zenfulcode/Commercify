@@ -4,7 +4,7 @@ import com.zenfulcode.commercify.payment.domain.valueobject.PaymentId;
 
 import java.util.Map;
 
-public record PaymentResponse(
+public record InitializedPayment(
         PaymentId paymentId,
         String redirectUrl,
         Map<String, Object> additionalData

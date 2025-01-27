@@ -2,19 +2,25 @@ package com.zenfulcode.commercify.payment.application.service;
 
 import com.zenfulcode.commercify.payment.application.command.CapturePaymentCommand;
 import com.zenfulcode.commercify.payment.application.command.InitiatePaymentCommand;
-import com.zenfulcode.commercify.payment.application.dto.CaptureResponse;
-import com.zenfulcode.commercify.payment.application.dto.PaymentResponse;
+import com.zenfulcode.commercify.payment.application.dto.CaptureAmount;
+import com.zenfulcode.commercify.payment.application.dto.CapturedPayment;
+import com.zenfulcode.commercify.payment.application.dto.InitializedPayment;
 import com.zenfulcode.commercify.payment.domain.model.Payment;
 import com.zenfulcode.commercify.payment.domain.model.PaymentProvider;
 import com.zenfulcode.commercify.payment.domain.service.PaymentDomainService;
 import com.zenfulcode.commercify.payment.domain.service.PaymentProviderFactory;
 import com.zenfulcode.commercify.payment.domain.service.PaymentProviderService;
 import com.zenfulcode.commercify.payment.domain.valueobject.PaymentProviderResponse;
+import com.zenfulcode.commercify.payment.domain.valueobject.PaymentStatus;
 import com.zenfulcode.commercify.payment.domain.valueobject.webhook.WebhookPayload;
+import com.zenfulcode.commercify.payment.infrastructure.webhook.WebhookHandler;
 import com.zenfulcode.commercify.shared.domain.event.DomainEventPublisher;
+import com.zenfulcode.commercify.shared.domain.model.Money;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
 
 @Service
 @RequiredArgsConstructor
@@ -22,9 +28,10 @@ public class PaymentApplicationService {
     private final PaymentDomainService paymentDomainService;
     private final PaymentProviderFactory providerFactory;
     private final DomainEventPublisher eventPublisher;
+    private final WebhookHandler webhookHandler;
 
     @Transactional
-    public PaymentResponse initiatePayment(InitiatePaymentCommand command) {
+    public InitializedPayment initiatePayment(InitiatePaymentCommand command) {
         // Get the appropriate provider service
         PaymentProviderService providerService = providerFactory.getProvider(command.provider());
 
@@ -52,7 +59,7 @@ public class PaymentApplicationService {
         eventPublisher.publish(payment.getDomainEvents());
 
         // Return response
-        return new PaymentResponse(
+        return new InitializedPayment(
                 payment.getId(),
                 providerResponse.redirectUrl(),
                 providerResponse.additionalData()
@@ -61,19 +68,26 @@ public class PaymentApplicationService {
 
     @Transactional
     public void handlePaymentCallback(PaymentProvider provider, WebhookPayload payload) {
-        PaymentProviderService providerService = providerFactory.getProvider(provider);
-        providerService.handleCallback(payload);
+        webhookHandler.handleWebhook(provider, payload);
     }
 
+    // TODO: Make sure the capture currency is the same as the payment currency
     @Transactional
-    public CaptureResponse capturePayment(CapturePaymentCommand command) {
+    public CapturedPayment capturePayment(CapturePaymentCommand command) {
         Payment payment = paymentDomainService.getPaymentById(command.paymentId());
 
-        paymentDomainService.capturePayment(payment, command.transactionId(), command.captureAmount());
+        Money captureAmount = command.captureAmount() == null ? payment.getAmount() : command.captureAmount();
+
+        paymentDomainService.capturePayment(payment, command.transactionId(), captureAmount);
 
         // Publish events
         eventPublisher.publish(payment.getDomainEvents());
 
-        return new CaptureResponse(payment.getTransactionId(), payment.getAmount());
+        // This is going to be used for partial captures, which is not implemented yet
+        BigDecimal remainingAmount = payment.getAmount().subtract(captureAmount).getAmount();
+        CaptureAmount captureAmountDto = new CaptureAmount(captureAmount.getAmount(), remainingAmount, captureAmount.getCurrency());
+        boolean isFullyCaptured = payment.getStatus() == PaymentStatus.CAPTURED;
+
+        return new CapturedPayment(payment.getTransactionId(), captureAmountDto, isFullyCaptured);
     }
 }

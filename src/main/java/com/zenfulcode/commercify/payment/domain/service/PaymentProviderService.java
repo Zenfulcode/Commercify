@@ -43,4 +43,19 @@ public interface PaymentProviderService {
      * Check if provider supports payment method
      */
     boolean supportsPaymentMethod(PaymentMethod method);
+
+    /**
+     * Register a webhook with the provider
+     */
+    void registerWebhook(String callbackUrl);
+
+    /**
+     * Delete a webhook with the provider
+     */
+    void deleteWebhook(String webhookId);
+
+    /**
+     * Get all webhooks registered with the provider
+     */
+    Object getWebhooks();
 }

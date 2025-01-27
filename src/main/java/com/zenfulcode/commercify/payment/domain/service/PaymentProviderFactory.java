@@ -30,4 +30,16 @@ public class PaymentProviderFactory {
                 .filter(PaymentProviderConfig::isActive)
                 .collect(Collectors.toList());
     }
+
+    public void registerProvider(PaymentProvider provider, PaymentProviderService service) {
+        providerServices.put(provider, service);
+    }
+
+    public void unregisterProvider(PaymentProvider provider) {
+        providerServices.remove(provider);
+    }
+
+    public boolean supportsProvider(PaymentProvider provider) {
+        return providerServices.containsKey(provider);
+    }
 }
