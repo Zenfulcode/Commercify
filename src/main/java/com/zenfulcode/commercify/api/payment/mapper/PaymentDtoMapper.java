@@ -10,6 +10,7 @@ import com.zenfulcode.commercify.payment.application.command.InitiatePaymentComm
 import com.zenfulcode.commercify.payment.application.dto.InitializedPayment;
 import com.zenfulcode.commercify.payment.domain.model.PaymentMethod;
 import com.zenfulcode.commercify.payment.domain.model.PaymentProvider;
+import com.zenfulcode.commercify.payment.domain.valueobject.MobilepayPaymentRequest;
 import com.zenfulcode.commercify.payment.domain.valueobject.PaymentId;
 import com.zenfulcode.commercify.payment.domain.valueobject.PaymentProviderRequest;
 import com.zenfulcode.commercify.payment.domain.valueobject.webhook.WebhookPayload;
@@ -17,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
-import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -29,7 +29,7 @@ public class PaymentDtoMapper {
 
         return new InitiatePaymentCommand(
                 order,
-                PaymentMethod.valueOf(request.paymentMethod()),
+                PaymentMethod.valueOf(request.paymentDetails().paymentMethod()),
                 PaymentProvider.valueOf(request.provider()),
                 toProviderRequest(request.paymentDetails())
         );
@@ -84,27 +84,10 @@ public class PaymentDtoMapper {
     }
 
     private PaymentProviderRequest toProviderRequest(PaymentDetailsRequest details) {
-        return new PaymentProviderRequest() {
-            @Override
-            public PaymentMethod getPaymentMethod() {
-                return PaymentMethod.valueOf(details.paymentMethodId());
-            }
-
-            public String getPaymentMethodId() {
-                return details.paymentMethodId();
-            }
-
-            public String getReturnUrl() {
-                return details.returnUrl();
-            }
-
-            public String getCancelUrl() {
-                return details.cancelUrl();
-            }
-
-            public Map<String, String> getAdditionalData() {
-                return details.additionalData();
-            }
-        };
+        return new MobilepayPaymentRequest(
+                PaymentMethod.valueOf(details.paymentMethod()),
+                details.additionalData().get("phoneNumber"),
+                details.returnUrl()
+        );
     }
 }

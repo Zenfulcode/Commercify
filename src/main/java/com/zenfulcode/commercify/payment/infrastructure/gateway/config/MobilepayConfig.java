@@ -16,5 +16,5 @@ public class MobilepayConfig {
     private String subscriptionKey;
     private String apiUrl;
     private String systemName;
-    private String host;
+    private String webhookCallback;
 }

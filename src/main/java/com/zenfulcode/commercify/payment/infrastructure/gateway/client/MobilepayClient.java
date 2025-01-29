@@ -58,6 +58,7 @@ public class MobilepayClient {
 
             return response.getBody();
         } catch (Exception e) {
+            log.error("Error creating MobilePay payment: {}", e.getMessage());
             throw new PaymentProcessingException("Failed to create MobilePay payment", e);
         }
     }
@@ -79,15 +80,13 @@ public class MobilepayClient {
 
 //            Verify signature
             log.info("Verifying signature");
-            URI uri = new URI(config.getHost());
+            URI uri = new URI(config.getWebhookCallback());
+            String expectedSignedString = String.format("POST\n%s\n%s;%s;%s", uri.getPath(), date, uri.getHost(), contentSha256);
 
-            String expectedSignedString = String.format("POST\n%s\n%s;%s;%s", uri.getPath(), date, uri.getHost(), encodedHash);
-
-            Mac hmacSha256 = Mac.getInstance("HmacSHA256");
-
-            byte[] secretByteArray = tokenService.getAccessToken().getBytes(StandardCharsets.UTF_8);
-
+            String secret = getWebhookSecret();
+            byte[] secretByteArray = secret.getBytes(StandardCharsets.UTF_8);
             SecretKeySpec secretKey = new SecretKeySpec(secretByteArray, "HmacSHA256");
+            Mac hmacSha256 = Mac.getInstance("HmacSHA256");
             hmacSha256.init(secretKey);
 
             byte[] hmacSha256Bytes = hmacSha256.doFinal(expectedSignedString.getBytes(StandardCharsets.UTF_8));
@@ -122,12 +121,15 @@ public class MobilepayClient {
         return headers;
     }
 
+    // TODO: Improve error handling for invalid currency not including (DKK, NOK, SEK and FIN)
     private Map<String, Object> createPaymentRequest(MobilepayCreatePaymentRequest request) {
         Map<String, Object> paymentRequest = new HashMap<>();
 
         // Amount
+        final long value = Math.round(request.amount().getAmount().doubleValue() * 100);
+
         Map<String, Object> amount = new HashMap<>();
-        amount.put("value", Math.round(request.amount().getAmount().doubleValue() * 100));
+        amount.put("value", value);
         amount.put("currency", request.amount().getCurrency());
         paymentRequest.put("amount", amount);
 
@@ -142,9 +144,8 @@ public class MobilepayClient {
         paymentRequest.put("customer", customer);
 
         // Other fields
-        String reference = String.join("-", config.getMerchantId(), config.getSystemName(), request.orderId());
-        paymentRequest.put("reference", reference);
-        paymentRequest.put("returnUrl", request.returnUrl());
+        paymentRequest.put("reference", "mp-" + request.orderId());
+        paymentRequest.put("returnUrl", request.returnUrl() + "?orderId=" + request.orderId());
         paymentRequest.put("userFlow", "WEB_REDIRECT");
 
         return paymentRequest;
@@ -211,6 +212,12 @@ public class MobilepayClient {
                             log.info("Webhook registered successfully");
                         }
                 );
+    }
+
+    protected String getWebhookSecret() {
+        return webhookRepository.findByProvider(PaymentProvider.MOBILEPAY)
+                .map(WebhookConfig::getSecret)
+                .orElseThrow(() -> new WebhookValidationException("Webhook secret not found", null));
     }
 
     @Transactional

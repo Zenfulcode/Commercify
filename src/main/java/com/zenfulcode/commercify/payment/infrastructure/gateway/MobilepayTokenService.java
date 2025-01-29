@@ -25,7 +25,7 @@ public class MobilepayTokenService {
         this.restTemplate = restTemplate;
         this.config = config;
     }
-
+    
     public String getAccessToken() {
         if (shouldRefreshToken()) {
             refreshAccessToken();

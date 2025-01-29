@@ -8,9 +8,11 @@ import com.zenfulcode.commercify.payment.domain.service.provider.MobilepayProvid
 import com.zenfulcode.commercify.payment.domain.valueobject.WebhookRequest;
 import com.zenfulcode.commercify.payment.domain.valueobject.webhook.MobilepayWebhookPayload;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MobilepayWebhookService {
@@ -23,9 +25,9 @@ public class MobilepayWebhookService {
 
         // TODO: Refactor this, it's bad practice
         if (service instanceof MobilepayProviderService mobilePayService) {
-            String contentSha256 = request.headers().get("Content-SHA256");
-            String authorization = request.headers().get("Authorization");
-            String date = request.headers().get("Date");
+            String contentSha256 = request.headers().get("x-ms-content-sha256");
+            String authorization = request.headers().get("authorization");
+            String date = request.headers().get("x-ms-date");
 
             mobilePayService.authenticateWebhook(date, contentSha256, authorization, request.body());
         }

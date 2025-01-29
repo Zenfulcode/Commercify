@@ -114,6 +114,6 @@ public class MobilepayProviderService implements PaymentProviderService {
     }
 
     public void authenticateWebhook(String date, String contentSha256, String authorization, String payload) {
-        mobilePayClient.validateWebhook(date, contentSha256, authorization, payload);
+        mobilePayClient.validateWebhook(contentSha256, authorization, date, payload);
     }
 }

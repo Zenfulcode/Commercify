@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 @Service
 @RequiredArgsConstructor
 public class DefaultOrderPricingStrategy implements OrderPricingStrategy {
+    //    TODO: Currency conversion
     private static final BigDecimal TAX_RATE = new BigDecimal("0.20"); // 20% tax
     private static final Money FREE_SHIPPING_THRESHOLD = Money.of(new BigDecimal("100"), "USD");
     private static final Money STANDARD_SHIPPING = Money.of(new BigDecimal("10"), "USD");
