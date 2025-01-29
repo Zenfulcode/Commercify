@@ -5,7 +5,7 @@ import com.zenfulcode.commercify.payment.domain.exception.WebhookValidationExcep
 import com.zenfulcode.commercify.payment.domain.model.PaymentProvider;
 import com.zenfulcode.commercify.payment.domain.model.WebhookConfig;
 import com.zenfulcode.commercify.payment.domain.repository.WebhookConfigRepository;
-import com.zenfulcode.commercify.payment.domain.valueobject.MobilepayWebhookResponse;
+import com.zenfulcode.commercify.payment.domain.valueobject.MobilepayWebhookRegistrationResponse;
 import com.zenfulcode.commercify.payment.infrastructure.gateway.MobilepayCreatePaymentRequest;
 import com.zenfulcode.commercify.payment.infrastructure.gateway.MobilepayPaymentResponse;
 import com.zenfulcode.commercify.payment.infrastructure.gateway.MobilepayTokenService;
@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import javax.crypto.Mac;
@@ -24,10 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor
@@ -39,6 +37,7 @@ public class MobilepayClient {
 
     private final MobilepayConfig config;
 
+    @Transactional
     public MobilepayPaymentResponse createPayment(MobilepayCreatePaymentRequest request) {
         try {
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(
@@ -63,6 +62,7 @@ public class MobilepayClient {
         }
     }
 
+    @Transactional
     public void validateWebhook(String contentSha256, String authorization, String date, String payload) {
         try {
 //            Verify content
@@ -106,12 +106,18 @@ public class MobilepayClient {
         }
     }
 
-    private HttpHeaders createHeaders() {
+    @Transactional
+    protected HttpHeaders createHeaders() {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
         headers.set("Authorization", "Bearer " + tokenService.getAccessToken());
         headers.set("Ocp-Apim-Subscription-Key", config.getSubscriptionKey());
         headers.set("Merchant-Serial-Number", config.getMerchantId());
+        headers.set("Vipps-System-Name", config.getSystemName());
+        headers.set("Vipps-System-Version", "1.0");
+        headers.set("Vipps-System-Plugin-Name", "commercify");
+        headers.set("Vipps-System-Plugin-Version", "1.0");
         headers.set("Idempotency-Key", UUID.randomUUID().toString());
         return headers;
     }
@@ -144,6 +150,7 @@ public class MobilepayClient {
         return paymentRequest;
     }
 
+    @Transactional
     public void registerWebhook(String callbackUrl) {
         HttpHeaders headers = createHeaders();
 
@@ -161,11 +168,11 @@ public class MobilepayClient {
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(request, headers);
 
         try {
-            ResponseEntity<MobilepayWebhookResponse> response = restTemplate.exchange(
+            ResponseEntity<MobilepayWebhookRegistrationResponse> response = restTemplate.exchange(
                     String.format("%s/webhooks/v1/webhooks", config.getApiUrl()),
                     HttpMethod.POST,
                     entity,
-                    MobilepayWebhookResponse.class
+                    MobilepayWebhookRegistrationResponse.class
             );
 
             if (response.getBody() == null) {
@@ -177,11 +184,13 @@ public class MobilepayClient {
 
             log.info("Webhook registration response: {}", response.getBody());
         } catch (Exception e) {
+            log.error("Error registering MobilePay webhook: {}", e.getMessage());
             throw new PaymentProcessingException("Failed to register webhook", e);
         }
     }
 
-    private void saveOrUpdateWebhook(String callbackUrl, String secret) {
+    @Transactional
+    protected void saveOrUpdateWebhook(String callbackUrl, String secret) {
         webhookRepository.findByProvider(PaymentProvider.MOBILEPAY)
                 .ifPresentOrElse(
                         config -> {
@@ -204,6 +213,7 @@ public class MobilepayClient {
                 );
     }
 
+    @Transactional
     public void deleteWebhook(String webhookId) {
         HttpHeaders headers = createHeaders();
         HttpEntity<Void> entity = new HttpEntity<>(headers);
@@ -222,6 +232,7 @@ public class MobilepayClient {
         }
     }
 
+    @Transactional
     public Object getWebhooks() {
         HttpHeaders headers = createHeaders();
         HttpEntity<Void> entity = new HttpEntity<>(headers);

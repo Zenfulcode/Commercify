@@ -30,6 +30,7 @@ public class MobilepayTokenService {
         if (shouldRefreshToken()) {
             refreshAccessToken();
         }
+
         return accessToken;
     }
 

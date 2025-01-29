@@ -10,12 +10,11 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "integration.payments.mobilepay")
 public class MobilepayConfig {
-    private String apiKey;
-    private String merchantId;
-    private String apiUrl;
     private String clientId;
+    private String merchantId;
     private String clientSecret;
     private String subscriptionKey;
+    private String apiUrl;
     private String systemName;
     private String host;
 }

@@ -1,6 +1,6 @@
 services:
   mysql:
-    image: mysql:8.0
+    image: mysql:9.1
     container_name: commercify-mysql
     environment:
       - MYSQL_DATABASE=commercifydb
@@ -40,10 +40,11 @@ services:
       - MOBILEPAY_SUBSCRIPTION_KEY=${MOBILEPAY_SUBSCRIPTION_KEY}
       - MOBILEPAY_API_URL=${MOBILEPAY_API_URL}
       - MOBILEPAY_SYSTEM_NAME=${MOBILEPAY_SYSTEM_NAME}
-      - MAIL_USERNAME=${MAIL_USERNAME}
-      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - MOBILEPAY_WEBHOOK_CALLBACK=${MOBILEPAY_WEBHOOK_CALLBACK}
       - MAIL_HOST=${MAIL_HOST}
       - MAIL_PORT=${MAIL_PORT}
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
     depends_on:
       mysql:
         condition: service_healthy
