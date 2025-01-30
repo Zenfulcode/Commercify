@@ -23,7 +23,6 @@ deploy/
 *.log
 
 # Environment files
-.env
 *.env
 
 # Documentation

@@ -42,7 +42,7 @@ public class SecurityConfig {
                                 "/api/v2/auth/**",
                                 "/api/v2/products/active",
                                 "/api/v2/products/{id}",
-                                "/api/v2/payments/mobilepay/callback").permitAll()
+                                "/api/v2/payments/webhooks/{provider}/callback").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

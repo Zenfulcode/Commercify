@@ -88,8 +88,8 @@ public class OrderDomainService {
         Money subtotal = pricingStrategy.calculateSubtotal(order);
         order.setSubtotal(subtotal);
 
-        Money shippingCost = pricingStrategy.calculateShippingCost(order);
-        order.setShippingCost(shippingCost);
+//        Money shippingCost = pricingStrategy.calculateShippingCost(order);
+//        order.setShippingCost(shippingCost);
 
         Money tax = pricingStrategy.calculateTax(order);
         order.setTax(tax);

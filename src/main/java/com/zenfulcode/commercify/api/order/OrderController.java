@@ -49,7 +49,7 @@ public class OrderController {
     @GetMapping("/{orderId}")
     public ResponseEntity<ApiResponse<OrderDetailsResponse>> getOrder(
             @PathVariable String orderId) {
-        OrderDetailsDTO order = orderApplicationService.getOrderById(OrderId.of(orderId));
+        OrderDetailsDTO order = orderApplicationService.getOrderDetailsById(OrderId.of(orderId));
         OrderDetailsResponse response = orderDtoMapper.toResponse(order);
         return ResponseEntity.ok(ApiResponse.success(response));
     }

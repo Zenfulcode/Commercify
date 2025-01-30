@@ -107,11 +107,15 @@ public class OrderApplicationService {
     }
 
     @Transactional(readOnly = true)
-    public OrderDetailsDTO getOrderById(OrderId orderId) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new OrderNotFoundException(orderId));
-
+    public OrderDetailsDTO getOrderDetailsById(OrderId orderId) {
+        Order order = getOrderById(orderId);
         return OrderDetailsDTO.fromOrder(order);
+    }
+
+    @Transactional(readOnly = true)
+    public Order getOrderById(OrderId orderId) {
+        return orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderNotFoundException(orderId));
     }
 
     @Transactional(readOnly = true)
