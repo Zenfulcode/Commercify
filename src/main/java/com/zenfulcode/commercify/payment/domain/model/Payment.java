@@ -4,6 +4,7 @@ import com.zenfulcode.commercify.order.domain.model.Order;
 import com.zenfulcode.commercify.payment.domain.event.*;
 import com.zenfulcode.commercify.payment.domain.valueobject.PaymentId;
 import com.zenfulcode.commercify.payment.domain.valueobject.PaymentStatus;
+import com.zenfulcode.commercify.payment.domain.valueobject.TransactionId;
 import com.zenfulcode.commercify.payment.domain.valueobject.refund.RefundReason;
 import com.zenfulcode.commercify.shared.domain.model.AggregateRoot;
 import com.zenfulcode.commercify.shared.domain.model.Money;
@@ -56,8 +57,8 @@ public class Payment extends AggregateRoot {
     @Column(name = "provider_reference")
     private String providerReference;
 
-    @Column(name = "transaction_id")
-    private String transactionId;
+    @Embedded
+    private TransactionId transactionId;
 
     @Column(name = "error_message")
     private String errorMessage;
@@ -103,7 +104,7 @@ public class Payment extends AggregateRoot {
     }
 
     // Domain methods
-    public void markAsCaptured(String transactionId, Money capturedAmount) {
+    public void markAsCaptured(TransactionId transactionId, Money capturedAmount) {
         PaymentStatus oldStatus = this.status;
 
         this.status = PaymentStatus.CAPTURED;
@@ -216,6 +217,26 @@ public class Payment extends AggregateRoot {
         if (!successful) {
             this.retryCount++;
         }
+    }
+
+    public void reserve() {
+        PaymentStatus oldStatus = this.status;
+
+        this.status = PaymentStatus.RESERVED;
+
+        registerEvent(new PaymentStatusChangedEvent(
+                this.id,
+                order.getId(),
+                oldStatus,
+                PaymentStatus.RESERVED,
+                null
+        ));
+
+        registerEvent(new PaymentReservedEvent(
+                this.id,
+                order.getId(),
+                transactionId
+        ));
     }
 
     @Embeddable

@@ -9,7 +9,10 @@ import com.zenfulcode.commercify.shared.interfaces.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v2/payments/admin")
@@ -21,10 +24,9 @@ public class PaymentAdminController {
 
     @PostMapping("/{paymentId}/capture")
     public ResponseEntity<ApiResponse<CapturedPayment>> capturePayment(
-            @PathVariable String paymentId,
-            @RequestBody String transactionId) {
+            @PathVariable String paymentId) {
 
-        CapturePaymentCommand command = paymentDtoMapper.toCaptureCommand(PaymentId.of(paymentId), transactionId);
+        CapturePaymentCommand command = paymentDtoMapper.toCaptureCommand(PaymentId.of(paymentId));
         CapturedPayment response = paymentService.capturePayment(command);
 
         return ResponseEntity.ok(ApiResponse.success(response));

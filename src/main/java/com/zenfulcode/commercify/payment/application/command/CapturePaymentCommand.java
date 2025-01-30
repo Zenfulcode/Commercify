@@ -5,7 +5,6 @@ import com.zenfulcode.commercify.shared.domain.model.Money;
 
 public record CapturePaymentCommand(
         PaymentId paymentId,
-        String transactionId,
         Money captureAmount
 ) {
 }
