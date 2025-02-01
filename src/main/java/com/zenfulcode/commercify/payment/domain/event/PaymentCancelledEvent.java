@@ -21,10 +21,12 @@ public class PaymentCancelledEvent extends DomainEvent {
     private final Instant cancelledAt;
 
     public PaymentCancelledEvent(
+            Object source,
             PaymentId paymentId,
             OrderId orderId,
             String reason
     ) {
+        super(source);
         this.paymentId = paymentId;
         this.orderId = orderId;
         this.reason = reason;

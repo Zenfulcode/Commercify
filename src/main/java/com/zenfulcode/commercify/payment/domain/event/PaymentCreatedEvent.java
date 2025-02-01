@@ -26,12 +26,14 @@ public class PaymentCreatedEvent extends DomainEvent {
     private final Instant createdAt;
 
     public PaymentCreatedEvent(
+            Object source,
             PaymentId paymentId,
             OrderId orderId,
             Money amount,
             PaymentMethod paymentMethod,
             PaymentProvider provider
     ) {
+        super(source);
         this.paymentId = paymentId;
         this.orderId = orderId;
         this.amount = amount;

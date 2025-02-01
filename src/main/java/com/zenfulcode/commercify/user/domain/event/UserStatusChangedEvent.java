@@ -17,10 +17,12 @@ public class UserStatusChangedEvent extends DomainEvent {
     private final Instant changedAt;
 
     public UserStatusChangedEvent(
+            Object source,
             UserId userId,
             UserStatus oldStatus,
             UserStatus newStatus
     ) {
+        super(source);
         this.userId = userId;
         this.oldStatus = oldStatus;
         this.newStatus = newStatus;

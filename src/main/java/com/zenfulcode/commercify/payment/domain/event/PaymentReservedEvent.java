@@ -12,7 +12,8 @@ public class PaymentReservedEvent extends DomainEvent {
     private final OrderId orderId;
     private final TransactionId transactionId;
 
-    public PaymentReservedEvent(PaymentId paymentId, OrderId orderId, TransactionId transactionId) {
+    public PaymentReservedEvent(Object source, PaymentId paymentId, OrderId orderId, TransactionId transactionId) {
+        super(source);
         this.paymentId = paymentId;
         this.orderId = orderId;
         this.transactionId = transactionId;

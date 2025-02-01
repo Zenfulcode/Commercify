@@ -12,7 +12,8 @@ public class StockCorrectionEvent extends DomainEvent {
     private final int quantity;
     private final String reason;
 
-    public StockCorrectionEvent(ProductId productId, int quantity, String reason) {
+    public StockCorrectionEvent(Object source, ProductId productId, int quantity, String reason) {
+        super(source);
         this.productId = productId;
         this.quantity = quantity;
         this.reason = reason;

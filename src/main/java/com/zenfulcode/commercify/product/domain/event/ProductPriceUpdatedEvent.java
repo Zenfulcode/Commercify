@@ -13,7 +13,8 @@ public class ProductPriceUpdatedEvent extends DomainEvent {
     private final ProductId productId;
     private final Money newPrice;
 
-    public ProductPriceUpdatedEvent(ProductId productId, Money newPrice) {
+    public ProductPriceUpdatedEvent(Object source, ProductId productId, Money newPrice) {
+        super(source);
         this.productId = productId;
         this.newPrice = newPrice;
     }

@@ -77,6 +77,7 @@ public class Product extends AggregateRoot {
 
         // Register domain event
         product.registerEvent(new ProductCreatedEvent(
+                product,
                 product.getId(),
                 product.getName(),
                 product.getPrice()
@@ -114,6 +115,7 @@ public class Product extends AggregateRoot {
         this.price = Objects.requireNonNull(newPrice, "Price cannot be null");
 
         registerEvent(new ProductPriceUpdatedEvent(
+                this,
                 id,
                 newPrice
         ));

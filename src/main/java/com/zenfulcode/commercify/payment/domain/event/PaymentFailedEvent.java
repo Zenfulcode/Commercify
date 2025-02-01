@@ -21,10 +21,12 @@ public class PaymentFailedEvent extends DomainEvent {
     private final Instant failedAt;
 
     public PaymentFailedEvent(
+            Object source,
             PaymentId paymentId,
             OrderId orderId,
             String errorMessage
     ) {
+        super(source);
         this.paymentId = paymentId;
         this.orderId = orderId;
         this.errorMessage = errorMessage;

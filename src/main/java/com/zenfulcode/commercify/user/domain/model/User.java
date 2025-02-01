@@ -90,6 +90,7 @@ public class User extends AggregateRoot {
 
         // Register domain event
         user.registerEvent(new UserCreatedEvent(
+                user,
                 user.getId(),
                 user.getEmail(),
                 user.getStatus()
@@ -125,6 +126,7 @@ public class User extends AggregateRoot {
         this.status = newStatus;
 
         registerEvent(new UserStatusChangedEvent(
+                this,
                 this.id,
                 oldStatus,
                 newStatus

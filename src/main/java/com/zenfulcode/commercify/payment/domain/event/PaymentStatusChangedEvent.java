@@ -26,12 +26,14 @@ public class PaymentStatusChangedEvent extends DomainEvent {
     private final Instant changedAt;
 
     public PaymentStatusChangedEvent(
+            Object source,
             PaymentId paymentId,
             OrderId orderId,
             PaymentStatus oldStatus,
             PaymentStatus newStatus,
             TransactionId transactionId
     ) {
+        super(source);
         this.paymentId = paymentId;
         this.orderId = orderId;
         this.oldStatus = oldStatus;

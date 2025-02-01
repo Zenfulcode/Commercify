@@ -17,8 +17,8 @@ import com.zenfulcode.commercify.payment.domain.valueobject.PaymentStatus;
 import com.zenfulcode.commercify.payment.domain.valueobject.TransactionId;
 import com.zenfulcode.commercify.payment.domain.valueobject.webhook.WebhookPayload;
 import com.zenfulcode.commercify.payment.infrastructure.webhook.WebhookHandler;
-import com.zenfulcode.commercify.shared.domain.event.DomainEventPublisher;
 import com.zenfulcode.commercify.shared.domain.model.Money;
+import com.zenfulcode.commercify.shared.domain.service.DefaultDomainEventPublisher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +30,7 @@ import java.math.BigDecimal;
 public class PaymentApplicationService {
     private final PaymentDomainService paymentDomainService;
     private final PaymentProviderFactory providerFactory;
-    private final DomainEventPublisher eventPublisher;
+    private final DefaultDomainEventPublisher eventPublisher;
     private final WebhookHandler webhookHandler;
     private final PaymentRepository paymentRepository;
 
