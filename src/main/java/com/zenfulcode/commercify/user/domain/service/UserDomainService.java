@@ -1,13 +1,16 @@
 package com.zenfulcode.commercify.user.domain.service;
 
-import com.zenfulcode.commercify.shared.domain.event.DomainEventPublisher;
 import com.zenfulcode.commercify.user.domain.exception.UserAlreadyExistsException;
+import com.zenfulcode.commercify.user.domain.exception.UserNotFoundException;
 import com.zenfulcode.commercify.user.domain.model.User;
 import com.zenfulcode.commercify.user.domain.model.UserStatus;
 import com.zenfulcode.commercify.user.domain.repository.UserRepository;
 import com.zenfulcode.commercify.user.domain.valueobject.UserDeletionValidation;
+import com.zenfulcode.commercify.user.domain.valueobject.UserId;
 import com.zenfulcode.commercify.user.domain.valueobject.UserSpecification;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +21,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserDomainService {
     private final UserValidationService validationService;
-    private final DomainEventPublisher eventPublisher;
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
 
@@ -44,9 +46,8 @@ public class UserDomainService {
         // Validate user
         validationService.validateCreateUser(user);
 
-        eventPublisher.publish(user.getDomainEvents());
-
-        return user;
+        // Save user
+        return userRepository.save(user);
     }
 
     /**
@@ -62,8 +63,7 @@ public class UserDomainService {
         }
 
         user.updateStatus(newStatus);
-
-        eventPublisher.publish(user.getDomainEvents());
+        userRepository.save(user);
     }
 
     /**
@@ -85,6 +85,7 @@ public class UserDomainService {
 
         // Validate updated user
         validationService.validateUpdateUser(user);
+        userRepository.save(user);
     }
 
     /**
@@ -96,8 +97,7 @@ public class UserDomainService {
 
         // Update password
         user.updatePassword(passwordEncoder.encode(newPassword));
-
-        eventPublisher.publish(user.getDomainEvents());
+        userRepository.save(user);
     }
 
     /**
@@ -138,5 +138,27 @@ public class UserDomainService {
             throw new IllegalStateException("Can only reactivate suspended users");
         }
         updateUserStatus(user, UserStatus.ACTIVE);
+    }
+
+    public User getUserById(UserId userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
+    }
+
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found with email", email));
+    }
+
+    public Page<User> getAllUsers(Pageable pageable) {
+        return userRepository.findAll(pageable);
+    }
+
+    public Page<User> getUsersByStatus(UserStatus userStatus, Pageable pageable) {
+        return userRepository.findByStatus(userStatus, pageable);
+    }
+
+    public boolean emailExists(String email) {
+        return userRepository.existsByEmail(email);
     }
 }

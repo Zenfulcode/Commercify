@@ -12,7 +12,8 @@ public class LargeStockIncreaseEvent extends DomainEvent {
     private final int quantity;
     private final String reason;
 
-    public LargeStockIncreaseEvent(ProductId productId, int quantity, String reason) {
+    public LargeStockIncreaseEvent(Object source, ProductId productId, int quantity, String reason) {
+        super(source);
         this.productId = productId;
         this.quantity = quantity;
         this.reason = reason;

@@ -24,11 +24,13 @@ public class PaymentCapturedEvent extends DomainEvent {
     private final Instant capturedAt;
 
     public PaymentCapturedEvent(
+            Object source,
             PaymentId paymentId,
             OrderId orderId,
             Money amount,
             TransactionId transactionId
     ) {
+        super(source);
         this.paymentId = paymentId;
         this.orderId = orderId;
         this.amount = amount;

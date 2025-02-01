@@ -4,11 +4,9 @@ import com.zenfulcode.commercify.shared.domain.event.DomainEventPublisher;
 import com.zenfulcode.commercify.user.application.command.CreateUserCommand;
 import com.zenfulcode.commercify.user.application.command.UpdateUserCommand;
 import com.zenfulcode.commercify.user.application.command.UpdateUserStatusCommand;
-import com.zenfulcode.commercify.user.domain.exception.UserNotFoundException;
 import com.zenfulcode.commercify.user.domain.model.User;
 import com.zenfulcode.commercify.user.domain.model.UserRole;
 import com.zenfulcode.commercify.user.domain.model.UserStatus;
-import com.zenfulcode.commercify.user.domain.repository.UserRepository;
 import com.zenfulcode.commercify.user.domain.service.UserDomainService;
 import com.zenfulcode.commercify.user.domain.valueobject.UserId;
 import com.zenfulcode.commercify.user.domain.valueobject.UserSpecification;
@@ -25,7 +23,6 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class UserApplicationService {
     private final UserDomainService userDomainService;
-    private final UserRepository userRepository;
     private final DomainEventPublisher eventPublisher;
     private final PasswordEncoder passwordEncoder;
 
@@ -50,13 +47,9 @@ public class UserApplicationService {
         // Create the user through domain service
         User user = userDomainService.createUser(userSpecification);
 
-        // Save the user
-        User savedUser = userRepository.save(user);
-
         // Publish domain events
         eventPublisher.publish(user.getDomainEvents());
-
-        return savedUser.getId();
+        return user.getId();
     }
 
     @Transactional
@@ -81,9 +74,6 @@ public class UserApplicationService {
         // Create user through domain service
         User user = userDomainService.createUser(spec);
 
-        // Save user
-        userRepository.save(user);
-
         // Publish domain event
         eventPublisher.publish(user.getDomainEvents());
     }
@@ -94,14 +84,10 @@ public class UserApplicationService {
     @Transactional
     public void updateUser(UpdateUserCommand command) {
         // Retrieve user
-        User user = userRepository.findById(command.userId())
-                .orElseThrow(() -> new UserNotFoundException(command.userId()));
+        User user = getUser(command.userId());
 
         // Update through domain service
         userDomainService.updateUserInfo(user, command.userSpec());
-
-        // Save changes
-        userRepository.save(user);
 
         // Publish events
         eventPublisher.publish(user.getDomainEvents());
@@ -112,11 +98,9 @@ public class UserApplicationService {
      */
     @Transactional
     public void updateUserStatus(UpdateUserStatusCommand command) {
-        User user = userRepository.findById(command.userId())
-                .orElseThrow(() -> new UserNotFoundException(command.userId()));
+        User user = userDomainService.getUserById(command.userId());
 
         userDomainService.updateUserStatus(user, command.newStatus());
-        userRepository.save(user);
         eventPublisher.publish(user.getDomainEvents());
     }
 
@@ -141,8 +125,7 @@ public class UserApplicationService {
      */
     @Transactional(readOnly = true)
     public User getUser(UserId userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(userId));
+        return userDomainService.getUserById(userId);
     }
 
     /**
@@ -150,8 +133,7 @@ public class UserApplicationService {
      */
     @Transactional(readOnly = true)
     public User getUserByEmail(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
+        return userDomainService.getUserByEmail(email);
     }
 
     /**
@@ -159,7 +141,7 @@ public class UserApplicationService {
      */
     @Transactional(readOnly = true)
     public Page<User> getAllUsers(Pageable pageable) {
-        return userRepository.findAll(pageable);
+        return userDomainService.getAllUsers(pageable);
     }
 
     /**
@@ -167,7 +149,7 @@ public class UserApplicationService {
      */
     @Transactional(readOnly = true)
     public Page<User> getActiveUsers(Pageable pageable) {
-        return userRepository.findByStatus(UserStatus.ACTIVE, pageable);
+        return userDomainService.getUsersByStatus(UserStatus.ACTIVE, pageable);
     }
 
     /**
@@ -175,7 +157,7 @@ public class UserApplicationService {
      */
     @Transactional(readOnly = true)
     public boolean emailExists(String email) {
-        return userRepository.existsByEmail(email);
+        return userDomainService.emailExists(email);
     }
 
     /**
@@ -194,7 +176,6 @@ public class UserApplicationService {
         String hashedPassword = passwordEncoder.encode(newPassword);
         userDomainService.changePassword(user, hashedPassword);
 
-        userRepository.save(user);
         eventPublisher.publish(user.getDomainEvents());
     }
 
@@ -208,7 +189,6 @@ public class UserApplicationService {
         String hashedPassword = passwordEncoder.encode(newPassword);
         userDomainService.changePassword(user, hashedPassword);
 
-        userRepository.save(user);
         eventPublisher.publish(user.getDomainEvents());
     }
 }

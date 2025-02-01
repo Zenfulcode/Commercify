@@ -13,7 +13,8 @@ public class ProductCreatedEvent extends DomainEvent {
     private final String name;
     private final Money price;
 
-    public ProductCreatedEvent(ProductId productId, String name, Money price) {
+    public ProductCreatedEvent(Object source, ProductId productId, String name, Money price) {
+        super(source);
         this.productId = productId;
         this.name = name;
         this.price = price;

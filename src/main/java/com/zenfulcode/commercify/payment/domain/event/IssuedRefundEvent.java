@@ -26,6 +26,7 @@ public class IssuedRefundEvent extends DomainEvent {
     private final Instant refundedAt;
 
     public IssuedRefundEvent(
+            Object source,
             PaymentId paymentId,
             OrderId orderId,
             Money refundAmount,
@@ -33,6 +34,7 @@ public class IssuedRefundEvent extends DomainEvent {
             String notes,
             boolean isFullRefund
     ) {
+        super(source);
         this.paymentId = paymentId;
         this.orderId = orderId;
         this.refundAmount = refundAmount;

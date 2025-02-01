@@ -105,21 +105,13 @@ public class Payment extends AggregateRoot {
 
     // Domain methods
     public void markAsCaptured(TransactionId transactionId, Money capturedAmount) {
-        PaymentStatus oldStatus = this.status;
-
-        this.status = PaymentStatus.CAPTURED;
         this.transactionId = transactionId;
         this.completedAt = Instant.now();
 
-        registerEvent(new PaymentStatusChangedEvent(
-                this.id,
-                order.getId(),
-                oldStatus,
-                PaymentStatus.CAPTURED,
-                transactionId
-        ));
+        updateStatus(PaymentStatus.CAPTURED);
 
         registerEvent(new PaymentCapturedEvent(
+                this,
                 id,
                 order.getId(),
                 capturedAmount,
@@ -128,21 +120,13 @@ public class Payment extends AggregateRoot {
     }
 
     public void markAsFailed(String reason) {
-        PaymentStatus oldStatus = this.status;
-
-        this.status = PaymentStatus.FAILED;
         this.errorMessage = reason;
         recordPaymentAttempt(false, reason);
 
-        registerEvent(new PaymentStatusChangedEvent(
-                this.id,
-                order.getId(),
-                oldStatus,
-                PaymentStatus.FAILED,
-                null
-        ));
+        updateStatus(PaymentStatus.FAILED);
 
         registerEvent(new PaymentFailedEvent(
+                this,
                 this.id,
                 order.getId(),
                 reason
@@ -150,24 +134,15 @@ public class Payment extends AggregateRoot {
     }
 
     public void processRefund(Money refundAmount, RefundReason reason, String notes) {
-        PaymentStatus oldStatus = this.status;
-
         // For full refunds
         if (refundAmount.equals(this.amount)) {
-            this.status = PaymentStatus.REFUNDED;
+            updateStatus(PaymentStatus.REFUNDED);
         } else {
-            this.status = PaymentStatus.PARTIALLY_REFUNDED;
+            updateStatus(PaymentStatus.PARTIALLY_REFUNDED);
         }
 
-        registerEvent(new PaymentStatusChangedEvent(
-                this.id,
-                order.getId(),
-                oldStatus,
-                this.status,
-                null
-        ));
-
         registerEvent(new IssuedRefundEvent(
+                this,
                 this.id,
                 order.getId(),
                 refundAmount,
@@ -178,19 +153,10 @@ public class Payment extends AggregateRoot {
     }
 
     public void cancel() {
-        PaymentStatus oldStatus = this.status;
-
-        this.status = PaymentStatus.CANCELLED;
-
-        registerEvent(new PaymentStatusChangedEvent(
-                this.id,
-                order.getId(),
-                oldStatus,
-                PaymentStatus.CANCELLED,
-                null
-        ));
+        updateStatus(PaymentStatus.CANCELLED);
 
         registerEvent(new PaymentCancelledEvent(
+                this,
                 this.id,
                 order.getId(),
                 "Payment cancelled"
@@ -220,22 +186,27 @@ public class Payment extends AggregateRoot {
     }
 
     public void reserve() {
-        PaymentStatus oldStatus = this.status;
-
-        this.status = PaymentStatus.RESERVED;
-
-        registerEvent(new PaymentStatusChangedEvent(
-                this.id,
-                order.getId(),
-                oldStatus,
-                PaymentStatus.RESERVED,
-                null
-        ));
+        updateStatus(PaymentStatus.RESERVED);
 
         registerEvent(new PaymentReservedEvent(
+                this,
                 this.id,
                 order.getId(),
                 transactionId
+        ));
+    }
+
+    private void updateStatus(PaymentStatus newStatus) {
+        PaymentStatus oldStatus = this.status;
+        this.status = newStatus;
+
+        registerEvent(new PaymentStatusChangedEvent(
+                this,
+                this.id,
+                order.getId(),
+                oldStatus,
+                status,
+                null
         ));
     }
 

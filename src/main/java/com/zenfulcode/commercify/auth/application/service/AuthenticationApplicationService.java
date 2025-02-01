@@ -39,7 +39,7 @@ public class AuthenticationApplicationService {
         // Publish domain event
         User user = userRepository.findByEmail(email)
                 .orElseThrow(); // User must exist at this point
-        eventPublisher.publish(new UserAuthenticatedEvent(user.getId(), email));
+        eventPublisher.publish(new UserAuthenticatedEvent(this, user.getId(), email));
 
         return new AuthenticationResult(accessToken, refreshToken, authenticatedUser);
     }

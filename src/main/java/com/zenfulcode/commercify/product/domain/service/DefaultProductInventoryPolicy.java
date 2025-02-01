@@ -20,7 +20,7 @@ public class DefaultProductInventoryPolicy implements ProductInventoryPolicy {
     @Override
     public void initializeInventory(Product product) {
         if (product.getStock() <= REORDER_THRESHOLD) {
-            eventPublisher.publish(new LowStockEvent(product.getId(), product.getStock()));
+            eventPublisher.publish(new LowStockEvent(this, product.getId(), product.getStock()));
         }
     }
 
@@ -28,6 +28,7 @@ public class DefaultProductInventoryPolicy implements ProductInventoryPolicy {
     public void handleStockIncrease(Product product, InventoryAdjustment adjustment) {
         if (adjustment.quantity() > 100) {
             eventPublisher.publish(new LargeStockIncreaseEvent(
+                    this,
                     product.getId(),
                     adjustment.quantity(),
                     adjustment.reason()
@@ -38,13 +39,14 @@ public class DefaultProductInventoryPolicy implements ProductInventoryPolicy {
     @Override
     public void handleStockDecrease(Product product, InventoryAdjustment adjustment) {
         if (product.getStock() <= LOW_STOCK_THRESHOLD) {
-            eventPublisher.publish(new LowStockEvent(product.getId(), product.getStock()));
+            eventPublisher.publish(new LowStockEvent(this, product.getId(), product.getStock()));
         }
     }
 
     @Override
     public void handleStockCorrection(Product product, InventoryAdjustment adjustment) {
         eventPublisher.publish(new StockCorrectionEvent(
+                this,
                 product.getId(),
                 adjustment.quantity(),
                 adjustment.reason()

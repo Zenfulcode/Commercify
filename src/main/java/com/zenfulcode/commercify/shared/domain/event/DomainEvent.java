@@ -1,21 +1,32 @@
 package com.zenfulcode.commercify.shared.domain.event;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
+import org.springframework.context.ApplicationEvent;
 
 import java.time.Instant;
 import java.util.UUID;
 
 @Getter
-public abstract class DomainEvent {
+public abstract class DomainEvent extends ApplicationEvent {
     private final String eventId;
-    private final Instant occurredOn;
+    private final long occurredOn;
     private final String eventType;
-    private final int version;
 
-    protected DomainEvent() {
+    protected DomainEvent(Object source) {
+        super(source);
         this.eventId = UUID.randomUUID().toString();
-        this.occurredOn = Instant.now();
+        this.occurredOn = getTimestamp();
         this.eventType = this.getClass().getSimpleName();
-        this.version = 1;
+    }
+
+    @Override
+    @JsonIgnore
+    public Object getSource() {
+        return super.getSource();
+    }
+
+    public Instant getOccurredOn() {
+        return Instant.ofEpochMilli(occurredOn);
     }
 }

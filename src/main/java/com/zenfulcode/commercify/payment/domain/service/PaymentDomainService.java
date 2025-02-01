@@ -39,6 +39,7 @@ public class PaymentDomainService {
         payment.setOrder(order);
 
         payment.registerEvent(new PaymentCreatedEvent(
+                this,
                 payment.getId(),
                 payment.getOrder().getId(),
                 payment.getAmount(),

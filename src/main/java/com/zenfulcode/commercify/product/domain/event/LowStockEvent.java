@@ -11,7 +11,8 @@ public class LowStockEvent extends DomainEvent {
     private final ProductId productId;
     private final int stockAmount;
 
-    public LowStockEvent(ProductId productId, int stockAmount) {
+    public LowStockEvent(Object source, ProductId productId, int stockAmount) {
+        super(source);
         this.productId = productId;
         this.stockAmount = stockAmount;
     }

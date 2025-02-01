@@ -70,19 +70,19 @@ public class OrderApplicationService {
                 variants
         );
 
-        // Save and publish events
-        Order savedOrder = orderRepository.save(order);
-        eventPublisher.publish(savedOrder.getDomainEvents());
-        return savedOrder.getId();
+        // publish events
+        eventPublisher.publish(order.getDomainEvents());
+
+        return order.getId();
     }
 
     @Transactional
     public void updateOrderStatus(UpdateOrderStatusCommand command) {
-        Order order = orderRepository.findById(command.orderId())
-                .orElseThrow(() -> new OrderNotFoundException(command.orderId()));
+        Order order = orderDomainService.getOrderById(command.orderId());
 
         orderDomainService.updateOrderStatus(order, command.newStatus());
-        orderRepository.save(order);
+
+        // Save and publish events
         eventPublisher.publish(order.getDomainEvents());
     }
 
@@ -92,8 +92,6 @@ public class OrderApplicationService {
                 .orElseThrow(() -> new OrderNotFoundException(command.orderId()));
 
         orderDomainService.updateOrderStatus(order, OrderStatus.CANCELLED);
-        orderRepository.save(order);
-        eventPublisher.publish(order.getDomainEvents());
     }
 
     @Transactional(readOnly = true)

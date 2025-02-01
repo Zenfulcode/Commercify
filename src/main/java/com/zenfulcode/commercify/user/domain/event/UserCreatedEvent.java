@@ -13,7 +13,8 @@ public class UserCreatedEvent extends DomainEvent {
     private final String email;
     private final UserStatus status;
 
-    public UserCreatedEvent(UserId userId, String email, UserStatus status) {
+    public UserCreatedEvent(Object source, UserId userId, String email, UserStatus status) {
+        super(source);
         this.userId = userId;
         this.email = email;
         this.status = status;

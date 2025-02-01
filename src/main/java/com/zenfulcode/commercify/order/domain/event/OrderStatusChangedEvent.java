@@ -17,10 +17,12 @@ public class OrderStatusChangedEvent extends DomainEvent {
     private final Instant changedAt;
 
     public OrderStatusChangedEvent(
+            Object source,
             OrderId orderId,
             OrderStatus oldStatus,
             OrderStatus newStatus
     ) {
+        super(source);
         this.orderId = orderId;
         this.oldStatus = oldStatus;
         this.newStatus = newStatus;

@@ -97,6 +97,7 @@ public class Order extends AggregateRoot {
 
         // Register domain event
         order.registerEvent(new OrderCreatedEvent(
+                order,
                 order.getId(),
                 userId,
                 order.getCurrency()
@@ -122,6 +123,7 @@ public class Order extends AggregateRoot {
         this.status = newStatus;
 
         registerEvent(new OrderStatusChangedEvent(
+                this,
                 this.id,
                 oldStatus,
                 newStatus

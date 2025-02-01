@@ -1,17 +1,20 @@
 package com.zenfulcode.commercify.order.domain.service;
 
+import com.zenfulcode.commercify.order.domain.exception.OrderNotFoundException;
 import com.zenfulcode.commercify.order.domain.model.Order;
 import com.zenfulcode.commercify.order.domain.model.OrderLine;
 import com.zenfulcode.commercify.order.domain.model.OrderShippingInfo;
 import com.zenfulcode.commercify.order.domain.model.OrderStatus;
+import com.zenfulcode.commercify.order.domain.repository.OrderRepository;
 import com.zenfulcode.commercify.order.domain.valueobject.OrderDetails;
+import com.zenfulcode.commercify.order.domain.valueobject.OrderId;
 import com.zenfulcode.commercify.order.domain.valueobject.OrderLineDetails;
 import com.zenfulcode.commercify.product.domain.model.Product;
 import com.zenfulcode.commercify.product.domain.model.ProductVariant;
 import com.zenfulcode.commercify.product.domain.valueobject.ProductId;
 import com.zenfulcode.commercify.shared.domain.model.Money;
-import com.zenfulcode.commercify.user.application.service.UserApplicationService;
 import com.zenfulcode.commercify.user.domain.model.User;
+import com.zenfulcode.commercify.user.domain.service.UserDomainService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,7 +28,10 @@ import java.util.stream.Collectors;
 public class OrderDomainService {
     private final OrderPricingStrategy pricingStrategy;
     private final OrderValidationService validationService;
-    private final UserApplicationService userApplicationService;
+
+    private final OrderRepository orderRepository;
+
+    private final UserDomainService userDomainService;
 
     public Order createOrder(OrderDetails orderDetails, List<Product> products, List<ProductVariant> variants) {
         // Create order with shipping info
@@ -35,7 +41,7 @@ public class OrderDomainService {
                 orderDetails.billingAddress()
         );
 
-        User customer = userApplicationService.getUser(orderDetails.customerId());
+        User customer = userDomainService.getUserById(orderDetails.customerId());
 
         Order order = Order.create(
                 customer.getId(),
@@ -81,6 +87,8 @@ public class OrderDomainService {
         // Using validationService for order validation
         validationService.validateCreateOrder(order);
 
+        orderRepository.save(order);
+
         return order;
     }
 
@@ -95,6 +103,7 @@ public class OrderDomainService {
         order.setTax(tax);
 
         order.updateTotal();
+        orderRepository.save(order);
     }
 
     public void updateOrderStatus(Order order, OrderStatus newStatus) {
@@ -108,5 +117,11 @@ public class OrderDomainService {
         }
 
         order.updateStatus(newStatus);
+        orderRepository.save(order);
+    }
+
+    public Order getOrderById(OrderId orderId) {
+        return orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderNotFoundException(orderId));
     }
 }

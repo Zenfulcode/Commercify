@@ -11,7 +11,8 @@ public class UserAuthenticatedEvent extends DomainEvent {
     private final UserId userId;
     private final String username;
 
-    public UserAuthenticatedEvent(UserId userId, String username) {
+    public UserAuthenticatedEvent(Object source, UserId userId, String username) {
+        super(source);
         this.userId = userId;
         this.username = username;
     }

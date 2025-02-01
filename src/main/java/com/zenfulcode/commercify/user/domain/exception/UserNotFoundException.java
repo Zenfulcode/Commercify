@@ -13,8 +13,8 @@ public class UserNotFoundException extends DomainException {
         this.identifier = userId;
     }
 
-    public UserNotFoundException(String message) {
-        super(message);
-        this.identifier = null;
+    public UserNotFoundException(String message, String identifier) {
+        super(message + ": " + identifier);
+        this.identifier = identifier;
     }
 }

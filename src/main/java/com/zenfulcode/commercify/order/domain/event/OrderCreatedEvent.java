@@ -16,7 +16,8 @@ public class OrderCreatedEvent extends DomainEvent {
     private final String currency;
     private final Instant createdAt;
 
-    public OrderCreatedEvent(OrderId orderId, UserId userId, String currency) {
+    public OrderCreatedEvent(Object source, OrderId orderId, UserId userId, String currency) {
+        super(source);
         this.orderId = orderId;
         this.userId = userId;
         this.currency = currency;
