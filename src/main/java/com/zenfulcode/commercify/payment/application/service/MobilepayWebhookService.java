@@ -27,14 +27,7 @@ public class MobilepayWebhookService {
         String date = request.headers().get("x-ms-date");
 
         paymentProvider.authenticateWebhook(date, contentSha256, authorization, request.body());
-
-        log.info("Authenticated webhook");
-
-        WebhookPayload payload = mapper.toWebhookPayload(request);
-
-        log.info("Authenticated webhook: {}", payload);
-
-        return payload;
+        return mapper.toWebhookPayload(request);
     }
 
     @Transactional

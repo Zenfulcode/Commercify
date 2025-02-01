@@ -2,6 +2,7 @@ package com.zenfulcode.commercify.payment.domain.service.provider;
 
 import com.zenfulcode.commercify.order.domain.valueobject.OrderId;
 import com.zenfulcode.commercify.payment.domain.exception.PaymentValidationException;
+import com.zenfulcode.commercify.payment.domain.exception.WebhookProcessingException;
 import com.zenfulcode.commercify.payment.domain.model.Payment;
 import com.zenfulcode.commercify.payment.domain.model.PaymentMethod;
 import com.zenfulcode.commercify.payment.domain.model.PaymentProvider;
@@ -17,6 +18,7 @@ import com.zenfulcode.commercify.shared.domain.model.Money;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -52,6 +54,7 @@ public class MobilepayProviderService implements PaymentProviderService {
     }
 
     @Override
+    @Transactional
     public void handleCallback(Payment payment, WebhookPayload payload) {
         MobilepayWebhookPayload webhookPayload = (MobilepayWebhookPayload) payload;
 
@@ -59,7 +62,7 @@ public class MobilepayProviderService implements PaymentProviderService {
 
         if (!webhookPayload.isValid()) {
             log.error("Invalid webhook payload: {}", webhookPayload);
-            return;
+            throw new WebhookProcessingException("Invalid webhook payload");
         }
 
         switch (payload.getEventType()) {
@@ -69,7 +72,7 @@ public class MobilepayProviderService implements PaymentProviderService {
             case "AUTHORIZED":
                 paymentService.authorizePayment(payment);
                 break;
-            case "ABORTED", "CANCELLED":
+            case "ABORTED", "CANCELLED": // ABORTED = When user clicks cancel in checkout
                 paymentService.cancelPayment(payment);
                 break;
             case "EXPIRED":
@@ -127,21 +130,24 @@ public class MobilepayProviderService implements PaymentProviderService {
         return getSupportedPaymentMethods().contains(method);
     }
 
+    @Transactional
     public void registerWebhook(String callbackUrl) {
         mobilePayClient.registerWebhook(callbackUrl);
     }
 
-    @Override
+    @Transactional
     public void deleteWebhook(String webhookId) {
         mobilePayClient.deleteWebhook(webhookId);
     }
 
-    @Override
+    @Transactional
     public Object getWebhooks() {
         return mobilePayClient.getWebhooks();
     }
 
+    @Transactional
     public void authenticateWebhook(String date, String contentSha256, String authorization, String payload) {
+        log.info("Authenticating MobilePay webhook");
         mobilePayClient.validateWebhook(contentSha256, authorization, date, payload);
     }
 }

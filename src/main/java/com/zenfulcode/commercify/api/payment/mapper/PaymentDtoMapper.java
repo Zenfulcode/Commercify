@@ -1,5 +1,6 @@
 package com.zenfulcode.commercify.api.payment.mapper;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zenfulcode.commercify.api.payment.request.InitiatePaymentRequest;
 import com.zenfulcode.commercify.api.payment.request.PaymentDetailsRequest;
@@ -10,6 +11,7 @@ import com.zenfulcode.commercify.payment.application.command.CapturePaymentComma
 import com.zenfulcode.commercify.payment.application.command.InitiatePaymentCommand;
 import com.zenfulcode.commercify.payment.application.dto.InitializedPayment;
 import com.zenfulcode.commercify.payment.application.service.PaymentApplicationService;
+import com.zenfulcode.commercify.payment.domain.exception.WebhookProcessingException;
 import com.zenfulcode.commercify.payment.domain.model.PaymentMethod;
 import com.zenfulcode.commercify.payment.domain.valueobject.MobilepayPaymentRequest;
 import com.zenfulcode.commercify.payment.domain.valueobject.PaymentId;
@@ -25,7 +27,7 @@ import org.springframework.stereotype.Component;
 public class PaymentDtoMapper {
     private final PaymentApplicationService paymentService;
     private final OrderApplicationService orderService;
-    private final ObjectMapper jacksonObjectMapper;
+    private final ObjectMapper objectMapper;
 
     public InitiatePaymentCommand toCommand(InitiatePaymentRequest request) {
         Order order = orderService.getOrderById(request.orderId());
@@ -48,7 +50,11 @@ public class PaymentDtoMapper {
 
     //    TODO: Make more generic to support other providers
     public WebhookPayload toWebhookPayload(WebhookRequest request) {
-        return jacksonObjectMapper.convertValue(request.body(), MobilepayWebhookPayload.class);
+        try {
+            return objectMapper.readValue(request.body(), MobilepayWebhookPayload.class);
+        } catch (JsonProcessingException e) {
+            throw new WebhookProcessingException(e.getMessage());
+        }
     }
 
     public CapturePaymentCommand toCaptureCommand(PaymentId paymentId) {

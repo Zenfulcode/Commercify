@@ -38,10 +38,17 @@ public class PaymentWebhookController {
                 .headers(extractHeaders(request))
                 .build();
 
-        WebhookPayload payload = webhookService.authenticate(paymentProvider, webhookRequest);
-        paymentService.handlePaymentCallback(paymentProvider, payload);
+        log.info("Handling webhook callback for provider: {}", provider);
 
-        return ResponseEntity.ok(ApiResponse.success("Webhook processed successfully"));
+        try {
+            WebhookPayload payload = webhookService.authenticate(paymentProvider, webhookRequest);
+            paymentService.handlePaymentCallback(paymentProvider, payload);
+
+            return ResponseEntity.ok(ApiResponse.success("Webhook processed successfully"));
+        } catch (Exception e) {
+            log.error("Error handling webhook callback", e);
+            return ResponseEntity.badRequest().body(ApiResponse.error("Error handling webhook callback", "SERVER_ERROR", 500));
+        }
     }
 
     @PreAuthorize("hasRole('ADMIN')")

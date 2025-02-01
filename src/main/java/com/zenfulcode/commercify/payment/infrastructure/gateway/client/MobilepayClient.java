@@ -14,7 +14,6 @@ import com.zenfulcode.commercify.payment.infrastructure.gateway.config.Mobilepay
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -28,8 +27,6 @@ import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 @Component
 @RequiredArgsConstructor
@@ -67,7 +64,7 @@ public class MobilepayClient {
         }
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public void validateWebhook(String contentSha256, String authorization, String date, String payload) {
         try {
 //            Verify content
@@ -77,7 +74,7 @@ public class MobilepayClient {
             String encodedHash = Base64.getEncoder().encodeToString(hash);
 
             if (!encodedHash.equals(contentSha256)) {
-                throw new WebhookProcessingException("Hash mismatch");
+                throw new SecurityException("Hash mismatch");
             }
 
             log.info("Content verified");
@@ -85,11 +82,14 @@ public class MobilepayClient {
 //            Verify signature
             log.info("Verifying signature");
             URI uri = new URI(config.getWebhookCallback());
-            String expectedSignedString = String.format("POST\n%s\n%s;%s;%s", uri.getPath(), date, uri.getHost(), contentSha256);
 
-            CompletableFuture<byte[]> secretByteArray = getWebhookSecret().thenApply(s -> s.getBytes(StandardCharsets.UTF_8));
-            SecretKeySpec secretKey = new SecretKeySpec(secretByteArray.get(), "HmacSHA256");
+            String expectedSignedString = String.format("POST\n%s\n%s;%s;%s", uri.getPath(), date, uri.getHost(), encodedHash);
+
             Mac hmacSha256 = Mac.getInstance("HmacSHA256");
+
+            byte[] secretByteArray = getWebhookSecret().getBytes(StandardCharsets.UTF_8);
+
+            SecretKeySpec secretKey = new SecretKeySpec(secretByteArray, "HmacSHA256");
             hmacSha256.init(secretKey);
 
             byte[] hmacSha256Bytes = hmacSha256.doFinal(expectedSignedString.getBytes(StandardCharsets.UTF_8));
@@ -97,13 +97,13 @@ public class MobilepayClient {
             String expectedAuthorization = String.format("HMAC-SHA256 SignedHeaders=x-ms-date;host;x-ms-content-sha256&Signature=%s", expectedSignature);
 
             if (!authorization.equals(expectedAuthorization)) {
-                throw new WebhookProcessingException("Signature mismatch");
+                throw new SecurityException("Signature mismatch");
             }
 
             log.info("Signature verified");
         } catch (NoSuchAlgorithmException e) {
             throw new WebhookProcessingException("SHA-256 algorithm not found");
-        } catch (InvalidKeyException | URISyntaxException | InterruptedException | ExecutionException e) {
+        } catch (InvalidKeyException | URISyntaxException e) {
             throw new WebhookProcessingException(e.getMessage());
         }
     }
@@ -232,18 +232,10 @@ public class MobilepayClient {
         }
     }
 
-    @Async
-    protected CompletableFuture<String> getWebhookSecret() {
-        try {
-            final String secret = webhookRepository.findByProvider(PaymentProvider.MOBILEPAY)
-                    .map(WebhookConfig::getSecret)
-                    .orElseThrow(() -> new PaymentProcessingException("Webhook secret not found", null));
-
-            return CompletableFuture.completedFuture(secret);
-        } catch (Exception e) {
-            log.error("Error getting webhook secret: {}", e.getMessage());
-            return CompletableFuture.failedFuture(e);
-        }
+    protected String getWebhookSecret() {
+        return webhookRepository.findByProvider(PaymentProvider.MOBILEPAY)
+                .map(WebhookConfig::getSecret)
+                .orElseThrow(() -> new PaymentProcessingException("Webhook secret not found", null));
     }
 
     @Transactional
