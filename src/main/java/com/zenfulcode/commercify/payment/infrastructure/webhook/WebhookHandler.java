@@ -1,5 +1,6 @@
 package com.zenfulcode.commercify.payment.infrastructure.webhook;
 
+import com.zenfulcode.commercify.payment.domain.model.Payment;
 import com.zenfulcode.commercify.payment.domain.model.PaymentProvider;
 import com.zenfulcode.commercify.payment.domain.service.PaymentProviderFactory;
 import com.zenfulcode.commercify.payment.domain.service.PaymentProviderService;
@@ -12,8 +13,8 @@ import org.springframework.stereotype.Component;
 public class WebhookHandler {
     private final PaymentProviderFactory providerFactory;
 
-    public void handleWebhook(PaymentProvider provider, WebhookPayload payload) {
+    public void handleWebhook(PaymentProvider provider, WebhookPayload payload, Payment payment) {
         PaymentProviderService service = providerFactory.getProvider(provider);
-        service.handleCallback(payload);
+        service.handleCallback(payment, payload);
     }
 }

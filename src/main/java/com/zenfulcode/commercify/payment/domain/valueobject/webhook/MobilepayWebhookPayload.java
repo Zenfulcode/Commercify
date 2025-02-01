@@ -33,7 +33,7 @@ public record MobilepayWebhookPayload(
         return reference != null && name != null;
     }
 
-    record MobilepayAmount(
+    public record MobilepayAmount(
             String currency,
             long value
     ) {

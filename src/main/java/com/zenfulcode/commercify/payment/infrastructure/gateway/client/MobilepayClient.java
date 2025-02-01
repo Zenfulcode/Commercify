@@ -1,6 +1,7 @@
 package com.zenfulcode.commercify.payment.infrastructure.gateway.client;
 
 import com.zenfulcode.commercify.payment.domain.exception.PaymentProcessingException;
+import com.zenfulcode.commercify.payment.domain.exception.WebhookProcessingException;
 import com.zenfulcode.commercify.payment.domain.exception.WebhookValidationException;
 import com.zenfulcode.commercify.payment.domain.model.PaymentProvider;
 import com.zenfulcode.commercify.payment.domain.model.WebhookConfig;
@@ -63,7 +64,7 @@ public class MobilepayClient {
         }
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public void validateWebhook(String contentSha256, String authorization, String date, String payload) {
         try {
 //            Verify content
@@ -81,12 +82,14 @@ public class MobilepayClient {
 //            Verify signature
             log.info("Verifying signature");
             URI uri = new URI(config.getWebhookCallback());
-            String expectedSignedString = String.format("POST\n%s\n%s;%s;%s", uri.getPath(), date, uri.getHost(), contentSha256);
 
-            String secret = getWebhookSecret();
-            byte[] secretByteArray = secret.getBytes(StandardCharsets.UTF_8);
-            SecretKeySpec secretKey = new SecretKeySpec(secretByteArray, "HmacSHA256");
+            String expectedSignedString = String.format("POST\n%s\n%s;%s;%s", uri.getPath(), date, uri.getHost(), encodedHash);
+
             Mac hmacSha256 = Mac.getInstance("HmacSHA256");
+
+            byte[] secretByteArray = getWebhookSecret().getBytes(StandardCharsets.UTF_8);
+
+            SecretKeySpec secretKey = new SecretKeySpec(secretByteArray, "HmacSHA256");
             hmacSha256.init(secretKey);
 
             byte[] hmacSha256Bytes = hmacSha256.doFinal(expectedSignedString.getBytes(StandardCharsets.UTF_8));
@@ -99,9 +102,9 @@ public class MobilepayClient {
 
             log.info("Signature verified");
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("SHA-256 algorithm not found", e);
+            throw new WebhookProcessingException("SHA-256 algorithm not found");
         } catch (InvalidKeyException | URISyntaxException e) {
-            throw new RuntimeException(e);
+            throw new WebhookProcessingException(e.getMessage());
         }
     }
 
@@ -111,8 +114,8 @@ public class MobilepayClient {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
         headers.set("Authorization", "Bearer " + tokenService.getAccessToken());
-        headers.set("Ocp-Apim-Subscription-Key", config.getSubscriptionKey());
         headers.set("Merchant-Serial-Number", config.getMerchantId());
+        headers.set("Ocp-Apim-Subscription-Key", config.getSubscriptionKey());
         headers.set("Vipps-System-Name", config.getSystemName());
         headers.set("Vipps-System-Version", "1.0");
         headers.set("Vipps-System-Plugin-Name", "commercify");
@@ -190,6 +193,51 @@ public class MobilepayClient {
         }
     }
 
+
+    @Transactional
+    public void deleteWebhook(String webhookId) {
+        HttpHeaders headers = createHeaders();
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+        try {
+            restTemplate.exchange(
+                    String.format("%s/webhooks/v1/webhooks/%s", config.getApiUrl(), webhookId),
+                    HttpMethod.DELETE,
+                    entity,
+                    Object.class);
+
+            log.info("Webhook deleted successfully: {}", webhookId);
+        } catch (Exception e) {
+            log.error("Error deleting MobilePay webhook: {}", e.getMessage());
+            throw new WebhookProcessingException("Failed to delete MobilePay webhook");
+        }
+    }
+
+    @Transactional
+    public Object getWebhooks() {
+        HttpHeaders headers = createHeaders();
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<Object> response = restTemplate.exchange(
+                    String.format("%s/webhooks/v1/webhooks", config.getApiUrl()),
+                    HttpMethod.GET,
+                    entity,
+                    Object.class);
+
+            return response.getBody();
+        } catch (Exception e) {
+            log.error("Error getting MobilePay webhooks: {}", e.getMessage());
+            throw new WebhookProcessingException("Failed to get MobilePay webhooks");
+        }
+    }
+
+    protected String getWebhookSecret() {
+        return webhookRepository.findByProvider(PaymentProvider.MOBILEPAY)
+                .map(WebhookConfig::getSecret)
+                .orElseThrow(() -> new PaymentProcessingException("Webhook secret not found", null));
+    }
+
     @Transactional
     protected void saveOrUpdateWebhook(String callbackUrl, String secret) {
         webhookRepository.findByProvider(PaymentProvider.MOBILEPAY)
@@ -212,49 +260,5 @@ public class MobilepayClient {
                             log.info("Webhook registered successfully");
                         }
                 );
-    }
-
-    protected String getWebhookSecret() {
-        return webhookRepository.findByProvider(PaymentProvider.MOBILEPAY)
-                .map(WebhookConfig::getSecret)
-                .orElseThrow(() -> new WebhookValidationException("Webhook secret not found", null));
-    }
-
-    @Transactional
-    public void deleteWebhook(String webhookId) {
-        HttpHeaders headers = createHeaders();
-        HttpEntity<Void> entity = new HttpEntity<>(headers);
-
-        try {
-            restTemplate.exchange(
-                    String.format("%s/webhooks/v1/webhooks/%s", config.getApiUrl(), webhookId),
-                    HttpMethod.DELETE,
-                    entity,
-                    Object.class);
-
-            log.info("Webhook deleted successfully: {}", webhookId);
-        } catch (Exception e) {
-            log.error("Error deleting MobilePay webhook: {}", e.getMessage());
-            throw new RuntimeException("Failed to delete MobilePay webhook", e);
-        }
-    }
-
-    @Transactional
-    public Object getWebhooks() {
-        HttpHeaders headers = createHeaders();
-        HttpEntity<Void> entity = new HttpEntity<>(headers);
-
-        try {
-            ResponseEntity<Object> response = restTemplate.exchange(
-                    String.format("%s/webhooks/v1/webhooks", config.getApiUrl()),
-                    HttpMethod.GET,
-                    entity,
-                    Object.class);
-
-            return response.getBody();
-        } catch (Exception e) {
-            log.error("Error getting MobilePay webhooks: {}", e.getMessage());
-            throw new RuntimeException("Failed to get MobilePay webhooks", e);
-        }
     }
 }

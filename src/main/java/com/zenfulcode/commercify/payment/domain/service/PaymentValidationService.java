@@ -94,7 +94,7 @@ public class PaymentValidationService {
      * Validates payment status transition
      */
     public void validateStatusTransition(Payment payment, PaymentStatus newStatus) {
-        if (stateFlow.canTransitionTo(payment.getStatus(), newStatus)) {
+        if (!stateFlow.canTransitionTo(payment.getStatus(), newStatus)) {
             throw new InvalidPaymentStateException(
                     payment.getId(),
                     payment.getStatus(),

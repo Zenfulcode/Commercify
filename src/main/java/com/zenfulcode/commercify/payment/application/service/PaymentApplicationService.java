@@ -5,13 +5,16 @@ import com.zenfulcode.commercify.payment.application.command.InitiatePaymentComm
 import com.zenfulcode.commercify.payment.application.dto.CaptureAmount;
 import com.zenfulcode.commercify.payment.application.dto.CapturedPayment;
 import com.zenfulcode.commercify.payment.application.dto.InitializedPayment;
+import com.zenfulcode.commercify.payment.domain.exception.PaymentProviderNotFoundException;
 import com.zenfulcode.commercify.payment.domain.model.Payment;
 import com.zenfulcode.commercify.payment.domain.model.PaymentProvider;
+import com.zenfulcode.commercify.payment.domain.repository.PaymentRepository;
 import com.zenfulcode.commercify.payment.domain.service.PaymentDomainService;
 import com.zenfulcode.commercify.payment.domain.service.PaymentProviderFactory;
 import com.zenfulcode.commercify.payment.domain.service.PaymentProviderService;
 import com.zenfulcode.commercify.payment.domain.valueobject.PaymentProviderResponse;
 import com.zenfulcode.commercify.payment.domain.valueobject.PaymentStatus;
+import com.zenfulcode.commercify.payment.domain.valueobject.TransactionId;
 import com.zenfulcode.commercify.payment.domain.valueobject.webhook.WebhookPayload;
 import com.zenfulcode.commercify.payment.infrastructure.webhook.WebhookHandler;
 import com.zenfulcode.commercify.shared.domain.event.DomainEventPublisher;
@@ -29,6 +32,7 @@ public class PaymentApplicationService {
     private final PaymentProviderFactory providerFactory;
     private final DomainEventPublisher eventPublisher;
     private final WebhookHandler webhookHandler;
+    private final PaymentRepository paymentRepository;
 
     @Transactional
     public InitializedPayment initiatePayment(InitiatePaymentCommand command) {
@@ -55,6 +59,8 @@ public class PaymentApplicationService {
         // Update payment with provider reference
         payment.updateProviderReference(providerResponse.providerReference());
 
+        paymentRepository.save(payment);
+
         // Publish events
         eventPublisher.publish(payment.getDomainEvents());
 
@@ -68,7 +74,9 @@ public class PaymentApplicationService {
 
     @Transactional
     public void handlePaymentCallback(PaymentProvider provider, WebhookPayload payload) {
-        webhookHandler.handleWebhook(provider, payload);
+        Payment payment = paymentDomainService.getPaymentByProviderReference(payload.getPaymentReference());
+        webhookHandler.handleWebhook(provider, payload, payment);
+        paymentRepository.save(payment);
     }
 
     // TODO: Make sure the capture currency is the same as the payment currency
@@ -78,7 +86,8 @@ public class PaymentApplicationService {
 
         Money captureAmount = command.captureAmount() == null ? payment.getAmount() : command.captureAmount();
 
-        paymentDomainService.capturePayment(payment, command.transactionId(), captureAmount);
+        paymentDomainService.capturePayment(payment, TransactionId.generate(), captureAmount);
+        paymentRepository.save(payment);
 
         // Publish events
         eventPublisher.publish(payment.getDomainEvents());
@@ -89,5 +98,13 @@ public class PaymentApplicationService {
         boolean isFullyCaptured = payment.getStatus() == PaymentStatus.CAPTURED;
 
         return new CapturedPayment(payment.getTransactionId(), captureAmountDto, isFullyCaptured);
+    }
+
+    public PaymentProvider getPaymentProvider(String provider) {
+        try {
+            return PaymentProvider.valueOf(provider.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new PaymentProviderNotFoundException(provider);
+        }
     }
 }

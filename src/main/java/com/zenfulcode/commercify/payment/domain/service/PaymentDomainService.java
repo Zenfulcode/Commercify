@@ -9,6 +9,7 @@ import com.zenfulcode.commercify.payment.domain.model.PaymentProvider;
 import com.zenfulcode.commercify.payment.domain.repository.PaymentRepository;
 import com.zenfulcode.commercify.payment.domain.valueobject.PaymentId;
 import com.zenfulcode.commercify.payment.domain.valueobject.PaymentStatus;
+import com.zenfulcode.commercify.payment.domain.valueobject.TransactionId;
 import com.zenfulcode.commercify.payment.domain.valueobject.refund.RefundRequest;
 import com.zenfulcode.commercify.shared.domain.event.DomainEventPublisher;
 import com.zenfulcode.commercify.shared.domain.model.Money;
@@ -51,7 +52,7 @@ public class PaymentDomainService {
     /**
      * Processes a successful payment capture
      */
-    public void capturePayment(Payment payment, String transactionId, Money capturedAmount) {
+    public void capturePayment(Payment payment, TransactionId transactionId, Money capturedAmount) {
         validationService.validatePaymentCapture(payment, capturedAmount);
 
         payment.markAsCaptured(transactionId, capturedAmount);
@@ -64,8 +65,12 @@ public class PaymentDomainService {
      * Handles payment failures
      */
     public void failPayment(Payment payment, String failureReason) {
+        failPayment(payment, failureReason, PaymentStatus.FAILED);
+    }
+
+    public void failPayment(Payment payment, String failureReason, PaymentStatus status) {
         // Validate current state
-        validationService.validateStatusTransition(payment, PaymentStatus.FAILED);
+        validationService.validateStatusTransition(payment, status);
 
         payment.markAsFailed(failureReason);
 
@@ -109,5 +114,18 @@ public class PaymentDomainService {
     public Payment getPaymentById(PaymentId paymentId) {
         return paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new PaymentNotFoundException(paymentId));
+    }
+
+    public Payment getPaymentByProviderReference(String providerReference) {
+        return paymentRepository.findByProviderReference(providerReference)
+                .orElseThrow(() -> new PaymentNotFoundException(providerReference));
+    }
+
+    public void authorizePayment(Payment payment) {
+        validationService.validateStatusTransition(payment, PaymentStatus.RESERVED);
+
+        payment.reserve();
+
+        eventPublisher.publish(payment.getDomainEvents());
     }
 }

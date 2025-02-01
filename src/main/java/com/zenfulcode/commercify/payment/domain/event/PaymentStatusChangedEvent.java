@@ -1,8 +1,9 @@
 package com.zenfulcode.commercify.payment.domain.event;
 
 import com.zenfulcode.commercify.order.domain.valueobject.OrderId;
-import com.zenfulcode.commercify.payment.domain.valueobject.PaymentStatus;
 import com.zenfulcode.commercify.payment.domain.valueobject.PaymentId;
+import com.zenfulcode.commercify.payment.domain.valueobject.PaymentStatus;
+import com.zenfulcode.commercify.payment.domain.valueobject.TransactionId;
 import com.zenfulcode.commercify.shared.domain.event.DomainEvent;
 import com.zenfulcode.commercify.shared.domain.valueobject.AggregateId;
 import lombok.Getter;
@@ -20,7 +21,8 @@ public class PaymentStatusChangedEvent extends DomainEvent {
     private final OrderId orderId;
     private final PaymentStatus oldStatus;
     private final PaymentStatus newStatus;
-    private final String transactionId;
+    @AggregateId
+    private final TransactionId transactionId;
     private final Instant changedAt;
 
     public PaymentStatusChangedEvent(
@@ -28,7 +30,7 @@ public class PaymentStatusChangedEvent extends DomainEvent {
             OrderId orderId,
             PaymentStatus oldStatus,
             PaymentStatus newStatus,
-            String transactionId
+            TransactionId transactionId
     ) {
         this.paymentId = paymentId;
         this.orderId = orderId;

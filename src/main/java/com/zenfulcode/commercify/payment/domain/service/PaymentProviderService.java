@@ -22,7 +22,7 @@ public interface PaymentProviderService {
     /**
      * Handle provider webhook callbacks
      */
-    void handleCallback(WebhookPayload payload);
+    void handleCallback(Payment payment, WebhookPayload payload);
 
     /**
      * Get supported payment methods
