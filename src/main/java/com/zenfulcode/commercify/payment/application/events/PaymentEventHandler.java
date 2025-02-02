@@ -8,6 +8,7 @@ import com.zenfulcode.commercify.payment.domain.event.PaymentCancelledEvent;
 import com.zenfulcode.commercify.payment.domain.event.PaymentCapturedEvent;
 import com.zenfulcode.commercify.payment.domain.event.PaymentFailedEvent;
 import com.zenfulcode.commercify.payment.domain.event.PaymentReservedEvent;
+import com.zenfulcode.commercify.payment.domain.model.FailureReason;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
