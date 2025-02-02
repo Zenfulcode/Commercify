@@ -113,7 +113,7 @@ public class OrderShippingInfo {
 
     public Address toBillingAddress() {
         if (!hasBillingAddress()) {
-            return null;
+            return toShippingAddress();
         }
         return new Address(
                 billingStreet,

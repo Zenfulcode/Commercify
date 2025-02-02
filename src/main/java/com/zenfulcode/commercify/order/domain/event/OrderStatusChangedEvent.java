@@ -34,6 +34,10 @@ public class OrderStatusChangedEvent extends DomainEvent {
         return "ORDER_STATUS_CHANGED";
     }
 
+    public boolean isPaidTransition() {
+        return newStatus == OrderStatus.PAID;
+    }
+
     public boolean isCompletedTransition() {
         return newStatus == OrderStatus.COMPLETED;
     }
