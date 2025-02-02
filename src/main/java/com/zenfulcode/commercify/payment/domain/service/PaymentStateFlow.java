@@ -13,13 +13,7 @@ public class PaymentStateFlow {
 
     public PaymentStateFlow() {
         this.validTransitions = new EnumMap<>(PaymentStatus.class);
-        initializeStateTransitions();
-    }
 
-    /**
-     * Initialize valid state transitions
-     */
-    private void initializeStateTransitions() {
         // Initial state -> PENDING
         validTransitions.put(PaymentStatus.PENDING, Set.of(
                 PaymentStatus.FAILED,
@@ -27,7 +21,6 @@ public class PaymentStateFlow {
                 PaymentStatus.CANCELLED
         ));
 
-        // RESERVED/PAID -> RESERVED or CANCELLED
         validTransitions.put(PaymentStatus.RESERVED, Set.of(
                 PaymentStatus.CAPTURED,
                 PaymentStatus.EXPIRED,
@@ -36,6 +29,7 @@ public class PaymentStateFlow {
                 PaymentStatus.REFUNDED
         ));
 
+        // TODO: Unsure about this one
         // CAPTURED -> REFUNDED or PARTIALLY_REFUNDED
         validTransitions.put(PaymentStatus.CAPTURED, Set.of(
                 PaymentStatus.REFUNDED,
@@ -59,6 +53,7 @@ public class PaymentStateFlow {
         validTransitions.put(PaymentStatus.EXPIRED, Set.of());
     }
 
+
     /**
      * Check if a state transition is valid
      */
@@ -78,7 +73,7 @@ public class PaymentStateFlow {
      * Check if a state is terminal
      */
     public boolean isTerminalState(PaymentStatus state) {
-        return state.isTerminalState();
+        return validTransitions.get(state).isEmpty();
     }
 
     /**
