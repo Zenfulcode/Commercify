@@ -1,10 +1,10 @@
 package com.zenfulcode.commercify.shared.interfaces.rest.exception;
 
 import com.zenfulcode.commercify.shared.domain.exception.DomainException;
+import com.zenfulcode.commercify.shared.domain.exception.DomainValidationException;
 import com.zenfulcode.commercify.shared.domain.exception.EntityNotFoundException;
 import com.zenfulcode.commercify.shared.interfaces.ApiResponse;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -25,16 +25,17 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(response);
     }
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ExceptionHandler(DomainValidationException.class)
     public ResponseEntity<ApiResponse<Void>> handleValidationException(
-            MethodArgumentNotValidException ex) {
-        List<ApiResponse.ValidationError> validationErrors = ex.getBindingResult()
-                .getFieldErrors()
+            DomainValidationException ex) {
+        List<ApiResponse.ValidationError> validationErrors = ex.getViolations()
                 .stream()
-                .map(error -> new ApiResponse.ValidationError(
-                        error.getField(),
-                        error.getDefaultMessage()
-                ))
+                .map(error ->
+                        new ApiResponse.ValidationError(
+                                error,
+                                "VALIDATION_ERROR"
+                        )
+                )
                 .collect(Collectors.toList());
 
         ApiResponse<Void> response = ApiResponse.validationError(validationErrors);

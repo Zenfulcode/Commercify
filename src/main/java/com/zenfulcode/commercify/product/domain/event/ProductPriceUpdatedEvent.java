@@ -18,4 +18,9 @@ public class ProductPriceUpdatedEvent extends DomainEvent {
         this.productId = productId;
         this.newPrice = newPrice;
     }
+
+    @Override
+    public String getEventType() {
+        return "PRODUCT_PRICE_UPDATED";
+    }
 }

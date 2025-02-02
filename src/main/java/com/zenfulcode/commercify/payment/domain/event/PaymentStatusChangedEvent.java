@@ -49,4 +49,9 @@ public class PaymentStatusChangedEvent extends DomainEvent {
     public boolean isFailedTransition() {
         return newStatus == PaymentStatus.FAILED;
     }
+
+    @Override
+    public String getEventType() {
+        return "PAYMENT_STATUS_CHANGED";
+    }
 }

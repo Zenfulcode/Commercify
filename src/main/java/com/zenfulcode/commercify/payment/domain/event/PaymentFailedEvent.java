@@ -37,4 +37,9 @@ public class PaymentFailedEvent extends DomainEvent {
         this.status = status;
         this.failedAt = Instant.now();
     }
+
+    @Override
+    public String getEventType() {
+        return "PAYMENT_FAILED";
+    }
 }

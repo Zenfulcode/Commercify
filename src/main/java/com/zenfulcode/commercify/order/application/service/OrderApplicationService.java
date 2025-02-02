@@ -6,17 +6,15 @@ import com.zenfulcode.commercify.order.application.command.UpdateOrderStatusComm
 import com.zenfulcode.commercify.order.application.dto.OrderDetailsDTO;
 import com.zenfulcode.commercify.order.application.query.FindAllOrdersQuery;
 import com.zenfulcode.commercify.order.application.query.FindOrdersByUserIdQuery;
-import com.zenfulcode.commercify.order.domain.exception.OrderNotFoundException;
 import com.zenfulcode.commercify.order.domain.model.Order;
 import com.zenfulcode.commercify.order.domain.model.OrderStatus;
-import com.zenfulcode.commercify.order.domain.repository.OrderRepository;
 import com.zenfulcode.commercify.order.domain.service.OrderDomainService;
 import com.zenfulcode.commercify.order.domain.valueobject.OrderDetails;
 import com.zenfulcode.commercify.order.domain.valueobject.OrderId;
 import com.zenfulcode.commercify.order.domain.valueobject.OrderLineDetails;
+import com.zenfulcode.commercify.product.application.service.ProductApplicationService;
 import com.zenfulcode.commercify.product.domain.model.Product;
 import com.zenfulcode.commercify.product.domain.model.ProductVariant;
-import com.zenfulcode.commercify.product.domain.repository.ProductRepository;
 import com.zenfulcode.commercify.product.domain.valueobject.ProductId;
 import com.zenfulcode.commercify.product.domain.valueobject.VariantId;
 import com.zenfulcode.commercify.shared.domain.event.DomainEventPublisher;
@@ -34,9 +32,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class OrderApplicationService {
     private final OrderDomainService orderDomainService;
-    private final OrderRepository orderRepository;
-    private final ProductRepository productRepository;
     private final DomainEventPublisher eventPublisher;
+    private final ProductApplicationService productApplicationService;
 
     @Transactional
     public OrderId createOrder(CreateOrderCommand command) {
@@ -46,7 +43,7 @@ public class OrderApplicationService {
                 .map(OrderLineDetails::productId)
                 .collect(Collectors.toList());
 
-        List<Product> products = productRepository.findAllById(productIds);
+        List<Product> products = productApplicationService.findAllProducts(productIds);
 
         List<VariantId> variantIds = command.orderLines()
                 .stream()
@@ -54,7 +51,7 @@ public class OrderApplicationService {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
-        List<ProductVariant> variants = productRepository.findVariantsByIds(variantIds);
+        List<ProductVariant> variants = productApplicationService.findVariantsByIds(variantIds);
 
         // Create order through domain service
         Order order = orderDomainService.createOrder(
@@ -89,18 +86,17 @@ public class OrderApplicationService {
     public void cancelOrder(CancelOrderCommand command) {
         Order order = orderDomainService.getOrderById(command.orderId());
         orderDomainService.updateOrderStatus(order, OrderStatus.CANCELLED);
-
         eventPublisher.publish(order.getDomainEvents());
     }
 
     @Transactional(readOnly = true)
     public Page<Order> findOrdersByUserId(FindOrdersByUserIdQuery query) {
-        return orderRepository.findByUserId(query.userId(), query.pageRequest());
+        return orderDomainService.findOrdersByUserId(query);
     }
 
     @Transactional(readOnly = true)
     public Page<Order> findAllOrders(FindAllOrdersQuery query) {
-        return orderRepository.findAll(query.pageRequest());
+        return orderDomainService.findAllOrders(query);
     }
 
     @Transactional(readOnly = true)
@@ -111,12 +107,11 @@ public class OrderApplicationService {
 
     @Transactional(readOnly = true)
     public Order getOrderById(OrderId orderId) {
-        return orderRepository.findById(orderId)
-                .orElseThrow(() -> new OrderNotFoundException(orderId));
+        return orderDomainService.getOrderById(orderId);
     }
 
     @Transactional(readOnly = true)
     public boolean isOrderOwnedByUser(OrderId orderId, UserId userId) {
-        return orderRepository.existsByIdAndUserId(orderId, userId);
+        return orderDomainService.isOrderOwnedByUser(orderId, userId);
     }
 }

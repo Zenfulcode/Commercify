@@ -1,5 +1,7 @@
 package com.zenfulcode.commercify.order.domain.service;
 
+import com.zenfulcode.commercify.order.application.query.FindAllOrdersQuery;
+import com.zenfulcode.commercify.order.application.query.FindOrdersByUserIdQuery;
 import com.zenfulcode.commercify.order.domain.exception.OrderNotFoundException;
 import com.zenfulcode.commercify.order.domain.model.Order;
 import com.zenfulcode.commercify.order.domain.model.OrderLine;
@@ -15,7 +17,9 @@ import com.zenfulcode.commercify.product.domain.valueobject.ProductId;
 import com.zenfulcode.commercify.shared.domain.model.Money;
 import com.zenfulcode.commercify.user.domain.model.User;
 import com.zenfulcode.commercify.user.domain.service.UserDomainService;
+import com.zenfulcode.commercify.user.domain.valueobject.UserId;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -117,5 +121,17 @@ public class OrderDomainService {
     public Order getOrderById(OrderId orderId) {
         return orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderNotFoundException(orderId));
+    }
+
+    public Page<Order> findOrdersByUserId(FindOrdersByUserIdQuery query) {
+        return orderRepository.findByUserId(query.userId(), query.pageRequest());
+    }
+
+    public Page<Order> findAllOrders(FindAllOrdersQuery query) {
+        return orderRepository.findAll(query.pageRequest());
+    }
+
+    public boolean isOrderOwnedByUser(OrderId orderId, UserId userId) {
+        return orderRepository.existsByIdAndUserId(orderId, userId);
     }
 }

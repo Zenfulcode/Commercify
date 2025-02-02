@@ -5,18 +5,19 @@ import com.zenfulcode.commercify.product.application.query.ProductQuery;
 import com.zenfulcode.commercify.product.domain.exception.ProductDeletionException;
 import com.zenfulcode.commercify.product.domain.exception.ProductNotFoundException;
 import com.zenfulcode.commercify.product.domain.model.Product;
+import com.zenfulcode.commercify.product.domain.model.ProductVariant;
 import com.zenfulcode.commercify.product.domain.repository.ProductRepository;
 import com.zenfulcode.commercify.product.domain.service.ProductDomainService;
-import com.zenfulcode.commercify.product.domain.valueobject.InventoryAdjustment;
-import com.zenfulcode.commercify.product.domain.valueobject.ProductDeletionValidation;
-import com.zenfulcode.commercify.product.domain.valueobject.ProductId;
-import com.zenfulcode.commercify.product.domain.valueobject.ProductSpecification;
+import com.zenfulcode.commercify.product.domain.valueobject.*;
 import com.zenfulcode.commercify.shared.domain.event.DomainEventPublisher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collection;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -149,6 +150,11 @@ public class ProductApplicationService {
         eventPublisher.publish(product.getDomainEvents());
     }
 
+    @Transactional(readOnly = true)
+    public List<Product> findAllProducts(Collection<ProductId> productIds) {
+        return productRepository.findAllById(productIds);
+    }
+
     /**
      * Queries for products
      */
@@ -166,5 +172,10 @@ public class ProductApplicationService {
     public Product getProduct(ProductId productId) {
         return productRepository.findById(productId)
                 .orElseThrow(() -> new ProductNotFoundException(productId));
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProductVariant> findVariantsByIds(List<VariantId> variantIds) {
+        return productRepository.findVariantsByIds(variantIds);
     }
 }

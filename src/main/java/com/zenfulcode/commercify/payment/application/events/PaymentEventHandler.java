@@ -1,5 +1,6 @@
 package com.zenfulcode.commercify.payment.application.events;
 
+import com.zenfulcode.commercify.order.application.command.CancelOrderCommand;
 import com.zenfulcode.commercify.order.application.command.UpdateOrderStatusCommand;
 import com.zenfulcode.commercify.order.application.service.OrderApplicationService;
 import com.zenfulcode.commercify.order.domain.model.OrderStatus;
@@ -25,9 +26,19 @@ public class PaymentEventHandler {
     public void handlePaymentCancelled(PaymentCancelledEvent event) {
         log.info("Handling payment cancelled event for orderId: {}", event.getOrderId());
 
+        CancelOrderCommand command = new CancelOrderCommand(event.getOrderId());
+
+        orderApplicationService.cancelOrder(command);
+    }
+
+    @EventListener
+    @Transactional
+    public void handlePaymentCaptured(PaymentCapturedEvent event) {
+        log.info("Handling payment captured event for orderId: {}", event.getOrderId());
+
         UpdateOrderStatusCommand command = new UpdateOrderStatusCommand(
                 event.getOrderId(),
-                OrderStatus.CANCELLED
+                OrderStatus.COMPLETED
         );
 
         orderApplicationService.updateOrderStatus(command);
@@ -54,19 +65,6 @@ public class PaymentEventHandler {
         UpdateOrderStatusCommand command = new UpdateOrderStatusCommand(
                 event.getOrderId(),
                 mapFailureReasonToOrderStatus(event.getFailureReason())
-        );
-
-        orderApplicationService.updateOrderStatus(command);
-    }
-
-    @EventListener
-    @Transactional
-    public void handlePaymentCaptured(PaymentCapturedEvent event) {
-        log.info("Handling payment captured event for orderId: {}", event.getOrderId());
-
-        UpdateOrderStatusCommand command = new UpdateOrderStatusCommand(
-                event.getOrderId(),
-                OrderStatus.COMPLETED
         );
 
         orderApplicationService.updateOrderStatus(command);

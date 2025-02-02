@@ -19,4 +19,8 @@ public class PaymentReservedEvent extends DomainEvent {
         this.transactionId = transactionId;
     }
 
+    @Override
+    public String getEventType() {
+        return "PAYMENT_RESERVED";
+    }
 }

@@ -19,4 +19,9 @@ public class ProductCreatedEvent extends DomainEvent {
         this.name = name;
         this.price = price;
     }
+
+    @Override
+    public String getEventType() {
+        return "PRODUCT_CREATED";
+    }
 }

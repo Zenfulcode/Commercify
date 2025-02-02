@@ -17,4 +17,8 @@ public class LowStockEvent extends DomainEvent {
         this.stockAmount = stockAmount;
     }
 
+    @Override
+    public String getEventType() {
+        return "LOW_STOCK";
+    }
 }

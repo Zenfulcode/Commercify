@@ -18,5 +18,4 @@ public enum FailureReason {
     FailureReason(String reason) {
         this.reason = reason;
     }
-
 }

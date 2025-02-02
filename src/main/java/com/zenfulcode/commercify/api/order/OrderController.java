@@ -1,20 +1,17 @@
 package com.zenfulcode.commercify.api.order;
 
 import com.zenfulcode.commercify.api.order.dto.request.CreateOrderRequest;
-import com.zenfulcode.commercify.api.order.dto.request.UpdateOrderStatusRequest;
 import com.zenfulcode.commercify.api.order.dto.response.CreateOrderResponse;
 import com.zenfulcode.commercify.api.order.dto.response.OrderDetailsResponse;
 import com.zenfulcode.commercify.api.order.dto.response.PagedOrderResponse;
 import com.zenfulcode.commercify.api.order.mapper.OrderDtoMapper;
 import com.zenfulcode.commercify.order.application.command.CancelOrderCommand;
 import com.zenfulcode.commercify.order.application.command.CreateOrderCommand;
-import com.zenfulcode.commercify.order.application.command.UpdateOrderStatusCommand;
 import com.zenfulcode.commercify.order.application.dto.OrderDetailsDTO;
 import com.zenfulcode.commercify.order.application.query.FindAllOrdersQuery;
 import com.zenfulcode.commercify.order.application.query.FindOrdersByUserIdQuery;
 import com.zenfulcode.commercify.order.application.service.OrderApplicationService;
 import com.zenfulcode.commercify.order.domain.model.Order;
-import com.zenfulcode.commercify.order.domain.model.OrderStatus;
 import com.zenfulcode.commercify.order.domain.valueobject.OrderId;
 import com.zenfulcode.commercify.shared.interfaces.ApiResponse;
 import com.zenfulcode.commercify.user.domain.valueobject.UserId;
@@ -81,21 +78,6 @@ public class OrderController {
         Page<Order> orders = orderApplicationService.findAllOrders(query);
         PagedOrderResponse response = orderDtoMapper.toPagedResponse(orders);
         return ResponseEntity.ok(ApiResponse.success(response));
-    }
-
-    @PutMapping("/{orderId}/status")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<String>> updateOrderStatus(
-            @PathVariable String orderId,
-            @RequestBody UpdateOrderStatusRequest request) {
-
-        UpdateOrderStatusCommand command = new UpdateOrderStatusCommand(
-                OrderId.of(orderId),
-                OrderStatus.valueOf(request.status())
-        );
-
-        orderApplicationService.updateOrderStatus(command);
-        return ResponseEntity.ok(ApiResponse.success("Order status updated successfully"));
     }
 
     @DeleteMapping("/{orderId}")

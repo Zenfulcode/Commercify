@@ -37,4 +37,9 @@ public class PaymentCapturedEvent extends DomainEvent {
         this.transactionId = transactionId;
         this.capturedAt = Instant.now();
     }
+
+    @Override
+    public String getEventType() {
+        return "PAYMENT_CAPTURED";
+    }
 }
