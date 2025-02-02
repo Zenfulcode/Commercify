@@ -119,17 +119,18 @@ public class Payment extends AggregateRoot {
         ));
     }
 
-    public void markAsFailed(String reason) {
-        this.errorMessage = reason;
-        recordPaymentAttempt(false, reason);
+    public void markAsFailed(FailureReason reason, PaymentStatus status) {
+        this.errorMessage = reason.getReason();
+        recordPaymentAttempt(false, reason.getReason());
 
-        updateStatus(PaymentStatus.FAILED);
+        updateStatus(status);
 
         registerEvent(new PaymentFailedEvent(
                 this,
                 this.id,
                 order.getId(),
-                reason
+                reason,
+                status
         ));
     }
 

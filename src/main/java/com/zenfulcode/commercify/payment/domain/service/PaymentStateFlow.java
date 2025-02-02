@@ -18,11 +18,12 @@ public class PaymentStateFlow {
         validTransitions.put(PaymentStatus.PENDING, Set.of(
                 PaymentStatus.FAILED,
                 PaymentStatus.RESERVED,
-                PaymentStatus.CANCELLED
+                PaymentStatus.TERMINATED
         ));
 
         validTransitions.put(PaymentStatus.RESERVED, Set.of(
                 PaymentStatus.CAPTURED,
+                PaymentStatus.CANCELLED,
                 PaymentStatus.EXPIRED,
                 PaymentStatus.FAILED,
                 PaymentStatus.PARTIALLY_REFUNDED,
@@ -36,12 +37,6 @@ public class PaymentStateFlow {
                 PaymentStatus.PARTIALLY_REFUNDED
         ));
 
-        // FAILED -> Can retry (go back to PENDING) or CANCELLED
-        validTransitions.put(PaymentStatus.FAILED, Set.of(
-                PaymentStatus.PENDING,
-                PaymentStatus.CANCELLED
-        ));
-
         // PARTIALLY_REFUNDED -> REFUNDED
         validTransitions.put(PaymentStatus.PARTIALLY_REFUNDED, Set.of(
                 PaymentStatus.REFUNDED
@@ -51,6 +46,8 @@ public class PaymentStateFlow {
         validTransitions.put(PaymentStatus.REFUNDED, Set.of());
         validTransitions.put(PaymentStatus.CANCELLED, Set.of());
         validTransitions.put(PaymentStatus.EXPIRED, Set.of());
+        validTransitions.put(PaymentStatus.TERMINATED, Set.of());
+        validTransitions.put(PaymentStatus.FAILED, Set.of());
     }
 
 
