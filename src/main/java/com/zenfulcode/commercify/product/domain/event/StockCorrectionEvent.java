@@ -18,4 +18,9 @@ public class StockCorrectionEvent extends DomainEvent {
         this.quantity = quantity;
         this.reason = reason;
     }
+
+    @Override
+    public String getEventType() {
+        return "STOCK_CORRECTION";
+    }
 }

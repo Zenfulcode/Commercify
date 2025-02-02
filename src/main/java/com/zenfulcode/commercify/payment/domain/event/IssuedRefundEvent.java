@@ -43,4 +43,9 @@ public class IssuedRefundEvent extends DomainEvent {
         this.isFullRefund = isFullRefund;
         this.refundedAt = Instant.now();
     }
+
+    @Override
+    public String getEventType() {
+        return "ISSUED_REFUND";
+    }
 }

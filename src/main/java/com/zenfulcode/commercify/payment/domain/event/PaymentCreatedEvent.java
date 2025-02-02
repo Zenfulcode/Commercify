@@ -41,4 +41,9 @@ public class PaymentCreatedEvent extends DomainEvent {
         this.provider = provider;
         this.createdAt = Instant.now();
     }
+
+    @Override
+    public String getEventType() {
+        return "PAYMENT_CREATED";
+    }
 }

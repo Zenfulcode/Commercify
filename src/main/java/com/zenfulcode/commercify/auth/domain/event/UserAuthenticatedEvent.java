@@ -16,4 +16,9 @@ public class UserAuthenticatedEvent extends DomainEvent {
         this.userId = userId;
         this.username = username;
     }
+
+    @Override
+    public String getEventType() {
+        return "USER_AUTHENTICATED";
+    }
 }

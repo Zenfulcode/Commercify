@@ -5,6 +5,7 @@ import com.zenfulcode.commercify.shared.domain.event.DomainEvent;
 import com.zenfulcode.commercify.shared.domain.exception.EventDeserializationException;
 import com.zenfulcode.commercify.shared.domain.exception.EventSerializationException;
 import com.zenfulcode.commercify.shared.domain.model.StoredEvent;
+import com.zenfulcode.commercify.shared.domain.service.AggregateReference;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -42,10 +43,10 @@ public class EventSerializer {
     }
 
     private String extractAggregateId(DomainEvent event) {
-        return AggregateReferenceExtractor.extractAggregateId(event);
+        return AggregateReference.extractId(event);
     }
 
     private String extractAggregateType(DomainEvent event) {
-        return AggregateReferenceExtractor.extractAggregateType(event);
+        return AggregateReference.extractType(event);
     }
 }

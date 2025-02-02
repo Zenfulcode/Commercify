@@ -74,22 +74,6 @@ public class OrderValidationService {
         }
     }
 
-    public void validateOrderCancellation(Order order) {
-        if (order.isInTerminalState(stateFlow)) {
-            throw new OrderValidationException(
-                    "Cannot cancel order in terminal status: " + order.getStatus()
-            );
-        }
-    }
-
-    public void validateOrderCompletion(Order order) {
-        if (order.getStatus() != OrderStatus.SHIPPED) {
-            throw new OrderValidationException(
-                    "Cannot complete order that hasn't been shipped"
-            );
-        }
-    }
-
     public void validateStock(Product product, int requestedQuantity) {
         if (!product.hasEnoughStock(requestedQuantity)) {
             throw new InsufficientStockException(

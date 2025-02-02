@@ -1,9 +1,12 @@
 package com.zenfulcode.commercify.payment.application.events;
 
+import com.zenfulcode.commercify.order.application.command.CancelOrderCommand;
 import com.zenfulcode.commercify.order.application.command.UpdateOrderStatusCommand;
 import com.zenfulcode.commercify.order.application.service.OrderApplicationService;
 import com.zenfulcode.commercify.order.domain.model.OrderStatus;
 import com.zenfulcode.commercify.payment.domain.event.PaymentCancelledEvent;
+import com.zenfulcode.commercify.payment.domain.event.PaymentCapturedEvent;
+import com.zenfulcode.commercify.payment.domain.event.PaymentReservedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -21,9 +24,32 @@ public class PaymentEventHandler {
     public void handlePaymentCancelled(PaymentCancelledEvent event) {
         log.info("Handling payment cancelled event for orderId: {}", event.getOrderId());
 
+        CancelOrderCommand command = new CancelOrderCommand(event.getOrderId());
+
+        orderApplicationService.cancelOrder(command);
+    }
+
+    @EventListener
+    @Transactional
+    public void handlePaymentCaptured(PaymentCapturedEvent event) {
+        log.info("Handling payment captured event for orderId: {}", event.getOrderId());
+
         UpdateOrderStatusCommand command = new UpdateOrderStatusCommand(
                 event.getOrderId(),
-                OrderStatus.CANCELLED
+                OrderStatus.COMPLETED
+        );
+
+        orderApplicationService.updateOrderStatus(command);
+    }
+
+    @EventListener
+    @Transactional
+    public void handlePaymentReserved(PaymentReservedEvent event) {
+        log.info("Handling payment reserved event for orderId: {}", event.getOrderId());
+
+        UpdateOrderStatusCommand command = new UpdateOrderStatusCommand(
+                event.getOrderId(),
+                OrderStatus.PAID
         );
 
         orderApplicationService.updateOrderStatus(command);

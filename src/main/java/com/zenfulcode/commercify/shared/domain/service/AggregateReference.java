@@ -1,5 +1,6 @@
-package com.zenfulcode.commercify.shared.domain.event;
+package com.zenfulcode.commercify.shared.domain.service;
 
+import com.zenfulcode.commercify.shared.domain.event.DomainEvent;
 import com.zenfulcode.commercify.shared.domain.model.AggregateRoot;
 import com.zenfulcode.commercify.shared.domain.valueobject.AggregateId;
 

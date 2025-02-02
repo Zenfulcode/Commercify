@@ -161,7 +161,8 @@ public class User extends AggregateRoot {
                 .anyMatch(order -> {
                     OrderStatus status = order.getStatus();
                     return status == OrderStatus.PENDING ||
-                            status == OrderStatus.CONFIRMED ||
+                            status == OrderStatus.COMPLETED ||
+                            status == OrderStatus.PAID ||
                             status == OrderStatus.SHIPPED;
                 });
     }

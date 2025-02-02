@@ -40,4 +40,9 @@ public class UserStatusChangedEvent extends DomainEvent {
     public boolean isActivationTransition() {
         return newStatus == UserStatus.ACTIVE;
     }
+
+    @Override
+    public String getEventType() {
+        return "USER_STATUS_CHANGED";
+    }
 }

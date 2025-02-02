@@ -32,4 +32,9 @@ public class PaymentCancelledEvent extends DomainEvent {
         this.reason = reason;
         this.cancelledAt = Instant.now();
     }
+
+    @Override
+    public String getEventType() {
+        return "PAYMENT_CANCELLED";
+    }
 }

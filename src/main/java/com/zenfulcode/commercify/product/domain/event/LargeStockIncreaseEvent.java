@@ -18,4 +18,9 @@ public class LargeStockIncreaseEvent extends DomainEvent {
         this.quantity = quantity;
         this.reason = reason;
     }
+
+    @Override
+    public String getEventType() {
+        return "LARGE_STOCK_INCREASE";
+    }
 }

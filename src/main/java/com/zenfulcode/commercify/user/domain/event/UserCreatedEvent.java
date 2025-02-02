@@ -19,4 +19,9 @@ public class UserCreatedEvent extends DomainEvent {
         this.email = email;
         this.status = status;
     }
+
+    @Override
+    public String getEventType() {
+        return "USER_CREATED";
+    }
 }
