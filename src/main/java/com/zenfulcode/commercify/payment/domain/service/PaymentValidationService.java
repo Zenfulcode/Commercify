@@ -127,7 +127,7 @@ public class PaymentValidationService {
         }
 
         // Validate order status allows payment
-        if (orderStateFlow.canTransition(order.getStatus(), OrderStatus.PAID)) {
+        if (!orderStateFlow.canTransition(order.getStatus(), OrderStatus.PAID)) {
             violations.add("Order status does not allow payment");
         }
     }

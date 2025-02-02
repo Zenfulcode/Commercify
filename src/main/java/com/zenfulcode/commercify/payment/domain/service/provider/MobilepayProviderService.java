@@ -3,6 +3,7 @@ package com.zenfulcode.commercify.payment.domain.service.provider;
 import com.zenfulcode.commercify.order.domain.valueobject.OrderId;
 import com.zenfulcode.commercify.payment.domain.exception.PaymentValidationException;
 import com.zenfulcode.commercify.payment.domain.exception.WebhookProcessingException;
+import com.zenfulcode.commercify.payment.domain.model.FailureReason;
 import com.zenfulcode.commercify.payment.domain.model.Payment;
 import com.zenfulcode.commercify.payment.domain.model.PaymentMethod;
 import com.zenfulcode.commercify.payment.domain.model.PaymentProvider;
@@ -14,7 +15,6 @@ import com.zenfulcode.commercify.payment.domain.valueobject.webhook.WebhookPaylo
 import com.zenfulcode.commercify.payment.infrastructure.gateway.MobilepayCreatePaymentRequest;
 import com.zenfulcode.commercify.payment.infrastructure.gateway.MobilepayPaymentResponse;
 import com.zenfulcode.commercify.payment.infrastructure.gateway.client.MobilepayClient;
-import com.zenfulcode.commercify.shared.domain.model.Money;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -67,24 +67,23 @@ public class MobilepayProviderService implements PaymentProviderService {
 
         switch (payload.getEventType()) {
             case "CREATED":
-                log.info("Payment created: {}", payment.getId());
                 break;
             case "AUTHORIZED":
                 paymentService.authorizePayment(payment);
                 break;
-            case "ABORTED", "CANCELLED": // ABORTED = When user clicks cancel in checkout
-                paymentService.cancelPayment(payment);
+            case "ABORTED", "TERMINATED":
+                paymentService.failPayment(payment, FailureReason.PAYMENT_TERMINATED, PaymentStatus.TERMINATED);
+                break;
+            case "CANCELLED":
+//                paymentService.cancelPayment(payment);
                 break;
             case "EXPIRED":
-                paymentService.failPayment(payment, "Payment expired", PaymentStatus.EXPIRED);
-                break;
-            case "TERMINATED":
-                paymentService.failPayment(payment, "Payment terminated", PaymentStatus.TERMINATED);
+                paymentService.failPayment(payment, FailureReason.PAYMENT_EXPIRED, PaymentStatus.EXPIRED);
                 break;
             case "CAPTURED":
-                double amount = webhookPayload.amount().value() / 100.0;
-                Money captureAmount = Money.of(amount, webhookPayload.amount().currency());
-                paymentService.capturePayment(payment, TransactionId.generate(), captureAmount);
+//                double amount = webhookPayload.amount().value() / 100.0;
+//                Money captureAmount = Money.of(amount, webhookPayload.amount().currency());
+//                paymentService.capturePayment(payment, TransactionId.generate(), captureAmount);
                 break;
             case "REFUNDED":
                 log.info("Handle refund: {}", payment.getId());

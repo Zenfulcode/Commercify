@@ -110,12 +110,6 @@ public class OrderDomainService {
         // Using validationService for status transition validation
         validationService.validateStatusTransition(order, newStatus);
 
-        if (newStatus == OrderStatus.CANCELLED) {
-            validationService.validateOrderCancellation(order);
-        } else if (newStatus == OrderStatus.COMPLETED) {
-            validationService.validateOrderCompletion(order);
-        }
-
         order.updateStatus(newStatus);
         orderRepository.save(order);
     }

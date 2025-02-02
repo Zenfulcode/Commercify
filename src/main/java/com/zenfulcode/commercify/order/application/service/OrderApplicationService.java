@@ -79,7 +79,6 @@ public class OrderApplicationService {
     @Transactional
     public void updateOrderStatus(UpdateOrderStatusCommand command) {
         Order order = orderDomainService.getOrderById(command.orderId());
-
         orderDomainService.updateOrderStatus(order, command.newStatus());
 
         // Save and publish events
@@ -88,10 +87,10 @@ public class OrderApplicationService {
 
     @Transactional
     public void cancelOrder(CancelOrderCommand command) {
-        Order order = orderRepository.findById(command.orderId())
-                .orElseThrow(() -> new OrderNotFoundException(command.orderId()));
-
+        Order order = orderDomainService.getOrderById(command.orderId());
         orderDomainService.updateOrderStatus(order, OrderStatus.CANCELLED);
+
+        eventPublisher.publish(order.getDomainEvents());
     }
 
     @Transactional(readOnly = true)
