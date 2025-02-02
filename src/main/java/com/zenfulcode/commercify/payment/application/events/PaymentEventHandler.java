@@ -6,6 +6,7 @@ import com.zenfulcode.commercify.order.application.service.OrderApplicationServi
 import com.zenfulcode.commercify.order.domain.model.OrderStatus;
 import com.zenfulcode.commercify.payment.domain.event.PaymentCancelledEvent;
 import com.zenfulcode.commercify.payment.domain.event.PaymentCapturedEvent;
+import com.zenfulcode.commercify.payment.domain.event.PaymentFailedEvent;
 import com.zenfulcode.commercify.payment.domain.event.PaymentReservedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -53,5 +54,27 @@ public class PaymentEventHandler {
         );
 
         orderApplicationService.updateOrderStatus(command);
+    }
+
+    @EventListener
+    @Transactional
+    public void handlePaymentFailed(PaymentFailedEvent event) {
+        log.info("Handling payment failed event for orderId: {}", event.getOrderId());
+
+        UpdateOrderStatusCommand command = new UpdateOrderStatusCommand(
+                event.getOrderId(),
+                mapFailureReasonToOrderStatus(event.getFailureReason())
+        );
+
+        orderApplicationService.updateOrderStatus(command);
+    }
+
+    private OrderStatus mapFailureReasonToOrderStatus(FailureReason failureReason) {
+        return switch (failureReason) {
+            case INSUFFICIENT_FUNDS, INVALID_PAYMENT_METHOD, PAYMENT_PROCESSING_ERROR, PAYMENT_METHOD_ERROR,
+                 PAYMENT_PROVIDER_ERROR -> OrderStatus.FAILED;
+            case PAYMENT_EXPIRED, PAYMENT_TERMINATED -> OrderStatus.ABANDONED;
+            case UNKNOWN -> null;
+        };
     }
 }

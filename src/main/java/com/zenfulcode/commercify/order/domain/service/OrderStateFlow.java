@@ -13,28 +13,31 @@ public class OrderStateFlow {
     public OrderStateFlow() {
         validTransitions = new EnumMap<>(OrderStatus.class);
 
-        // Initial state -> Confirmed or Cancelled
         validTransitions.put(OrderStatus.PENDING, Set.of(
-                OrderStatus.CONFIRMED,
-                OrderStatus.CANCELLED
+                OrderStatus.PAID,
+                OrderStatus.ABANDONED
         ));
 
-        // Confirmed -> Shipped or Cancelled
-        validTransitions.put(OrderStatus.CONFIRMED, Set.of(
+        validTransitions.put(OrderStatus.ABANDONED, Set.of(
+                OrderStatus.PENDING
+        ));
+
+        validTransitions.put(OrderStatus.PAID, Set.of(
                 OrderStatus.SHIPPED,
+                OrderStatus.COMPLETED,
                 OrderStatus.CANCELLED
         ));
 
-        // Shipped -> Completed or Returned
         validTransitions.put(OrderStatus.SHIPPED, Set.of(
-                OrderStatus.COMPLETED,
-                OrderStatus.RETURNED
+                OrderStatus.COMPLETED
+        ));
+
+        validTransitions.put(OrderStatus.COMPLETED, Set.of(
+                OrderStatus.REFUNDED
         ));
 
         // Terminal states
-        validTransitions.put(OrderStatus.COMPLETED, Set.of());
         validTransitions.put(OrderStatus.CANCELLED, Set.of());
-        validTransitions.put(OrderStatus.RETURNED, Set.of());
         validTransitions.put(OrderStatus.REFUNDED, Set.of());
     }
 

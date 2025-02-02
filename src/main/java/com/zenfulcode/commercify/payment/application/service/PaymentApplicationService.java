@@ -8,7 +8,6 @@ import com.zenfulcode.commercify.payment.application.dto.InitializedPayment;
 import com.zenfulcode.commercify.payment.domain.exception.PaymentProviderNotFoundException;
 import com.zenfulcode.commercify.payment.domain.model.Payment;
 import com.zenfulcode.commercify.payment.domain.model.PaymentProvider;
-import com.zenfulcode.commercify.payment.domain.repository.PaymentRepository;
 import com.zenfulcode.commercify.payment.domain.service.PaymentDomainService;
 import com.zenfulcode.commercify.payment.domain.service.PaymentProviderFactory;
 import com.zenfulcode.commercify.payment.domain.service.PaymentProviderService;
@@ -32,7 +31,6 @@ public class PaymentApplicationService {
     private final PaymentProviderFactory providerFactory;
     private final DefaultDomainEventPublisher eventPublisher;
     private final WebhookHandler webhookHandler;
-    private final PaymentRepository paymentRepository;
 
     @Transactional
     public InitializedPayment initiatePayment(InitiatePaymentCommand command) {
@@ -57,9 +55,7 @@ public class PaymentApplicationService {
         );
 
         // Update payment with provider reference
-        payment.updateProviderReference(providerResponse.providerReference());
-
-        paymentRepository.save(payment);
+        paymentDomainService.updateProviderReference(payment, providerResponse.providerReference());
 
         // Publish events
         eventPublisher.publish(payment.getDomainEvents());
@@ -76,7 +72,8 @@ public class PaymentApplicationService {
     public void handlePaymentCallback(PaymentProvider provider, WebhookPayload payload) {
         Payment payment = paymentDomainService.getPaymentByProviderReference(payload.getPaymentReference());
         webhookHandler.handleWebhook(provider, payload, payment);
-        paymentRepository.save(payment);
+
+        eventPublisher.publish(payment.getDomainEvents());
     }
 
     // TODO: Make sure the capture currency is the same as the payment currency
@@ -87,7 +84,6 @@ public class PaymentApplicationService {
         Money captureAmount = command.captureAmount() == null ? payment.getAmount() : command.captureAmount();
 
         paymentDomainService.capturePayment(payment, TransactionId.generate(), captureAmount);
-        paymentRepository.save(payment);
 
         // Publish events
         eventPublisher.publish(payment.getDomainEvents());

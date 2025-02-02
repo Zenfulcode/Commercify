@@ -13,39 +13,28 @@ public class PaymentStateFlow {
 
     public PaymentStateFlow() {
         this.validTransitions = new EnumMap<>(PaymentStatus.class);
-        initializeStateTransitions();
-    }
 
-    /**
-     * Initialize valid state transitions
-     */
-    private void initializeStateTransitions() {
         // Initial state -> PENDING
         validTransitions.put(PaymentStatus.PENDING, Set.of(
                 PaymentStatus.FAILED,
                 PaymentStatus.RESERVED,
-                PaymentStatus.CANCELLED
+                PaymentStatus.TERMINATED
         ));
 
-        // RESERVED/PAID -> RESERVED or CANCELLED
         validTransitions.put(PaymentStatus.RESERVED, Set.of(
                 PaymentStatus.CAPTURED,
+                PaymentStatus.CANCELLED,
                 PaymentStatus.EXPIRED,
                 PaymentStatus.FAILED,
                 PaymentStatus.PARTIALLY_REFUNDED,
                 PaymentStatus.REFUNDED
         ));
 
+        // TODO: Unsure about this one
         // CAPTURED -> REFUNDED or PARTIALLY_REFUNDED
         validTransitions.put(PaymentStatus.CAPTURED, Set.of(
                 PaymentStatus.REFUNDED,
                 PaymentStatus.PARTIALLY_REFUNDED
-        ));
-
-        // FAILED -> Can retry (go back to PENDING) or CANCELLED
-        validTransitions.put(PaymentStatus.FAILED, Set.of(
-                PaymentStatus.PENDING,
-                PaymentStatus.CANCELLED
         ));
 
         // PARTIALLY_REFUNDED -> REFUNDED
@@ -57,7 +46,10 @@ public class PaymentStateFlow {
         validTransitions.put(PaymentStatus.REFUNDED, Set.of());
         validTransitions.put(PaymentStatus.CANCELLED, Set.of());
         validTransitions.put(PaymentStatus.EXPIRED, Set.of());
+        validTransitions.put(PaymentStatus.TERMINATED, Set.of());
+        validTransitions.put(PaymentStatus.FAILED, Set.of());
     }
+
 
     /**
      * Check if a state transition is valid
@@ -78,7 +70,7 @@ public class PaymentStateFlow {
      * Check if a state is terminal
      */
     public boolean isTerminalState(PaymentStatus state) {
-        return state.isTerminalState();
+        return validTransitions.get(state).isEmpty();
     }
 
     /**

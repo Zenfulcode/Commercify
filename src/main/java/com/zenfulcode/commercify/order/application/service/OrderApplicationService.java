@@ -76,7 +76,6 @@ public class OrderApplicationService {
     @Transactional
     public void updateOrderStatus(UpdateOrderStatusCommand command) {
         Order order = orderDomainService.getOrderById(command.orderId());
-
         orderDomainService.updateOrderStatus(order, command.newStatus());
 
         // Save and publish events

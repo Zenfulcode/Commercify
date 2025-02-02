@@ -1,7 +1,9 @@
 package com.zenfulcode.commercify.payment.domain.event;
 
 import com.zenfulcode.commercify.order.domain.valueobject.OrderId;
+import com.zenfulcode.commercify.payment.domain.model.FailureReason;
 import com.zenfulcode.commercify.payment.domain.valueobject.PaymentId;
+import com.zenfulcode.commercify.payment.domain.valueobject.PaymentStatus;
 import com.zenfulcode.commercify.shared.domain.event.DomainEvent;
 import com.zenfulcode.commercify.shared.domain.valueobject.AggregateId;
 import lombok.Getter;
@@ -17,19 +19,22 @@ public class PaymentFailedEvent extends DomainEvent {
     @AggregateId
     private final PaymentId paymentId;
     private final OrderId orderId;
-    private final String errorMessage;
+    private final FailureReason failureReason;
+    private final PaymentStatus status;
     private final Instant failedAt;
 
     public PaymentFailedEvent(
             Object source,
             PaymentId paymentId,
             OrderId orderId,
-            String errorMessage
+            FailureReason failureReason,
+            PaymentStatus status
     ) {
         super(source);
         this.paymentId = paymentId;
         this.orderId = orderId;
-        this.errorMessage = errorMessage;
+        this.failureReason = failureReason;
+        this.status = status;
         this.failedAt = Instant.now();
     }
 
