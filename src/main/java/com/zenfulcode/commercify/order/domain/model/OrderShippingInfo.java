@@ -92,6 +92,10 @@ public class OrderShippingInfo {
         return info;
     }
 
+    public String getCustomerName() {
+        return customerFirstName + " " + customerLastName;
+    }
+
     public CustomerDetails toCustomerDetails() {
         return new CustomerDetails(
                 customerFirstName,
@@ -113,7 +117,7 @@ public class OrderShippingInfo {
 
     public Address toBillingAddress() {
         if (!hasBillingAddress()) {
-            return null;
+            return toShippingAddress();
         }
         return new Address(
                 billingStreet,
