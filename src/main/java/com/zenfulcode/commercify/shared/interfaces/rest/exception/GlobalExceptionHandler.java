@@ -1,9 +1,11 @@
 package com.zenfulcode.commercify.shared.interfaces.rest.exception;
 
 import com.zenfulcode.commercify.shared.domain.exception.DomainException;
+import com.zenfulcode.commercify.shared.domain.exception.DomainForbiddenException;
 import com.zenfulcode.commercify.shared.domain.exception.DomainValidationException;
 import com.zenfulcode.commercify.shared.domain.exception.EntityNotFoundException;
 import com.zenfulcode.commercify.shared.interfaces.ApiResponse;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -52,5 +54,15 @@ public class GlobalExceptionHandler {
         );
 
         return ResponseEntity.status(404).body(response);
+    }
+
+    @ExceptionHandler(DomainForbiddenException.class)
+    public ResponseEntity<ApiResponse<Void>> handleUnauthorizedOrderCreation(DomainForbiddenException ex) {
+        ApiResponse<Void> response = ApiResponse.error(
+                ex.getMessage(),
+                "UNAUTHORIZED_ORDER_CREATION",
+                403
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
     }
 }

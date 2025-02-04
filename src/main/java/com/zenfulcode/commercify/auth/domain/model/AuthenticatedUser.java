@@ -79,6 +79,10 @@ public class AuthenticatedUser implements UserDetails {
                 .collect(Collectors.toList());
     }
 
+    public boolean isAdmin() {
+        return roles.contains(UserRole.ROLE_ADMIN);
+    }
+
     @Override
     public String getPassword() {
         return password;
