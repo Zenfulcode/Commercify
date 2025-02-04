@@ -8,4 +8,6 @@ public interface OrderNotificationService {
     void sendOrderStatusUpdate(Order order);
 
     void sendShippingConfirmation(Order order);
+
+    void notifyAdminNewOrder(Order order);
 }

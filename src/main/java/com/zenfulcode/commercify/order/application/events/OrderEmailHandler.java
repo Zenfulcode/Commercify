@@ -42,6 +42,8 @@ public class OrderEmailHandler {
             if (event.isPaidTransition()) {
                 log.info("Sending order confirmation email for order: {}", order.getId());
                 notificationService.sendOrderConfirmation(order);
+                notificationService.notifyAdminNewOrder(order);
+
             } else if (event.isShippingTransition()) {
                 log.info("Sending shipping confirmation email for order: {}", order.getId());
                 notificationService.sendShippingConfirmation(order);

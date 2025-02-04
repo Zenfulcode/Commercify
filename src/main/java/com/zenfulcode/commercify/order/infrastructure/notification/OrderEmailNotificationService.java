@@ -7,6 +7,7 @@ import com.zenfulcode.commercify.shared.domain.exception.EmailSendingException;
 import com.zenfulcode.commercify.shared.infrastructure.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -22,9 +23,17 @@ import java.util.Map;
 public class OrderEmailNotificationService implements OrderNotificationService {
     private final EmailService emailService;
     private final TemplateEngine templateEngine;
+
+    @Value("${admin.email}")
+    private String adminEmail;
+
+    @Value("${admin.order-dashboard")
+    private String orderDashboard;
+
     private static final String ORDER_CONFIRMATION_TEMPLATE = "order/confirmation-email";
     private static final String ORDER_STATUS_UPDATE_TEMPLATE = "order/status-update-email";
     private static final String ORDER_SHIPPING_TEMPLATE = "order/shipping-email";
+    private static final String ADMIN_ORDER_TEMPLATE = "order/admin-order-notification";
 
     @Override
     public void sendOrderConfirmation(Order order) {
@@ -77,6 +86,23 @@ public class OrderEmailNotificationService implements OrderNotificationService {
         }
     }
 
+    @Override
+    public void notifyAdminNewOrder(Order order) {
+        try {
+            Context context = createAdminOrderContext(order);
+            String emailContent = templateEngine.process(ADMIN_ORDER_TEMPLATE, context);
+            emailService.sendEmail(
+                    adminEmail,
+                    "New Order Received - #" + order.getId(),
+                    emailContent, true
+            );
+            log.info("Admin notification sent for order: {}", order.getId());
+        } catch (Exception e) {
+            log.error("Failed to send admin notification", e);
+            throw new EmailSendingException("Failed to send admin notification: " + e.getMessage());
+        }
+    }
+
     private Context createOrderContext(Order order) {
         Context context = new Context(Locale.getDefault());
 
@@ -100,16 +126,11 @@ public class OrderEmailNotificationService implements OrderNotificationService {
         billingAddress.put("state", order.getOrderShippingInfo().toBillingAddress().state());
         context.setVariable("billingAddress", billingAddress);
 
-        final String username = order.getOrderShippingInfo().toCustomerDetails().firstName() + " " +
-                order.getOrderShippingInfo().toCustomerDetails().lastName();
-
         Map<String, Object> details = new HashMap<>();
         details.put("id", order.getId().toString());
-        details.put("firstName", order.getOrderShippingInfo().toCustomerDetails().firstName());
-        details.put("lastName", order.getOrderShippingInfo().toCustomerDetails().lastName());
-        details.put("username", username);
-        details.put("phone", order.getOrderShippingInfo().toCustomerDetails().phone());
-        details.put("email", order.getOrderShippingInfo().toCustomerDetails().email());
+        details.put("customerName", order.getOrderShippingInfo().getCustomerName());
+        details.put("customerPhone", order.getOrderShippingInfo().getCustomerPhone());
+        details.put("customerEmail", order.getOrderShippingInfo().getCustomerEmail());
         details.put("orderNumber", order.getId().toString());
         details.put("status", order.getStatus().toString());
         details.put("createdAt", order.getCreatedAt());
@@ -117,17 +138,12 @@ public class OrderEmailNotificationService implements OrderNotificationService {
         details.put("totalAmount", order.getTotalAmount().getAmount().doubleValue());
         details.put("items", orderItems);
         context.setVariable("order", details);
+        return context;
+    }
 
-//        Map.of(
-//                "id", order.getId().toString(),
-//                "userName", order.getOrderShippingInfo().toCustomerDetails().firstName(),
-//                "status", order.getStatus().toString(),
-//                "createdAt", order.getCreatedAt(),
-//                "currency", order.getCurrency(),
-//                "totalAmount", order.getTotalAmount().getAmount().doubleValue(),
-//                "items", orderItems
-//        )
-
+    private Context createAdminOrderContext(Order order) {
+        Context context = createOrderContext(order);
+        context.setVariable("adminOrderUrl", String.format("%s/%s", orderDashboard, order.getId().toString()));
         return context;
     }
 
@@ -138,6 +154,8 @@ public class OrderEmailNotificationService implements OrderNotificationService {
         items.put("variant", orderLine.getProductVariant() != null ?
                 orderLine.getProductVariant().getSku() : "");
         items.put("quantity", orderLine.getQuantity());
+        items.put("sku", orderLine.getProductVariant() != null ?
+                orderLine.getProductVariant().getSku() : orderLine.getProduct().getId().toString());
         items.put("unitPrice", orderLine.getUnitPrice().getAmount().doubleValue());
         items.put("total", orderLine.getTotal().getAmount().doubleValue());
         return items;

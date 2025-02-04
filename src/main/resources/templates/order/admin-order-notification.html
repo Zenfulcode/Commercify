@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
-    <title>Order Shipped</title>
+    <title>New Order Received</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <style>
         body {
@@ -12,25 +12,53 @@
             margin: 0 auto;
             padding: 20px;
         }
+
         .header {
             background-color: #f8f9fa;
             padding: 20px;
             text-align: center;
             border-radius: 5px;
         }
-        .shipping-info {
+
+        .order-info {
             margin: 20px 0;
             padding: 20px;
             background-color: #e9ecef;
             border-radius: 5px;
         }
-        .order-details {
+
+        .customer-info {
             margin: 20px 0;
             padding: 20px;
             border: 1px solid #ddd;
             border-radius: 5px;
         }
-        .tracking-button {
+
+        .order-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .order-table th, .order-table td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        .order-table th {
+            background-color: #f8f9fa;
+        }
+
+        .total {
+            font-weight: bold;
+            text-align: right;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+        }
+
+        .action-button {
             display: inline-block;
             padding: 10px 20px;
             background-color: #007bff;
@@ -39,53 +67,37 @@
             border-radius: 5px;
             margin: 20px 0;
         }
-        .order-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-        }
-        .order-table th, .order-table td {
-            padding: 12px;
-            border: 1px solid #ddd;
-            text-align: left;
-        }
-        .order-table th {
-            background-color: #f8f9fa;
-        }
-        .footer {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #ddd;
-            text-align: center;
-            font-size: 14px;
-        }
     </style>
 </head>
 <body>
 <div class="header">
-    <h1>Your Order Has Been Shipped!</h1>
+    <h1>New Order Received</h1>
     <p>Order #<span th:text="${order.id}">123</span></p>
 </div>
 
-<p>Dear <span th:text="${order.customerName}">Customer</span>,</p>
+<div class="order-info">
+    <h2>Order Information</h2>
+    <p>Date: <span th:text="${#temporals.format(order.createdAt, 'dd-MM-yyyy HH:mm')}">01-01-2024</span></p>
+    <p>Status: <strong th:text="${order.status}">PENDING</strong></p>
+</div>
 
-<p>Great news! Your order is on its way to you.</p>
-
-<div class="shipping-info">
-    <h2>Shipping Information</h2>
-    <p><strong>Shipping Address:</strong></p>
-    <p th:text="${shippingAddress.street}">123 Main St</p>
-    <p th:text="${shippingAddress.city + ', ' + shippingAddress.state + ' ' + shippingAddress.zipCode}">City, State ZIP</p>
-    <p th:text="${shippingAddress.country}">Country</p>
+<div class="customer-info">
+    <h2>Customer Details</h2>
+    <p>Name: <span th:text="${order.customerName}">John Doe</span></p>
+    <p>Email: <span th:text="${order.customerEmail}">john@example.com</span></p>
+    <p>Phone: <span th:text="${order.customerPhone}">+1234567890</span></p>
 </div>
 
 <div class="order-details">
-    <h2>Order Summary</h2>
+    <h2>Order Details</h2>
     <table class="order-table">
         <thead>
         <tr>
             <th>Product</th>
+            <th>SKU</th>
             <th>Quantity</th>
+            <th>Price</th>
+            <th>Total</th>
         </tr>
         </thead>
         <tbody>
@@ -94,26 +106,22 @@
                 <span th:text="${item.name}">Product Name</span>
                 <div th:if="${item.variant}" th:text="${item.variant}">Variant Details</div>
             </td>
+            <td th:text="${item.sku}">SKU123</td>
             <td th:text="${item.quantity}">1</td>
+            <td th:text="${#numbers.formatDecimal(item.unitPrice, 1, 2) + ' ' + order.currency}">$99.99</td>
+            <td th:text="${#numbers.formatDecimal(item.total, 1, 2) + ' ' + order.currency}">$99.99</td>
         </tr>
         </tbody>
     </table>
+
+    <div class="total">
+        Total Amount: <span
+            th:text="${#numbers.formatDecimal(order.totalAmount, 1, 2) + ' ' + order.currency}">$99.99</span>
+    </div>
 </div>
 
-<p>What to expect:</p>
-<ul>
-    <li>Your order is expected to arrive within 3-5 business days</li>
-    <li>You'll receive a delivery confirmation email once your package has been delivered</li>
-    <li>If you have any questions about your delivery, please contact our customer service team</li>
-</ul>
-
-<div th:if="${trackingUrl}" style="text-align: center;">
-    <a th:href="${trackingUrl}" class="tracking-button">Track Your Package</a>
-</div>
-
-<div class="footer">
-    <p>Thank you for shopping with us!</p>
-    <p>Best regards,<br/>The Team</p>
+<div style="text-align: center;">
+    <a th:href="${adminOrderUrl}" class="action-button">View Order Details</a>
 </div>
 </body>
 </html>

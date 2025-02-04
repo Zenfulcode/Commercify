@@ -92,6 +92,10 @@ public class OrderShippingInfo {
         return info;
     }
 
+    public String getCustomerName() {
+        return customerFirstName + " " + customerLastName;
+    }
+
     public CustomerDetails toCustomerDetails() {
         return new CustomerDetails(
                 customerFirstName,
