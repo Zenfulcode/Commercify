@@ -46,7 +46,7 @@ public class TokenService {
         Date expiryDate = new Date(now.getTime() + expiration);
 
         return Jwts.builder()
-                .subject(user.getUserId())
+                .subject(user.getUserId().toString())
                 .claim("username", user.getUsername())
                 .claim("email", user.getEmail())
                 .claim("roles", user.getRoles())

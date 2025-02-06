@@ -24,7 +24,7 @@ public record AuthResponse(
                 result.accessToken(),
                 result.refreshToken(),
                 "Bearer",
-                result.user().getUserId(),
+                result.user().getUserId().toString(),
                 result.user().getUsername(),
                 result.user().getEmail(),
                 roles

@@ -1,5 +1,6 @@
 package com.zenfulcode.commercify.auth.domain.model;
 
+import com.zenfulcode.commercify.user.domain.valueobject.UserId;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -72,11 +73,19 @@ public class AuthenticatedUser implements UserDetails {
         );
     }
 
+    public UserId getUserId() {
+        return UserId.of(userId);
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return roles.stream()
                 .map(role -> new SimpleGrantedAuthority(role.name()))
                 .collect(Collectors.toList());
+    }
+
+    public boolean isAdmin() {
+        return roles.contains(UserRole.ROLE_ADMIN);
     }
 
     @Override
