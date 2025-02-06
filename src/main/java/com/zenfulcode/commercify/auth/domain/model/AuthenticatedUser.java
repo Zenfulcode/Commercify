@@ -1,5 +1,6 @@
 package com.zenfulcode.commercify.auth.domain.model;
 
+import com.zenfulcode.commercify.user.domain.valueobject.UserId;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -70,6 +71,10 @@ public class AuthenticatedUser implements UserDetails {
                 accountNonLocked,
                 credentialsNonExpired
         );
+    }
+
+    public UserId getUserId() {
+        return UserId.of(userId);
     }
 
     @Override

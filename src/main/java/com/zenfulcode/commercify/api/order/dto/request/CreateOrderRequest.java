@@ -1,5 +1,7 @@
 package com.zenfulcode.commercify.api.order.dto.request;
 
+import com.zenfulcode.commercify.user.domain.valueobject.UserId;
+
 import java.util.List;
 
 public record CreateOrderRequest(
@@ -10,4 +12,7 @@ public record CreateOrderRequest(
         AddressRequest billingAddress,
         List<CreateOrderLineRequest> orderLines
 ) {
+    public UserId getUserId() {
+        return UserId.of(userId);
+    }
 }
