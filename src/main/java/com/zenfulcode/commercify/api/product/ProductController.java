@@ -43,7 +43,7 @@ public class ProductController {
 
         // Return response
         CreateProductResponse response = new CreateProductResponse(
-                productId,
+                productId.getId(),
                 "Product created successfully"
         );
 

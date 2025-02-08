@@ -40,15 +40,8 @@ public class ProductResponseMapper {
                 product.getName(),
                 product.getDescription(),
                 product.getImageUrl(),
-                toPriceResponse(product),
+                product.getPrice(),
                 product.getStock()
-        );
-    }
-
-    private ProductSummaryResponse.ProductPriceResponse toPriceResponse(Product product) {
-        return new ProductSummaryResponse.ProductPriceResponse(
-                product.getPrice().getAmount().doubleValue(),
-                product.getPrice().getCurrency()
         );
     }
 
@@ -63,7 +56,7 @@ public class ProductResponseMapper {
                 variant.getId().toString(),
                 variant.getSku(),
                 toVariantOptionResponses(variant.getVariantOptions()),
-                toVariantPriceResponse(variant),
+                variant.getPrice(),
                 variant.getStock() != null ? variant.getStock() : variant.getProduct().getStock()
         );
     }
@@ -76,13 +69,5 @@ public class ProductResponseMapper {
                         option.getValue()
                 ))
                 .toList();
-    }
-
-    private ProductSummaryResponse.ProductPriceResponse toVariantPriceResponse(
-            ProductVariant variant) {
-        return new ProductSummaryResponse.ProductPriceResponse(
-                variant.getPrice().getAmount().doubleValue(),
-                variant.getPrice().getCurrency()
-        );
     }
 }

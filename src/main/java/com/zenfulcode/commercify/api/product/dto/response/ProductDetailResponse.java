@@ -1,16 +1,18 @@
 package com.zenfulcode.commercify.api.product.dto.response;
 
-import com.zenfulcode.commercify.product.domain.valueobject.ProductId;
+import com.zenfulcode.commercify.shared.domain.model.Money;
 
 import java.util.List;
 
 public record ProductDetailResponse(
-        ProductId id,
+        String id,
         String name,
         String description,
+        String imageUrl,
         int stock,
-        ProductSummaryResponse.ProductPriceResponse price,
+        Money price,
         boolean active,
         List<ProductVariantSummaryResponse> variants
 ) {
+
 }

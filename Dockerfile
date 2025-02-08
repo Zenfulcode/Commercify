@@ -9,6 +9,7 @@ FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 COPY --from=build /app/src/main/resources/db/changelog /app/resources/db/changelog
+COPY --from=build /app/src/main/resources/templates /app/resources/templates
 
 EXPOSE 6091
 ENTRYPOINT ["java", "-jar", "app.jar"]
