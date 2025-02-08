@@ -102,7 +102,7 @@
         <dependency>
             <groupId>com.stripe</groupId>
             <artifactId>stripe-java</artifactId>
-            <version>26.11.0</version>
+            <version>28.3.0</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -170,6 +170,28 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>cz.habarta.typescript-generator</groupId>
+                <artifactId>typescript-generator-maven-plugin</artifactId>
+                <version>3.2.1263</version>
+                <executions>
+                    <execution>
+                        <id>generate</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <phase>process-classes</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <jsonLibrary>jackson2</jsonLibrary>
+                    <outputKind>module</outputKind>
+                    <classPatterns>
+                        <pattern>com.zenfulcode.commercify.api.**.dto.**</pattern>
+                    </classPatterns>
                 </configuration>
             </plugin>
         </plugins>

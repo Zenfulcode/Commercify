@@ -1,4 +1,4 @@
-package com.zenfulcode.commercify.order.application.events;
+package com.zenfulcode.commercify.order.infrastructure.messaging.events;
 
 import com.zenfulcode.commercify.order.application.service.OrderApplicationService;
 import com.zenfulcode.commercify.order.domain.event.OrderStatusChangedEvent;
@@ -17,19 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class OrderEmailHandler {
     private final OrderApplicationService orderService;
     private final OrderEmailNotificationService notificationService;
-
-//    @Async
-//    @EventListener
-//    @Transactional(readOnly = true)
-//    public void handleOrderCreated(OrderCreatedEvent event) {
-//        try {
-//            log.info("Sending order confirmation notification for order: {}", event.getOrderId());
-//            Order order = orderService.getOrderById(event.getOrderId());
-//            notificationService.sendOrderConfirmation(order);
-//        } catch (Exception e) {
-//            log.error("Failed to send order confirmation notification", e);
-//        }
-//    }
 
     @Async
     @EventListener

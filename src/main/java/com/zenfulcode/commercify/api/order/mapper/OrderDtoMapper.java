@@ -73,11 +73,7 @@ public class OrderDtoMapper {
                 dto.id().toString(),
                 dto.userId().toString(),
                 dto.status().toString(),
-                dto.currency(),
-                new MoneyResponse(
-                        dto.totalAmount().getAmount().doubleValue(),
-                        dto.totalAmount().getCurrency()
-                ),
+                dto.totalAmount(),
                 dto.orderLines().stream()
                         .map(this::toOrderLineResponse)
                         .collect(Collectors.toList()),
@@ -109,11 +105,10 @@ public class OrderDtoMapper {
         return new OrderSummaryResponse(
                 order.getId().toString(),
                 order.getUser().getId().toString(),
+                order.getOrderShippingInfo().getCustomerName(),
                 order.getStatus().toString(),
-                new MoneyResponse(
-                        order.getTotalAmount().getAmount().doubleValue(),
-                        order.getTotalAmount().getCurrency()
-                ),
+                order.getOrderLines().size(),
+                order.getTotalAmount(),
                 order.getCreatedAt()
         );
     }
@@ -124,14 +119,8 @@ public class OrderDtoMapper {
                 line.productId(),
                 line.variantId(),
                 line.quantity(),
-                new MoneyResponse(
-                        line.unitPrice().getAmount().doubleValue(),
-                        line.unitPrice().getCurrency()
-                ),
-                new MoneyResponse(
-                        line.total().getAmount().doubleValue(),
-                        line.total().getCurrency()
-                )
+                line.unitPrice(),
+                line.total()
         );
     }
 

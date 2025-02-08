@@ -1,8 +1,8 @@
 package com.zenfulcode.commercify.api.payment;
 
 import com.zenfulcode.commercify.api.payment.mapper.PaymentDtoMapper;
-import com.zenfulcode.commercify.api.payment.request.InitiatePaymentRequest;
-import com.zenfulcode.commercify.api.payment.response.PaymentResponse;
+import com.zenfulcode.commercify.api.payment.dto.request.InitiatePaymentRequest;
+import com.zenfulcode.commercify.api.payment.dto.response.PaymentResponse;
 import com.zenfulcode.commercify.payment.application.command.InitiatePaymentCommand;
 import com.zenfulcode.commercify.payment.application.dto.InitializedPayment;
 import com.zenfulcode.commercify.payment.application.service.PaymentApplicationService;

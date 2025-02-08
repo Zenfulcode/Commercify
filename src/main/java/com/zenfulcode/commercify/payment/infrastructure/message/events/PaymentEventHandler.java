@@ -1,4 +1,4 @@
-package com.zenfulcode.commercify.payment.application.events;
+package com.zenfulcode.commercify.payment.infrastructure.message.events;
 
 import com.zenfulcode.commercify.order.application.command.CancelOrderCommand;
 import com.zenfulcode.commercify.order.application.command.UpdateOrderStatusCommand;

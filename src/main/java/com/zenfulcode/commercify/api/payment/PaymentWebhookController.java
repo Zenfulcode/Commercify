@@ -1,6 +1,6 @@
 package com.zenfulcode.commercify.api.payment;
 
-import com.zenfulcode.commercify.api.payment.request.MobilepayWebhookRegistrationRequest;
+import com.zenfulcode.commercify.api.payment.dto.request.MobilepayWebhookRegistrationRequest;
 import com.zenfulcode.commercify.payment.application.service.MobilepayWebhookService;
 import com.zenfulcode.commercify.payment.application.service.PaymentApplicationService;
 import com.zenfulcode.commercify.payment.domain.model.PaymentProvider;

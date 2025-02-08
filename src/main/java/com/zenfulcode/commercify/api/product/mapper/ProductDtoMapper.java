@@ -2,13 +2,11 @@ package com.zenfulcode.commercify.api.product.mapper;
 
 import com.zenfulcode.commercify.api.product.dto.request.*;
 import com.zenfulcode.commercify.api.product.dto.response.ProductDetailResponse;
-import com.zenfulcode.commercify.api.product.dto.response.ProductSummaryResponse;
 import com.zenfulcode.commercify.api.product.dto.response.ProductVariantSummaryResponse;
 import com.zenfulcode.commercify.product.application.command.*;
 import com.zenfulcode.commercify.product.domain.model.Product;
 import com.zenfulcode.commercify.product.domain.model.ProductVariant;
 import com.zenfulcode.commercify.product.domain.valueobject.*;
-import com.zenfulcode.commercify.shared.domain.model.Money;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -19,13 +17,11 @@ import java.util.stream.Collectors;
 public class ProductDtoMapper {
 
     public CreateProductCommand toCommand(CreateProductRequest request) {
-        Money price = new Money(request.price().amount(), request.price().currency());
-
         return new CreateProductCommand(
                 request.name(),
                 request.description(),
                 request.initialStock(),
-                price,
+                request.price(),
                 mapVariantSpecs(request.variants())
         );
     }
@@ -52,8 +48,7 @@ public class ProductDtoMapper {
                 request.name(),
                 request.description(),
                 request.stock(),
-                request.price() != null ?
-                        new Money(request.price().amount(), request.price().currency()) : null,
+                request.price(),
                 request.active()
         );
         return new UpdateProductCommand(productId, updateSpec);
@@ -63,7 +58,7 @@ public class ProductDtoMapper {
         List<VariantPriceUpdate> updates = request.updates().stream()
                 .map(update -> new VariantPriceUpdate(
                         update.sku(),
-                        new Money(update.price().amount(), update.price().currency())
+                        update.price()
                 ))
                 .collect(Collectors.toList());
 
@@ -81,8 +76,7 @@ public class ProductDtoMapper {
     private VariantSpecification toVariantSpec(CreateVariantRequest request) {
         return new VariantSpecification(
                 request.stock(),
-                request.price() != null ?
-                        new Money(request.price().amount(), request.price().currency()) : null,
+                request.price() != null ? request.price() : null,
                 request.imageUrl(),
                 request.options().stream()
                         .map(opt -> new VariantOption(opt.name(), opt.value()))
@@ -101,25 +95,20 @@ public class ProductDtoMapper {
                                         opt.getValue()
                                 ))
                                 .collect(Collectors.toList()),
-                        toPriceResponse(variant.getPrice()),
+                        variant.getPrice(),
                         variant.getStock()
                 ))
                 .collect(Collectors.toList());
     }
 
-    private ProductSummaryResponse.ProductPriceResponse toPriceResponse(Money price) {
-        return new ProductSummaryResponse.ProductPriceResponse(
-                price.getAmount().doubleValue(), price.getCurrency()
-        );
-    }
-
     public ProductDetailResponse toDetailResponse(Product product) {
         return new ProductDetailResponse(
-                product.getId(),
+                product.getId().getId(),
                 product.getName(),
                 product.getDescription(),
+                product.getImageUrl(),
                 product.getStock(),
-                toPriceResponse(product.getPrice()),
+                product.getPrice(),
                 product.isActive(),
                 mapVariants(product.getProductVariants())
         );

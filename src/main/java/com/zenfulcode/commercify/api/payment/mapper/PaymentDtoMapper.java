@@ -2,9 +2,9 @@ package com.zenfulcode.commercify.api.payment.mapper;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.zenfulcode.commercify.api.payment.request.InitiatePaymentRequest;
-import com.zenfulcode.commercify.api.payment.request.PaymentDetailsRequest;
-import com.zenfulcode.commercify.api.payment.response.PaymentResponse;
+import com.zenfulcode.commercify.api.payment.dto.request.InitiatePaymentRequest;
+import com.zenfulcode.commercify.api.payment.dto.request.PaymentDetailsRequest;
+import com.zenfulcode.commercify.api.payment.dto.response.PaymentResponse;
 import com.zenfulcode.commercify.order.application.service.OrderApplicationService;
 import com.zenfulcode.commercify.order.domain.model.Order;
 import com.zenfulcode.commercify.payment.application.command.CapturePaymentCommand;
@@ -30,7 +30,7 @@ public class PaymentDtoMapper {
     private final ObjectMapper objectMapper;
 
     public InitiatePaymentCommand toCommand(InitiatePaymentRequest request) {
-        Order order = orderService.getOrderById(request.orderId());
+        Order order = orderService.getOrderById(request.getOrderId());
 
         return new InitiatePaymentCommand(
                 order,

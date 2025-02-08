@@ -1,4 +1,4 @@
-package com.zenfulcode.commercify.api.payment.response;
+package com.zenfulcode.commercify.api.payment.dto.response;
 
 import java.util.Map;
 

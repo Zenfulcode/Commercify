@@ -27,7 +27,7 @@ public class OrderEmailNotificationService implements OrderNotificationService {
     @Value("${admin.email}")
     private String adminEmail;
 
-    @Value("${admin.order-dashboard")
+    @Value("${admin.order-dashboard}")
     private String orderDashboard;
 
     private static final String ORDER_CONFIRMATION_TEMPLATE = "order/confirmation-email";

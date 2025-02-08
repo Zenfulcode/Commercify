@@ -1,24 +1,13 @@
 package com.zenfulcode.commercify.api.product.dto.response;
 
+import com.zenfulcode.commercify.shared.domain.model.Money;
+
 public record ProductSummaryResponse(
         String id,
         String name,
         String description,
         String imageUrl,
-        ProductPriceResponse price,
+        Money price,
         int stock
 ) {
-    public record ProductPriceResponse(
-            double amount,
-            String currency
-    ) {
-    }
-
-    public record ProductInventoryResponse(
-            int quantity,
-            String status,
-            boolean backorderable,
-            Integer reorderPoint
-    ) {
-    }
 }
