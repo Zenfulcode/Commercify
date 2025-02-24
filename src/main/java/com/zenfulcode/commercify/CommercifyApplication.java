@@ -16,4 +16,3 @@ public class CommercifyApplication {
         return new RestTemplate();
     }
 }
-
