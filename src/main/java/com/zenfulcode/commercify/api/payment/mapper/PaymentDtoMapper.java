@@ -4,11 +4,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zenfulcode.commercify.api.payment.dto.request.InitiatePaymentRequest;
 import com.zenfulcode.commercify.api.payment.dto.request.PaymentDetailsRequest;
+import com.zenfulcode.commercify.api.payment.dto.response.CapturedPaymentResponse;
 import com.zenfulcode.commercify.api.payment.dto.response.PaymentResponse;
 import com.zenfulcode.commercify.order.application.service.OrderApplicationService;
 import com.zenfulcode.commercify.order.domain.model.Order;
 import com.zenfulcode.commercify.payment.application.command.CapturePaymentCommand;
 import com.zenfulcode.commercify.payment.application.command.InitiatePaymentCommand;
+import com.zenfulcode.commercify.payment.application.dto.CapturedPayment;
 import com.zenfulcode.commercify.payment.application.dto.InitializedPayment;
 import com.zenfulcode.commercify.payment.application.service.PaymentApplicationService;
 import com.zenfulcode.commercify.payment.domain.exception.WebhookProcessingException;
@@ -69,6 +71,14 @@ public class PaymentDtoMapper {
                 PaymentMethod.valueOf(details.paymentMethod()),
                 details.additionalData().get("phoneNumber"),
                 details.returnUrl()
+        );
+    }
+
+    public CapturedPaymentResponse toCapturedResponse(CapturedPayment capturedPayment) {
+        return new CapturedPaymentResponse(
+                capturedPayment.transactionId(),
+                capturedPayment.captureAmount(),
+                capturedPayment.isFullyCaptured()
         );
     }
 }

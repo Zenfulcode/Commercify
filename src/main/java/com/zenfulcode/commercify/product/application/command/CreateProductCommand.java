@@ -8,6 +8,7 @@ import java.util.List;
 public record CreateProductCommand(
         String name,
         String description,
+        String imageUrl,
         int initialStock,
         Money price,
         List<VariantSpecification> variantSpecs

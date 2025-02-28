@@ -24,7 +24,7 @@ public class ProductFactory {
         validateSpecification(spec);
 
         // Create base product
-        Product product = Product.create(spec.name(), spec.description(), spec.initialStock(), spec.price());
+        Product product = Product.create(spec.name(), spec.description(), spec.imageUrl(), spec.initialStock(), spec.price());
 
         // Apply default policies
         pricingPolicy.applyDefaultPricing(product);

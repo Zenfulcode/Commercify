@@ -66,11 +66,12 @@ public class Product extends AggregateRoot {
     @Column(name = "updated_at")
     private Instant updatedAt;
 
-    public static Product create(String name, String description, int stock, Money money) {
+    public static Product create(String name, String description, String imageUrl, int stock, Money money) {
         Product product = new Product();
         product.id = ProductId.generate();
         product.name = Objects.requireNonNull(name, "Product name is required");
         product.description = description;
+        product.imageUrl = imageUrl;
         product.stock = stock;
         product.price = Objects.requireNonNull(money, "Product price is required");
         product.active = true;

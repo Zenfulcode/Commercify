@@ -20,6 +20,7 @@ public class ProductDtoMapper {
         return new CreateProductCommand(
                 request.name(),
                 request.description(),
+                request.imageUrl(),
                 request.initialStock(),
                 request.price(),
                 mapVariantSpecs(request.variants())

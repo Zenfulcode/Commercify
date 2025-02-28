@@ -7,6 +7,7 @@ import java.util.List;
 public record ProductSpecification(
         String name,
         String description,
+        String imageUrl,
         int initialStock,
         Money price,
         List<VariantSpecification> variantSpecs

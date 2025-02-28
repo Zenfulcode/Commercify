@@ -1,5 +1,6 @@
 package com.zenfulcode.commercify.api.payment;
 
+import com.zenfulcode.commercify.api.payment.dto.response.CapturedPaymentResponse;
 import com.zenfulcode.commercify.api.payment.mapper.PaymentDtoMapper;
 import com.zenfulcode.commercify.payment.application.command.CapturePaymentCommand;
 import com.zenfulcode.commercify.payment.application.dto.CapturedPayment;
@@ -23,11 +24,12 @@ public class PaymentAdminController {
     private final PaymentDtoMapper paymentDtoMapper;
 
     @PostMapping("/{paymentId}/capture")
-    public ResponseEntity<ApiResponse<CapturedPayment>> capturePayment(
+    public ResponseEntity<ApiResponse<CapturedPaymentResponse>> capturePayment(
             @PathVariable String paymentId) {
 
         CapturePaymentCommand command = paymentDtoMapper.toCaptureCommand(PaymentId.of(paymentId));
-        CapturedPayment response = paymentService.capturePayment(command);
+        CapturedPayment capturedPayment = paymentService.capturePayment(command);
+        CapturedPaymentResponse response = paymentDtoMapper.toCapturedResponse(capturedPayment);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }

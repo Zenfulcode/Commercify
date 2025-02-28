@@ -35,6 +35,7 @@ public class ProductApplicationService {
         ProductSpecification spec = new ProductSpecification(
                 command.name(),
                 command.description(),
+                command.imageUrl(),
                 command.initialStock(),
                 command.price(),
                 command.variantSpecs()

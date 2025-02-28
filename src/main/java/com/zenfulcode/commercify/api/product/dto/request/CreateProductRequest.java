@@ -7,6 +7,7 @@ import java.util.List;
 public record CreateProductRequest(
         String name,
         String description,
+        String imageUrl,
         Integer initialStock,
         Money price,
         List<CreateVariantRequest> variants
