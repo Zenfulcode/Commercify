@@ -15,6 +15,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Service
 @AllArgsConstructor
 public class AuthenticationApplicationService {
@@ -64,5 +66,12 @@ public class AuthenticationApplicationService {
         String newRefreshToken = tokenService.generateRefreshToken(authenticatedUser);
 
         return new AuthenticationResult(newAccessToken, newRefreshToken, authenticatedUser);
+    }
+
+    public Optional<String> extractTokenFromHeader(String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return Optional.empty();
+        }
+        return Optional.of(authHeader.substring(7));
     }
 }

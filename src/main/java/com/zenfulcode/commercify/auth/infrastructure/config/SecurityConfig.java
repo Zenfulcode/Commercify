@@ -48,7 +48,9 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(req -> req
                         .requestMatchers(
-                                "/api/v2/auth/**",
+                                "/api/v2/auth/**",          // This should cover your NextAuth endpoints
+                                "/api/v2/auth/nextauth",    // Add explicitly
+                                "/api/v2/auth/session",
                                 "/api/v2/products/active",
                                 "/api/v2/products/{productId}",
                                 "/api/v2/payments/webhooks/{provider}/callback").permitAll()
@@ -88,7 +90,11 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of(frontendHost, "http://localhost:3000", "http://localhost:5170"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
+        configuration.setAllowCredentials(true);
+        configuration.setExposedHeaders(List.of("Authorization"));
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
