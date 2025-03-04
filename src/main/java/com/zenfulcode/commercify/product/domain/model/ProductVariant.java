@@ -40,7 +40,7 @@ public class ProductVariant {
     })
     private Money price;
 
-    @OneToMany(mappedBy = "productVariant")
+    @OneToMany(mappedBy = "productVariant", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<VariantOption> variantOptions = new LinkedHashSet<>();
 
     public static ProductVariant create(String sku, Integer stock, Money price, String imageUrl) {

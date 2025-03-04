@@ -170,9 +170,8 @@ public class ProductApplicationService {
     }
 
     @Transactional(readOnly = true)
-    public Product getProduct(ProductId productId) {
-        return productRepository.findById(productId)
-                .orElseThrow(() -> new ProductNotFoundException(productId));
+    public Product getProductById(ProductId productId) {
+        return productDomainService.getProductById(productId);
     }
 
     @Transactional(readOnly = true)

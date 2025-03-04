@@ -2,10 +2,12 @@ package com.zenfulcode.commercify.product.domain.service;
 
 import com.zenfulcode.commercify.order.domain.repository.OrderLineRepository;
 import com.zenfulcode.commercify.product.domain.exception.InvalidPriceException;
+import com.zenfulcode.commercify.product.domain.exception.ProductNotFoundException;
 import com.zenfulcode.commercify.product.domain.exception.ProductValidationException;
 import com.zenfulcode.commercify.product.domain.exception.VariantNotFoundException;
 import com.zenfulcode.commercify.product.domain.model.Product;
 import com.zenfulcode.commercify.product.domain.model.ProductVariant;
+import com.zenfulcode.commercify.product.domain.repository.ProductRepository;
 import com.zenfulcode.commercify.product.domain.valueobject.*;
 import com.zenfulcode.commercify.shared.domain.model.Money;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class ProductDomainService {
     private final OrderLineRepository orderLineRepository;
+    private final ProductRepository productRepository;
     private final ProductInventoryPolicy inventoryPolicy;
     private final ProductPricingPolicy pricingPolicy;
     private final ProductFactory productFactory;
@@ -187,6 +190,12 @@ public class ProductDomainService {
         if (updateSpec.hasStockUpdate()) {
             inventoryPolicy.initializeInventory(product);
         }
+    }
+
+    public Product getProductById(ProductId productId) {
+        return productRepository.findById(productId).orElseThrow(
+                () -> new ProductNotFoundException(productId)
+        );
     }
 }
 
