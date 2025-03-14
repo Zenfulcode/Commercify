@@ -53,8 +53,7 @@ public class ProductController {
     @GetMapping("/{productId}")
     public ResponseEntity<ApiResponse<ProductDetailResponse>> getProduct(
             @PathVariable String productId) {
-
-        Product product = productApplicationService.getProduct(ProductId.of(productId));
+        Product product = productApplicationService.getProductById(ProductId.of(productId));
         ProductDetailResponse response = dtoMapper.toDetailResponse(product);
 
         return ResponseEntity.ok(ApiResponse.success(response));
