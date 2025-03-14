@@ -2,6 +2,7 @@ package com.zenfulcode.commercify.order.application.service;
 
 import com.zenfulcode.commercify.order.application.command.CancelOrderCommand;
 import com.zenfulcode.commercify.order.application.command.CreateOrderCommand;
+import com.zenfulcode.commercify.order.application.command.GetOrderByIdCommand;
 import com.zenfulcode.commercify.order.application.command.UpdateOrderStatusCommand;
 import com.zenfulcode.commercify.order.application.dto.OrderDetailsDTO;
 import com.zenfulcode.commercify.order.application.query.FindAllOrdersQuery;
@@ -100,7 +101,8 @@ public class OrderApplicationService {
     }
 
     @Transactional(readOnly = true)
-    public OrderDetailsDTO getOrderDetailsById(OrderId orderId) {
+    public OrderDetailsDTO getOrderDetailsById(GetOrderByIdCommand command) {
+        OrderId orderId = OrderId.of(command.orderId());
         Order order = getOrderById(orderId);
         return OrderDetailsDTO.fromOrder(order);
     }

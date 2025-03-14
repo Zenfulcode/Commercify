@@ -5,6 +5,7 @@ import com.zenfulcode.commercify.api.order.dto.request.CreateOrderRequest;
 import com.zenfulcode.commercify.api.order.dto.response.*;
 import com.zenfulcode.commercify.api.product.dto.response.PageInfo;
 import com.zenfulcode.commercify.order.application.command.CreateOrderCommand;
+import com.zenfulcode.commercify.order.application.command.GetOrderByIdCommand;
 import com.zenfulcode.commercify.order.application.dto.OrderDetailsDTO;
 import com.zenfulcode.commercify.order.application.dto.OrderLineDTO;
 import com.zenfulcode.commercify.order.domain.model.Order;
@@ -58,6 +59,10 @@ public class OrderDtoMapper {
                 billingAddress,
                 orderLines
         );
+    }
+
+    public GetOrderByIdCommand toCommand(String orderId) {
+        return new GetOrderByIdCommand(orderId);
     }
 
     private OrderLineDetails toOrderLineDetails(CreateOrderLineRequest request) {
