@@ -13,6 +13,11 @@ public class UserNotFoundException extends DomainException {
         this.identifier = userId;
     }
 
+    public UserNotFoundException(String email) {
+        super("User not found with Email: " + email);
+        this.identifier = email;
+    }
+
     public UserNotFoundException(String message, String identifier) {
         super(message + ": " + identifier);
         this.identifier = identifier;

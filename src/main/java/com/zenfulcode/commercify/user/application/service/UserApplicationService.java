@@ -34,15 +34,7 @@ public class UserApplicationService {
         // Hash the password
         String hashedPassword = passwordEncoder.encode(command.password());
 
-        UserSpecification userSpecification = new UserSpecification(
-                command.firstName(),
-                command.lastName(),
-                command.email(),
-                hashedPassword,
-                command.phoneNumber(),
-                UserStatus.PENDING,
-                command.roles()
-        );
+        UserSpecification userSpecification = new UserSpecification(command.firstName(), command.lastName(), command.email(), hashedPassword, command.phoneNumber(), UserStatus.PENDING, command.roles());
 
         // Create the user through domain service
         User user = userDomainService.createUser(userSpecification);
@@ -53,29 +45,10 @@ public class UserApplicationService {
     }
 
     @Transactional
-    public void registerUser(
-            String firstName,
-            String lastName,
-            String email,
-            String password,
-            String phone
-    ) {
-        // Create user specification
-        UserSpecification spec = UserSpecification.builder()
-                .firstName(firstName)
-                .lastName(lastName)
-                .email(email)
-                .password(passwordEncoder.encode(password))
-                .phone(phone)
-                .status(UserStatus.ACTIVE)
-                .roles(Set.of(UserRole.USER))
-                .build();
+    public void registerUser(String firstName, String lastName, String email, String password, String phone) {
+        CreateUserCommand createUserCommand = new CreateUserCommand(email, firstName, lastName, password, Set.of(UserRole.USER), phone);
 
-        // Create user through domain service
-        User user = userDomainService.createUser(spec);
-
-        // Publish domain event
-        eventPublisher.publish(user.getDomainEvents());
+        createUser(createUserCommand);
     }
 
     /**

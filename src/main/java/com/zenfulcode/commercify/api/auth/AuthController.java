@@ -30,7 +30,7 @@ public class AuthController {
         log.info("Next auth request: {}", request);
 
         // Authenticate through the application service
-        AuthenticationResult result = authService.authenticate(request.email(), request.password());
+        AuthenticationResult result = authService.authenticate(request.toCommand());
 
         // Create and return the NextAuth response
         return ResponseEntity.ok(ApiResponse.success(NextAuthResponse.from(result)));
@@ -54,7 +54,7 @@ public class AuthController {
 
     @PostMapping("/signin")
     public ResponseEntity<ApiResponse<AuthResponse>> login(@RequestBody LoginRequest request) {
-        AuthenticationResult result = authService.authenticate(request.email(), request.password());
+        AuthenticationResult result = authService.authenticate(request.toCommand());
 
         AuthResponse response = AuthResponse.from(result);
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -66,7 +66,7 @@ public class AuthController {
         userService.registerUser(request.firstName(), request.lastName(), request.email(), request.password(), request.phone());
 
         // Authenticate the newly registered user
-        AuthenticationResult result = authService.authenticate(request.email(), request.password());
+        AuthenticationResult result = authService.authenticate(new LoginRequest(request.email(), request.password(), false).toCommand());
 
         AuthResponse response = AuthResponse.from(result);
         return ResponseEntity.ok(ApiResponse.success(response));

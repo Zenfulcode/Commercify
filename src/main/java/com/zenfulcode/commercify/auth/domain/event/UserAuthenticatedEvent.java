@@ -10,15 +10,17 @@ public class UserAuthenticatedEvent extends DomainEvent {
     @AggregateId
     private final UserId userId;
     private final String username;
+    private final boolean isGuest;
 
-    public UserAuthenticatedEvent(Object source, UserId userId, String username) {
+    public UserAuthenticatedEvent(Object source, UserId userId, String username, boolean isGuest) {
         super(source);
         this.userId = userId;
         this.username = username;
+        this.isGuest = isGuest;
     }
 
     @Override
     public String getEventType() {
-        return "USER_AUTHENTICATED";
+        return isGuest ? "GUEST_AUTHENTICATED" : "USER_AUTHENTICATED";
     }
 }
