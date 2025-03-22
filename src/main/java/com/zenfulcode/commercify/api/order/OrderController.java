@@ -8,6 +8,7 @@ import com.zenfulcode.commercify.api.order.mapper.OrderDtoMapper;
 import com.zenfulcode.commercify.auth.domain.model.AuthenticatedUser;
 import com.zenfulcode.commercify.order.application.command.CancelOrderCommand;
 import com.zenfulcode.commercify.order.application.command.CreateOrderCommand;
+import com.zenfulcode.commercify.order.application.command.GetOrderByIdCommand;
 import com.zenfulcode.commercify.order.application.dto.OrderDetailsDTO;
 import com.zenfulcode.commercify.order.application.query.FindAllOrdersQuery;
 import com.zenfulcode.commercify.order.application.query.FindOrdersByUserIdQuery;
@@ -61,7 +62,9 @@ public class OrderController {
     public ResponseEntity<ApiResponse<OrderDetailsResponse>> getOrder(
             @PathVariable String orderId,
             Authentication authentication) {
-        OrderDetailsDTO order = orderApplicationService.getOrderDetailsById(OrderId.of(orderId));
+        GetOrderByIdCommand command = orderDtoMapper.toCommand(orderId);
+
+        OrderDetailsDTO order = orderApplicationService.getOrderDetailsById(command);
         AuthenticatedUser user = (AuthenticatedUser) authentication.getPrincipal();
 
         if (isNotUserAuthorized(user, order.userId().getId())) {
