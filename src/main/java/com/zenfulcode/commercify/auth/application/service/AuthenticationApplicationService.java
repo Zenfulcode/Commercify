@@ -61,14 +61,8 @@ public class AuthenticationApplicationService {
             userId = userApplicationService.createUser(createUserCommand);
         }
 
-        log.info("Authenticating");
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
-
-        log.info("Authenticated");
-
         AuthenticatedUser authenticatedUser = (AuthenticatedUser) authentication.getPrincipal();
-
-        log.info("Authenticated user: {}", authenticatedUser);
 
         // Generate tokens
         String accessToken = tokenService.generateAccessToken(authenticatedUser);
