@@ -153,7 +153,7 @@ public class ProductApplicationService {
 
     @Transactional(readOnly = true)
     public List<Product> findAllProducts(Collection<ProductId> productIds) {
-        return productRepository.findAllById(productIds);
+        return productDomainService.getAllProductsById(productIds);
     }
 
     /**

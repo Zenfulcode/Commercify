@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -196,6 +197,20 @@ public class ProductDomainService {
         return productRepository.findById(productId).orElseThrow(
                 () -> new ProductNotFoundException(productId)
         );
+    }
+
+    public List<Product> getAllProductsById(Collection<ProductId> productIds) {
+        List<Product> products = productRepository.findAllById(productIds);
+
+        if (products.size() != productIds.size()) {
+            for (ProductId prodId : productIds) {
+                if (products.stream().noneMatch(p -> p.getId().equals(prodId))) {
+                    throw new ProductNotFoundException(prodId);
+                }
+            }
+        }
+
+        return products;
     }
 }
 
