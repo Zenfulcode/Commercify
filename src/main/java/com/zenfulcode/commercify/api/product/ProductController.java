@@ -60,37 +60,18 @@ public class ProductController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<PagedProductResponse>> getAllProducts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "DESC") String sortDirection) {
+            @RequestParam(defaultValue = "DESC") String sortDirection,
+            @RequestParam(defaultValue = "true") boolean active) {
 
         Sort.Direction direction = Sort.Direction.fromString(sortDirection.toUpperCase());
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
         Page<Product> products = productApplicationService.findProducts(
-                ProductQuery.all(),
-                pageRequest
-        );
-
-        PagedProductResponse response = responseMapper.toPagedResponse(products);
-        return ResponseEntity.ok(ApiResponse.success(response));
-    }
-
-    @GetMapping("/active")
-    public ResponseEntity<ApiResponse<PagedProductResponse>> getActiveProducts(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "DESC") String sortDirection) {
-
-        Sort.Direction direction = Sort.Direction.fromString(sortDirection.toUpperCase());
-        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
-
-        Page<Product> products = productApplicationService.findProducts(
-                ProductQuery.active(),
+                active ? ProductQuery.active() : ProductQuery.all(),
                 pageRequest
         );
 

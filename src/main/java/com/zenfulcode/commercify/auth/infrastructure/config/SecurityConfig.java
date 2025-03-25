@@ -51,7 +51,7 @@ public class SecurityConfig {
                                 "/api/v2/auth/**",          // This should cover your NextAuth endpoints
                                 "/api/v2/auth/nextauth",    // Add explicitly
                                 "/api/v2/auth/session",
-                                "/api/v2/products/active",
+                                "/api/v2/products",
                                 "/api/v2/products/{productId}",
                                 "/api/v2/payments/webhooks/{provider}/callback").permitAll()
                         .anyRequest().authenticated()
