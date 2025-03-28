@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -68,5 +69,10 @@ public class JpaProductRepository implements ProductRepository {
     @Override
     public List<ProductVariant> findVariantsByIds(Collection<VariantId> variantIds) {
         return variantRepository.findAllById(variantIds);
+    }
+
+    @Override
+    public int findNewProducts(Instant startDate, Instant endDate) {
+        return repository.countNewProducts(startDate, endDate);
     }
 }

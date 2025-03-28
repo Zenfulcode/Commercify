@@ -14,6 +14,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -160,5 +163,12 @@ public class UserDomainService {
 
     public boolean emailExists(String email) {
         return userRepository.existsByEmail(email);
+    }
+
+    public int findNewUsers(LocalDate startDate, LocalDate endDate) {
+        Instant start = startDate.atStartOfDay().toInstant(ZoneOffset.from(ZoneOffset.UTC));
+        Instant end = endDate.atStartOfDay().toInstant(ZoneOffset.UTC);
+
+        return userRepository.findNewUsers(start, end);
     }
 }

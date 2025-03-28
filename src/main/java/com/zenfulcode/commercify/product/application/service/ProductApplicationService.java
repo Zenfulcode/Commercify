@@ -1,6 +1,7 @@
 package com.zenfulcode.commercify.product.application.service;
 
 import com.zenfulcode.commercify.product.application.command.*;
+import com.zenfulcode.commercify.product.application.query.CountNewProductsInPeriodQuery;
 import com.zenfulcode.commercify.product.application.query.ProductQuery;
 import com.zenfulcode.commercify.product.domain.exception.ProductDeletionException;
 import com.zenfulcode.commercify.product.domain.exception.ProductNotFoundException;
@@ -177,5 +178,9 @@ public class ProductApplicationService {
     @Transactional(readOnly = true)
     public List<ProductVariant> findVariantsByIds(List<VariantId> variantIds) {
         return productRepository.findVariantsByIds(variantIds);
+    }
+
+    public int countNewProductsInPeriod(CountNewProductsInPeriodQuery query) {
+        return productDomainService.countNewProductsInPeriod(query.startDate(), query.endDate());
     }
 }

@@ -9,6 +9,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.Optional;
 
 @Repository
@@ -44,5 +46,15 @@ public class JpaOrderRepository implements OrderRepository {
     @Override
     public boolean existsByUserId(UserId userId) {
         return repository.findByUserId(userId, PageRequest.of(0, 1)).hasContent();
+    }
+
+    @Override
+    public Optional<BigDecimal> calculateTotalRevenue(Instant startDate, Instant endDate) {
+        return repository.calculateTotalRevenue(startDate, endDate);
+    }
+
+    @Override
+    public int countOrders(Instant startDate, Instant endDate) {
+        return repository.countOrders(startDate, endDate);
     }
 }

@@ -5,6 +5,8 @@ import com.zenfulcode.commercify.order.application.command.CreateOrderCommand;
 import com.zenfulcode.commercify.order.application.command.GetOrderByIdCommand;
 import com.zenfulcode.commercify.order.application.command.UpdateOrderStatusCommand;
 import com.zenfulcode.commercify.order.application.dto.OrderDetailsDTO;
+import com.zenfulcode.commercify.order.application.query.CalculateTotalRevenueQuery;
+import com.zenfulcode.commercify.order.application.query.CountOrdersInPeriodQuery;
 import com.zenfulcode.commercify.order.application.query.FindAllOrdersQuery;
 import com.zenfulcode.commercify.order.application.query.FindOrdersByUserIdQuery;
 import com.zenfulcode.commercify.order.domain.model.Order;
@@ -25,6 +27,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -115,5 +118,14 @@ public class OrderApplicationService {
     @Transactional(readOnly = true)
     public boolean isOrderOwnedByUser(OrderId orderId, UserId userId) {
         return orderDomainService.isOrderOwnedByUser(orderId, userId);
+    }
+
+    @Transactional(readOnly = true)
+    public BigDecimal calculateTotalRevenue(CalculateTotalRevenueQuery query) {
+        return orderDomainService.calculateTotalRevenue(query.startDate(), query.endDate());
+    }
+
+    public int countOrdersInPeriod(CountOrdersInPeriodQuery query) {
+        return orderDomainService.countOrdersInPeriod(query.startDate(), query.endDate());
     }
 }

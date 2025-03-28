@@ -4,6 +4,7 @@ import com.zenfulcode.commercify.shared.domain.event.DomainEventPublisher;
 import com.zenfulcode.commercify.user.application.command.CreateUserCommand;
 import com.zenfulcode.commercify.user.application.command.UpdateUserCommand;
 import com.zenfulcode.commercify.user.application.command.UpdateUserStatusCommand;
+import com.zenfulcode.commercify.user.application.query.CountActiveUsersInPeriodQuery;
 import com.zenfulcode.commercify.user.domain.model.User;
 import com.zenfulcode.commercify.user.domain.model.UserRole;
 import com.zenfulcode.commercify.user.domain.model.UserStatus;
@@ -163,5 +164,9 @@ public class UserApplicationService {
         userDomainService.changePassword(user, hashedPassword);
 
         eventPublisher.publish(user.getDomainEvents());
+    }
+
+    public int countActiveUsersInPeriod(CountActiveUsersInPeriodQuery query) {
+        return userDomainService.findNewUsers(query.startDate(), query.endDate());
     }
 }

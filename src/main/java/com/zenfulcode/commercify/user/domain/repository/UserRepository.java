@@ -6,6 +6,7 @@ import com.zenfulcode.commercify.user.domain.valueobject.UserId;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.time.Instant;
 import java.util.Optional;
 
 public interface UserRepository {
@@ -22,4 +23,6 @@ public interface UserRepository {
     Page<User> findByStatus(UserStatus status, Pageable pageable);
 
     void delete(User user);
+
+    int findNewUsers(Instant startDate, Instant endDate);
 }

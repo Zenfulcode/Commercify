@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.Optional;
 
 @Repository
@@ -49,5 +50,10 @@ public class JpaUserRepository implements UserRepository {
     @Override
     public void delete(User user) {
         repository.delete(user);
+    }
+
+    @Override
+    public int findNewUsers(Instant startDate, Instant endDate) {
+        return repository.findNewUsers(startDate, endDate);
     }
 }

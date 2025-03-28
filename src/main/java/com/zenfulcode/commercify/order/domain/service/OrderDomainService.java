@@ -22,6 +22,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -133,5 +137,22 @@ public class OrderDomainService {
 
     public boolean isOrderOwnedByUser(OrderId orderId, UserId userId) {
         return orderRepository.existsByIdAndUserId(orderId, userId);
+    }
+
+    public BigDecimal calculateTotalRevenue(LocalDate startDate, LocalDate endDate) {
+        Instant start = startDate.atStartOfDay().toInstant(ZoneOffset.from(ZoneOffset.UTC));
+        Instant end = endDate.atStartOfDay().toInstant(ZoneOffset.UTC);
+
+        // Implement logic to calculate total revenue based on the provided parameters
+        // This is a placeholder implementation and should be replaced with actual logic
+        return orderRepository.calculateTotalRevenue(start, end)
+                .orElse(BigDecimal.ZERO);
+    }
+
+    public int countOrdersInPeriod(LocalDate startDate, LocalDate endDate) {
+        Instant start = startDate.atStartOfDay().toInstant(ZoneOffset.from(ZoneOffset.UTC));
+        Instant end = endDate.atStartOfDay().toInstant(ZoneOffset.UTC);
+
+        return orderRepository.countOrders(start, end);
     }
 }

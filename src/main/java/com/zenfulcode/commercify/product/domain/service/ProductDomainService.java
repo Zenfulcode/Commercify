@@ -13,6 +13,9 @@ import com.zenfulcode.commercify.shared.domain.model.Money;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -212,7 +215,11 @@ public class ProductDomainService {
 
         return products;
     }
+
+    public int countNewProductsInPeriod(LocalDate startDate, LocalDate endDate) {
+        Instant start = startDate.atStartOfDay().toInstant(ZoneOffset.from(ZoneOffset.UTC));
+        Instant end = endDate.atStartOfDay().toInstant(ZoneOffset.UTC);
+
+        return productRepository.findNewProducts(start, end);
+    }
 }
-
-
-

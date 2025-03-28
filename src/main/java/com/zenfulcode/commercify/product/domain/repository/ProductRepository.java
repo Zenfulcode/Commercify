@@ -8,6 +8,7 @@ import com.zenfulcode.commercify.product.domain.valueobject.VariantId;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -30,4 +31,6 @@ public interface ProductRepository {
     List<Product> findAllById(Collection<ProductId> ids);
 
     List<ProductVariant> findVariantsByIds(Collection<VariantId> variantIds);
+
+    int findNewProducts(Instant startDate, Instant endDate);
 }
