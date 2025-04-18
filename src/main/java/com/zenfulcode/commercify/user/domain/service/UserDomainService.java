@@ -167,7 +167,7 @@ public class UserDomainService {
 
     public int findNewUsers(LocalDate startDate, LocalDate endDate) {
         Instant start = startDate.atStartOfDay().toInstant(ZoneOffset.from(ZoneOffset.UTC));
-        Instant end = endDate.atStartOfDay().toInstant(ZoneOffset.UTC);
+        Instant end = endDate.atTime(23, 59).toInstant(ZoneOffset.UTC);
 
         return userRepository.findNewUsers(start, end);
     }

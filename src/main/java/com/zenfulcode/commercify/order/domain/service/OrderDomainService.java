@@ -141,7 +141,7 @@ public class OrderDomainService {
 
     public BigDecimal calculateTotalRevenue(LocalDate startDate, LocalDate endDate) {
         Instant start = startDate.atStartOfDay().toInstant(ZoneOffset.from(ZoneOffset.UTC));
-        Instant end = endDate.atStartOfDay().toInstant(ZoneOffset.UTC);
+        Instant end = endDate.atTime(23, 59).toInstant(ZoneOffset.UTC);
 
         // Implement logic to calculate total revenue based on the provided parameters
         // This is a placeholder implementation and should be replaced with actual logic
@@ -151,7 +151,7 @@ public class OrderDomainService {
 
     public int countOrdersInPeriod(LocalDate startDate, LocalDate endDate) {
         Instant start = startDate.atStartOfDay().toInstant(ZoneOffset.from(ZoneOffset.UTC));
-        Instant end = endDate.atStartOfDay().toInstant(ZoneOffset.UTC);
+        Instant end = endDate.atTime(23, 59).toInstant(ZoneOffset.UTC);
 
         return orderRepository.countOrders(start, end);
     }

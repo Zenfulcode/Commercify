@@ -218,7 +218,7 @@ public class ProductDomainService {
 
     public int countNewProductsInPeriod(LocalDate startDate, LocalDate endDate) {
         Instant start = startDate.atStartOfDay().toInstant(ZoneOffset.from(ZoneOffset.UTC));
-        Instant end = endDate.atStartOfDay().toInstant(ZoneOffset.UTC);
+        Instant end = endDate.atTime(23, 59).toInstant(ZoneOffset.UTC);
 
         return productRepository.findNewProducts(start, end);
     }
