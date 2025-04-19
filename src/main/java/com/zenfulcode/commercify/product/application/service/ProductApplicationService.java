@@ -132,6 +132,19 @@ public class ProductApplicationService {
     }
 
     /**
+     * Activates a product
+     */
+    @Transactional
+    public void activateProduct(ActivateProductCommand command) {
+        Product product = productRepository.findById(command.productId())
+                .orElseThrow(() -> new ProductNotFoundException(command.productId()));
+
+        product.activate();
+        productRepository.save(product);
+        eventPublisher.publish(product.getDomainEvents());
+    }
+
+    /**
      * Deletes a product
      */
     @Transactional

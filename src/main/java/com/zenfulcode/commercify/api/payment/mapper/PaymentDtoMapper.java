@@ -8,6 +8,7 @@ import com.zenfulcode.commercify.api.payment.dto.response.CapturedPaymentRespons
 import com.zenfulcode.commercify.api.payment.dto.response.PaymentResponse;
 import com.zenfulcode.commercify.order.application.service.OrderApplicationService;
 import com.zenfulcode.commercify.order.domain.model.Order;
+import com.zenfulcode.commercify.order.domain.valueobject.OrderId;
 import com.zenfulcode.commercify.payment.application.command.CapturePaymentCommand;
 import com.zenfulcode.commercify.payment.application.command.InitiatePaymentCommand;
 import com.zenfulcode.commercify.payment.application.dto.CapturedPayment;
@@ -59,9 +60,9 @@ public class PaymentDtoMapper {
         }
     }
 
-    public CapturePaymentCommand toCaptureCommand(PaymentId paymentId) {
+    public CapturePaymentCommand toCaptureCommand(OrderId orderId) {
         return new CapturePaymentCommand(
-                paymentId,
+                orderId,
                 null
         );
     }

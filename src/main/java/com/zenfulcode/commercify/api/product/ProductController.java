@@ -14,6 +14,7 @@ import com.zenfulcode.commercify.product.domain.model.Product;
 import com.zenfulcode.commercify.product.domain.valueobject.ProductId;
 import com.zenfulcode.commercify.shared.interfaces.ApiResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -22,6 +23,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v2/products")
 @RequiredArgsConstructor
@@ -135,9 +137,22 @@ public class ProductController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<String>> deactivateProduct(@PathVariable String productId) {
         DeactivateProductCommand command = new DeactivateProductCommand(ProductId.of(productId));
+        log.info("Deactivating product with ID: {}", productId);
         productApplicationService.deactivateProduct(command);
-
+        log.info("Product deactivated successfully");
         return ResponseEntity.ok(ApiResponse.success("Product deactivated successfully"));
+    }
+
+    @PostMapping("/{productId}/activate")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<String>> activateProduct(@PathVariable String productId) {
+        ActivateProductCommand command = new ActivateProductCommand(ProductId.of(productId));
+        log.info("Activating product with ID: {}", productId);
+        productApplicationService.activateProduct(command);
+
+        log.info("Product activated successfully");
+
+        return ResponseEntity.ok(ApiResponse.success("Product activated successfully"));
     }
 
     @DeleteMapping("/{productId}")

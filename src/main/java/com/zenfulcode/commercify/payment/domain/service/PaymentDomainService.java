@@ -1,6 +1,7 @@
 package com.zenfulcode.commercify.payment.domain.service;
 
 import com.zenfulcode.commercify.order.domain.model.Order;
+import com.zenfulcode.commercify.order.domain.valueobject.OrderId;
 import com.zenfulcode.commercify.payment.domain.event.PaymentCreatedEvent;
 import com.zenfulcode.commercify.payment.domain.exception.PaymentNotFoundException;
 import com.zenfulcode.commercify.payment.domain.model.FailureReason;
@@ -125,5 +126,10 @@ public class PaymentDomainService {
     public Payment getPaymentByProviderReference(String providerReference) {
         return paymentRepository.findByProviderReference(providerReference)
                 .orElseThrow(() -> new PaymentNotFoundException(providerReference));
+    }
+
+    public Payment getPaymentByOrderId(OrderId orderId) {
+        return paymentRepository.findByOrderId(orderId)
+                .orElseThrow(() -> new PaymentNotFoundException(orderId));
     }
 }

@@ -79,7 +79,7 @@ public class PaymentApplicationService {
     // TODO: Make sure the capture currency is the same as the payment currency
     @Transactional
     public CapturedPayment capturePayment(CapturePaymentCommand command) {
-        Payment payment = paymentDomainService.getPaymentById(command.paymentId());
+        Payment payment = paymentDomainService.getPaymentByOrderId(command.orderId());
 
         Money captureAmount = command.captureAmount() == null ? payment.getAmount() : command.captureAmount();
 
