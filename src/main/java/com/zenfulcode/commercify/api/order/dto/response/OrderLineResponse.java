@@ -8,6 +8,8 @@ public record OrderLineResponse(
         String id,
         ProductId productId,
         VariantId variantId,
+        String productName,
+        String sku,
         int quantity,
         Money unitPrice,
         Money total

@@ -123,6 +123,8 @@ public class OrderDtoMapper {
                 line.id().toString(),
                 line.productId(),
                 line.variantId(),
+                line.productName(),
+                line.sku(),
                 line.quantity(),
                 line.unitPrice(),
                 line.total()

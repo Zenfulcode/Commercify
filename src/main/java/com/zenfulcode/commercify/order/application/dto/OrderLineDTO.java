@@ -11,6 +11,8 @@ import lombok.Builder;
 public record OrderLineDTO(OrderLineId id,
                            ProductId productId,
                            VariantId variantId,
+                           String productName,
+                           String sku,
                            int quantity,
                            Money unitPrice,
                            Money total,
@@ -21,6 +23,9 @@ public record OrderLineDTO(OrderLineId id,
                 .productId(orderLine.getProduct().getId())
                 .variantId(orderLine.getProductVariant() != null ?
                         orderLine.getProductVariant().getId() : null)
+                .productName(orderLine.getProduct().getName())
+                .sku(orderLine.getProductVariant() != null ?
+                        orderLine.getProductVariant().getSku() : null)
                 .quantity(orderLine.getQuantity())
                 .unitPrice(orderLine.getUnitPrice())
                 .total(orderLine.getTotal())
