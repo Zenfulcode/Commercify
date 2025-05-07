@@ -85,7 +85,7 @@ public class User extends AggregateRoot {
         user.lastName = Objects.requireNonNull(lastName, "Last name is required");
         user.password = Objects.requireNonNull(password, "Password is required");
         user.status = UserStatus.PENDING;
-        user.roles = new HashSet<>(roles != null ? roles : Set.of(UserRole.ROLE_USER));
+        user.roles = new HashSet<>(roles != null ? roles : Set.of(UserRole.USER));
         user.phoneNumber = phoneNumber;
 
         // Register domain event

@@ -56,7 +56,7 @@ public class AuthenticationApplicationService {
             email = "guest-" + System.currentTimeMillis() + "@commercify.com";
             password = UUID.randomUUID().toString();
 
-            CreateUserCommand createUserCommand = new CreateUserCommand(email, "Guest", "User", password, Set.of(UserRole.ROLE_GUEST), null);
+            CreateUserCommand createUserCommand = new CreateUserCommand(email, "Guest", "User", password, Set.of(UserRole.GUEST), null);
 
             userId = userApplicationService.createUser(createUserCommand);
         }

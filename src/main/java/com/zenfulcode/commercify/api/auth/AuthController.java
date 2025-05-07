@@ -76,13 +76,7 @@ public class AuthController {
 
     @PostMapping("/signin")
     public ResponseEntity<ApiResponse<AuthResponse>> login(@RequestBody LoginRequest request) {
-
-        System.out.println("Login request: " + request);
         AuthenticationResult result = authService.authenticate(request.toCommand());
-
-        System.out.println("Authentication result: " + result);
-
-
         AuthResponse response = AuthResponse.from(result);
         return ResponseEntity.ok(ApiResponse.success(response));
     }

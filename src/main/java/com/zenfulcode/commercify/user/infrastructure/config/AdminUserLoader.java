@@ -36,7 +36,7 @@ public class AdminUserLoader {
                     "User",
                     "Admin",
                     adminPassword,
-                    Set.of(UserRole.ROLE_ADMIN),
+                    Set.of(UserRole.ADMIN),
                     null
             );
 
