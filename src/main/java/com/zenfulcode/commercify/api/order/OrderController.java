@@ -58,6 +58,7 @@ public class OrderController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    // TODO: SUPER NOT SECURE AND NOT GOOD
     @GetMapping("/{orderId}")
     public ResponseEntity<ApiResponse<OrderDetailsResponse>> getOrder(
             @PathVariable String orderId,

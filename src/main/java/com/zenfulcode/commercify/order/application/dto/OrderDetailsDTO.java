@@ -21,7 +21,8 @@ public record OrderDetailsDTO(OrderId id,
                               CustomerDetails customerDetails,
                               Address shippingAddress,
                               Address billingAddress,
-                              Instant createdAt) {
+                              Instant createdAt,
+                              Instant updatedAt) {
     public static OrderDetailsDTO fromOrder(Order order) {
         return new OrderDetailsDTO(
                 order.getId(),
@@ -35,7 +36,8 @@ public record OrderDetailsDTO(OrderId id,
                 order.getOrderShippingInfo().toCustomerDetails(),
                 order.getOrderShippingInfo().toShippingAddress(),
                 order.getOrderShippingInfo().toBillingAddress(),
-                order.getCreatedAt()
+                order.getCreatedAt(),
+                order.getUpdatedAt()
         );
     }
 }
