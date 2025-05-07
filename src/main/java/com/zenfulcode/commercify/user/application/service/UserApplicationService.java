@@ -47,7 +47,7 @@ public class UserApplicationService {
 
     @Transactional
     public void registerUser(String firstName, String lastName, String email, String password, String phone) {
-        CreateUserCommand createUserCommand = new CreateUserCommand(email, firstName, lastName, password, Set.of(UserRole.USER), phone);
+        CreateUserCommand createUserCommand = new CreateUserCommand(email, firstName, lastName, password, Set.of(UserRole.ROLE_USER), phone);
 
         createUser(createUserCommand);
     }
