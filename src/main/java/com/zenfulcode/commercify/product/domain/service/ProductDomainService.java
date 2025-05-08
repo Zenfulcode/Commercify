@@ -186,6 +186,15 @@ public class ProductDomainService {
             }
         }
 
+        if (updateSpec.hasImageUrlUpdate()) {
+            if (updateSpec.imageUrl() == null || updateSpec.imageUrl().isBlank()) {
+                violations.add("Image URL cannot be empty");
+            } else {
+                // TODO: Validate image URL format
+                product.setImageUrl(updateSpec.imageUrl());
+            }
+        }
+
         // If there are any violations, throw an exception
         if (!violations.isEmpty()) {
             throw new ProductValidationException(violations);
