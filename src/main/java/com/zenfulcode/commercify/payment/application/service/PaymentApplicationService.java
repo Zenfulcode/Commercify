@@ -1,5 +1,6 @@
 package com.zenfulcode.commercify.payment.application.service;
 
+import com.zenfulcode.commercify.order.application.service.OrderApplicationService;
 import com.zenfulcode.commercify.payment.application.command.CapturePaymentCommand;
 import com.zenfulcode.commercify.payment.application.command.InitiatePaymentCommand;
 import com.zenfulcode.commercify.payment.application.dto.CaptureAmount;
@@ -31,6 +32,7 @@ public class PaymentApplicationService {
     private final PaymentProviderFactory providerFactory;
     private final DefaultDomainEventPublisher eventPublisher;
     private final WebhookHandler webhookHandler;
+    private final OrderApplicationService orderApplicationService;
 
     @Transactional
     public InitializedPayment initiatePayment(InitiatePaymentCommand command) {
@@ -79,6 +81,8 @@ public class PaymentApplicationService {
     // TODO: Make sure the capture currency is the same as the payment currency
     @Transactional
     public CapturedPayment capturePayment(CapturePaymentCommand command) {
+        orderApplicationService.canCaptureOrder(command.orderId());
+
         Payment payment = paymentDomainService.getPaymentByOrderId(command.orderId());
 
         Money captureAmount = command.captureAmount() == null ? payment.getAmount() : command.captureAmount();
