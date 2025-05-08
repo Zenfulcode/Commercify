@@ -57,8 +57,6 @@ public class AuthController {
 
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<UserProfileResponse>> getCurrentUser(@RequestHeader("Authorization") String authHeader) {
-        System.out.println("Authorization Header: " + authHeader);
-
         // Extract token using a domain service method
         String token = authService.extractTokenFromHeader(authHeader).orElseThrow(() -> new InvalidAuthenticationException("Invalid authorization header"));
 
