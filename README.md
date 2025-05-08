@@ -83,7 +83,7 @@ mvn spring-boot:run
 
 View and test the API endpoints in our Postman Workspace.
 
-[![Run in Postman](https://run.pstmn.io/button.svg)](https://www.postman.com/flight-physicist-84721578/workspace/commercify-backend)
+[![Run in Postman](https://run.pstmn.io/button.svg)](https://www.postman.com/zenfulcode/workspace/commercify-rest-api)
 
 ## Security
 
