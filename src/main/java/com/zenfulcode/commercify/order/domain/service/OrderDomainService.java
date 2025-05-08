@@ -155,4 +155,9 @@ public class OrderDomainService {
 
         return orderRepository.countOrders(start, end);
     }
+
+    public void canCaptureOrder(OrderId orderId) {
+        Order order = getOrderById(orderId);
+        validationService.validateStatusTransition(order, OrderStatus.COMPLETED);
+    }
 }

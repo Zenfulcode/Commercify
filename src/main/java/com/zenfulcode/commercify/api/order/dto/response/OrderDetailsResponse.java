@@ -14,6 +14,7 @@ public record OrderDetailsResponse(
         CustomerDetailsResponse customerDetails,
         AddressResponse shippingAddress,
         AddressResponse billingAddress,
-        Instant createdAt
+        Instant createdAt,
+        Instant updatedAt
 ) {
 }

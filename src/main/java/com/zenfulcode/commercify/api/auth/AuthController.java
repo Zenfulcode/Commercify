@@ -10,7 +10,9 @@ import com.zenfulcode.commercify.auth.application.service.AuthenticationResult;
 import com.zenfulcode.commercify.auth.domain.exception.InvalidAuthenticationException;
 import com.zenfulcode.commercify.auth.domain.model.AuthenticatedUser;
 import com.zenfulcode.commercify.shared.interfaces.ApiResponse;
+import com.zenfulcode.commercify.user.application.dto.response.UserProfileResponse;
 import com.zenfulcode.commercify.user.application.service.UserApplicationService;
+import com.zenfulcode.commercify.user.domain.model.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -24,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
     private final AuthenticationApplicationService authService;
     private final UserApplicationService userService;
+    private final UserApplicationService userApplicationService;
 
     @PostMapping("/nextauth")
     public ResponseEntity<ApiResponse<NextAuthResponse>> nextAuthSignIn(@RequestBody LoginRequest request) {
@@ -52,10 +55,26 @@ public class AuthController {
         }
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<UserProfileResponse>> getCurrentUser(@RequestHeader("Authorization") String authHeader) {
+        // Extract token using a domain service method
+        String token = authService.extractTokenFromHeader(authHeader).orElseThrow(() -> new InvalidAuthenticationException("Invalid authorization header"));
+
+        // Validate token through the application service
+        AuthenticatedUser authenticatedUser = authService.validateAccessToken(token);
+
+        // Fetch full user entity from the database
+        User user = userApplicationService.getUser(authenticatedUser.getUserId());
+
+        // Map to response DTO
+        UserProfileResponse response = UserProfileResponse.fromUser(user);
+
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
     @PostMapping("/signin")
     public ResponseEntity<ApiResponse<AuthResponse>> login(@RequestBody LoginRequest request) {
         AuthenticationResult result = authService.authenticate(request.toCommand());
-
         AuthResponse response = AuthResponse.from(result);
         return ResponseEntity.ok(ApiResponse.success(response));
     }

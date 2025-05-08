@@ -128,4 +128,8 @@ public class OrderApplicationService {
     public int countOrdersInPeriod(CountOrdersInPeriodQuery query) {
         return orderDomainService.countOrdersInPeriod(query.startDate(), query.endDate());
     }
+
+    public void canCaptureOrder(OrderId orderId) {
+        orderDomainService.canCaptureOrder(orderId);
+    }
 }

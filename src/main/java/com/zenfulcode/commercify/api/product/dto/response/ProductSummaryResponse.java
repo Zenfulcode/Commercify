@@ -8,6 +8,7 @@ public record ProductSummaryResponse(
         String description,
         String imageUrl,
         Money price,
-        int stock
+        int stock,
+        boolean isActive
 ) {
 }

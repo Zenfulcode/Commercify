@@ -64,6 +64,8 @@ public class AuthenticationApplicationService {
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
         AuthenticatedUser authenticatedUser = (AuthenticatedUser) authentication.getPrincipal();
 
+        User user = userApplicationService.getUser(userId);
+
         // Generate tokens
         String accessToken = tokenService.generateAccessToken(authenticatedUser);
         String refreshToken = tokenService.generateRefreshToken(authenticatedUser);
@@ -71,7 +73,7 @@ public class AuthenticationApplicationService {
         // Publish domain event
         eventPublisher.publish(new UserAuthenticatedEvent(this, userId, email, command.isGuest()));
 
-        return new AuthenticationResult(accessToken, refreshToken, authenticatedUser);
+        return new AuthenticationResult(accessToken, refreshToken, authenticatedUser, user);
     }
 
     @Transactional(readOnly = true)
@@ -93,7 +95,7 @@ public class AuthenticationApplicationService {
         String newAccessToken = tokenService.generateAccessToken(authenticatedUser);
         String newRefreshToken = tokenService.generateRefreshToken(authenticatedUser);
 
-        return new AuthenticationResult(newAccessToken, newRefreshToken, authenticatedUser);
+        return new AuthenticationResult(newAccessToken, newRefreshToken, authenticatedUser, user);
     }
 
     public Optional<String> extractTokenFromHeader(String authHeader) {

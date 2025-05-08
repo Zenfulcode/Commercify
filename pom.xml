@@ -194,7 +194,8 @@
                     <jsonLibrary>jackson2</jsonLibrary>
                     <outputKind>module</outputKind>
                     <classPatterns>
-                        <pattern>com.zenfulcode.commercify.api.**.dto.**</pattern>
+                        <!--                        <pattern>cﬁom.zenfulcode.commercify.api.*.dto.**</pattern>-->
+                        <pattern>com.zenfulcode.commercify.**.dto.**</pattern>
                     </classPatterns>
                 </configuration>
             </plugin>

@@ -5,6 +5,7 @@ import com.zenfulcode.commercify.shared.domain.model.Money;
 public record ProductUpdateSpec(
         String name,
         String description,
+        String imageUrl,
         Integer stock,
         Money price,
         Boolean active
@@ -27,5 +28,9 @@ public record ProductUpdateSpec(
 
     public boolean hasActiveUpdate() {
         return active != null;
+    }
+
+    public boolean hasImageUrlUpdate() {
+        return imageUrl != null;
     }
 }

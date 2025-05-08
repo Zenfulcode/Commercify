@@ -86,7 +86,8 @@ public class OrderDtoMapper {
                 toAddressResponse(dto.shippingAddress()),
                 dto.billingAddress() != null ?
                         toAddressResponse(dto.billingAddress()) : null,
-                dto.createdAt()
+                dto.createdAt(),
+                dto.updatedAt()
         );
     }
 

@@ -48,6 +48,7 @@ public class ProductDtoMapper {
         ProductUpdateSpec updateSpec = new ProductUpdateSpec(
                 request.name(),
                 request.description(),
+                request.imageUrl(),
                 request.stock(),
                 request.price(),
                 request.active()

@@ -41,7 +41,8 @@ public class ProductResponseMapper {
                 product.getDescription(),
                 product.getImageUrl(),
                 product.getPrice(),
-                product.getStock()
+                product.getStock(),
+                product.isActive()
         );
     }
 
